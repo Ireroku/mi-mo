@@ -12,7 +12,7 @@ OS: macOS, Windows
 ブラウザ: Firefox, Safari, Chromium
 
 ## どんな機能が必要か
-See: "./設計っぽい.md"
+See: "./README.md"
 
 
 
