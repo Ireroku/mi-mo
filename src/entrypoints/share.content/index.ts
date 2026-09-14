@@ -1,4 +1,4 @@
-import { NavbarManager } from "./menu/menu";
+import { MenuManager, type MenuConfig } from "./menu/menu";
 
 export default defineContentScript({
   // Set manifest options
@@ -9,9 +9,9 @@ export default defineContentScript({
   // cssInjectionMode: undefined | "manifest" | "manual" | "ui",
 
   main(ctx) {
-    // ナビゲーションバーの処理
-    const menuConfig = {
-      delete: [
+    // ナビゲーションメニューの処理
+    const menuConfig: MenuConfig = {
+      hidden: [
         "Office365",
         "Google",
         "eラーニング",
@@ -20,6 +20,7 @@ export default defineContentScript({
         "旧Moodle",
       ],
     };
-    const navbarManager = new NavbarManager();
+    const menuManager = new MenuManager();
+    menuManager.applyConfig(menuConfig);
   },
 });
