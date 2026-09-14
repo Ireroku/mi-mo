@@ -1,3 +1,21 @@
+# INFO
+## Stacks
+- pnpm
+- wxt
+- Svelte
+
+## 何を作っているか
+三重大学（ユーザの所属大学）のLearning Mangement SystemであるMoodle (4.5)のUIを変更するブラウザ拡張機能
+
+## 対象の環境
+OS: macOS, Windows
+ブラウザ: Firefox, Safari, Chromium
+
+## どんな機能が必要か
+See: "./設計っぽい.md"
+
+
+
 # RULES
 
 以下のルールは、実際にユーザがオンラインで指示を変更する場合は無視できますが、それ以外の場合は守ってください。
