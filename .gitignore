@@ -1,3 +1,7 @@
+# Agents
+docs/superpowers/
+.superpowers
+
 # Logs
 logs
 *.log
