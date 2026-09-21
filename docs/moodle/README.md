@@ -28,7 +28,7 @@ Moodle 実画面から採取した DOM 構造とセレクタを置く。実装�
 | ファイル | 対象URL | 参照する仕様書 |
 |---|---|---|
 | [`navbar.md`](./navbar.md) | 全ページ共通 | [`ui/menu.md`](../features/ui/menu.md) |
-| `home.md` | `/` と `/my/` の両方 | [`home/`](../features/home/) の5本 |
+| [`home.md`](./home.md) | `/` と `/my/` の両方 | [`home/`](../features/home/) の5本 |
 | `my-courses.md` | `/my/courses.php` | [`my-courses/`](../features/my-courses/) の3本 |
 | `course-page.md` | `/course/view.php?id=<id>` | [`course-page/`](../features/course-page/) の10本 |
 
@@ -42,6 +42,12 @@ Moodle 実画面から採取した DOM 構造とセレクタを置く。実装�
 - **PC表示とモバイル表示で構造が違う場合は両方書く。** Moodle はビューポート幅でマークアップが変わる
 - **どの機能がその要素を必要とするか**を併記する。後から読む人が採取意図を辿れる
 - 採取した HTML はそのまま貼らず、構造が分かる形に整形する
+
+### セレクタは一致数を確認してから書く
+
+書く前に `document.querySelectorAll(sel).length` で数える。**1件でなければ、そのセレクタでは特定できない。**
+
+Moodle は同じクラス名を複数箇所で使う。実例として、サイトホームの `div.simplesearchform` は3件あり、うち2件はサイト全体検索のフォーム。`#region-main` のような祖先で絞ると1件になる。
 
 ### 動的に生成されるIDを使わない
 
