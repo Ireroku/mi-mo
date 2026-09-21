@@ -104,7 +104,7 @@ pnpm dev:firefox
 - マイコース
   - [ ] [カレンダーと同期して「今日の授業順」で表示](./docs/features/my-courses/today-order.md)
   - [ ] [コース要素全体のどこをクリックしてもコースページが開くように改善](./docs/features/my-courses/clickable-card.md)
-  - [ ] [Enter キー不要のインクリメンタル検索](./docs/features/my-courses/incremental-search.md)
+  - [ ] [即座に絞り込む検索](./docs/features/my-courses/incremental-search.md)
 
 - コースページ
   - [ ] [よりモダンなパンくずリスト](./docs/features/course-page/breadcrumb.md)
