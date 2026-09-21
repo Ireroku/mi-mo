@@ -62,28 +62,30 @@ pnpm dev:firefox
 お気軽にどうぞ！
 
 ## 🚧 機能一覧・ロードマップ
+
+各機能の詳細は [docs/features/](./docs/features/) にあります。
+
 - UI
-  - [ ] シームレスに統合された拡張機能設定ボタン
-  - [ ] 上部メニュー要素の削除・追加
-    - [x] 時計の追加（PC表示のみ対応、モバイルドロワーは未対応。時刻・日付・曜日・時限の表示可否や秒表示は`src/features/menu/index.ts`内のコード設定で切替、GUI設定は未対応）
-    - [x] 設定可能な定期試験までの残り時間カウントダウン（汎用カウントダウン機能として実装、複数個配置可能。対象は`index.ts`でコード内設定、GUI設定は未対応。PC表示のみ対応）
-      - [x] 何日前から時間表示にし、何時間前から分刻み・秒刻みにするか任意に設定可能（15分/24時間/7日を境に秒・分・日+時間・日数の4段階で自動切替。閾値は現状固定値）
+  - [ ] [拡張機能の設定画面](./docs/features/ui/settings.md)
+  - [ ] [上部メニュー要素の削除・追加](./docs/features/ui/menu.md)
+    - [x] 時計の追加（PC表示のみ。設定はコード内固定）
+    - [x] 設定可能な定期試験までの残り時間カウントダウン（PC表示のみ。設定はコード内固定）
+      - [x] 何日前から時間表示にし、何時間前から分刻み・秒刻みにするか任意に設定可能（閾値は固定値）
     - [ ] ロゴの非表示
-  - [ ] フローティングヒントボタンの削除
-  - [ ] モダンな通知ウィンドウUI
-  - [ ] 右側のクイックドロワー
+  - [ ] [フローティングヒントボタンの削除](./docs/features/ui/floating-hint.md)
+  - [ ] [モダンな通知ウィンドウUI](./docs/features/ui/notification.md)
+  - [ ] [右側のクイックドロワー](./docs/features/ui/quick-drawer.md)
     - [ ] 削除可能に
     - [ ] 任意のコースのピン留め
-  - [ ] ログイン後に初めに表示するページを設定可能に
-  - [ ] 任意のフォントを読み出し設定可能に
+  - [ ] [ログイン後に初めに表示するページを設定可能に](./docs/features/ui/landing-page.md)
+  - [ ] [任意のフォントを読み出し設定可能に](./docs/features/ui/font.md)
 
 - ホーム
-  - [ ] 未ログイン時にログインコンポーネントを表示
-  - [ ] 最終ログイン時刻の表示
-  - [ ] 気さくな挨拶
+  - [ ] [未ログイン時にログインコンポーネントを表示](./docs/features/home/login-component.md)
+  - [ ] [最終ログイン時刻の表示](./docs/features/home/last-login.md)
+  - [ ] [気さくな挨拶](./docs/features/home/greeting.md)
     - [ ] ユーザ名を常に表示
-  - [ ] 一言コメント
-  - [ ] 時間割カレンダー
+  - [ ] [時間割カレンダー](./docs/features/home/timetable.md)
     - [ ] 自由に設定可能な時間割
     - [ ] クリック先のリンク設定（コースページ等に設定）
     - [ ] `.ics` でのエクスポート
@@ -94,27 +96,27 @@ pnpm dev:firefox
       - [ ] 代替日があっても正しく授業の回数を表示
     - [ ] 設定可能な色（白、黒、水色、ピンク、緑）
     - [ ] ダークモード対応
-  - [ ] 不要な要素の非表示化
+  - [ ] [不要な要素の非表示化](./docs/features/home/hide-elements.md)
     - [ ] お知らせ
     - [ ] コースカテゴリ
     - [ ] コース検索
 
 - マイコース
-  - [ ] カレンダーと同期して「今日の授業順」で表示
-  - [ ] コース要素全体のどこをクリックしてもコースページが開くように改善
-  - [ ] Enter キー不要のインクリメンタル検索
+  - [ ] [カレンダーと同期して「今日の授業順」で表示](./docs/features/my-courses/today-order.md)
+  - [ ] [コース要素全体のどこをクリックしてもコースページが開くように改善](./docs/features/my-courses/clickable-card.md)
+  - [ ] [Enter キー不要のインクリメンタル検索](./docs/features/my-courses/incremental-search.md)
 
 - コースページ
-  - [ ] よりモダンなパンくずリスト
-  - [ ] コースセクションの一括開閉ボタンのデザインを美しく
-  - [ ] コースインデックスの一括開閉ボタンをトグルに変更
-  - [ ] コースと評定を一括表示可能に
-  - [ ] コースセクションのタイトルがリンクであることを強調
-  - [ ] autoattend による出席リンクをボタンにし、コースの最上部またはフローティングUIに変更可能に
-  - [ ] autoattend の出席数と現在の出席率を常時表示
-  - [ ] コースセクションの要素を Markdown / テキストでダウンロード（一括ダウンロード）
-  - [ ] コースセクションの PDF 等のファイルを一括ダウンロード
-  - [ ] コースセクションの順序を逆転して表示
+  - [ ] [よりモダンなパンくずリスト](./docs/features/course-page/breadcrumb.md)
+  - [ ] [コースセクションの一括開閉ボタンのデザインを美しく](./docs/features/course-page/section-toggle-design.md)
+  - [ ] [コースインデックスの一括開閉ボタンをトグルに変更](./docs/features/course-page/index-toggle.md)
+  - [ ] [コースと評定を一括表示可能に](./docs/features/course-page/grade-inline.md)
+  - [ ] [コースセクションのタイトルがリンクであることを強調](./docs/features/course-page/section-title-link.md)
+  - [ ] [autoattend による出席リンクをボタンにし、コースの最上部またはフローティングUIに変更可能に](./docs/features/course-page/autoattend-button.md)
+  - [ ] [autoattend の出席数と現在の出席率を常時表示](./docs/features/course-page/autoattend-stats.md)
+  - [ ] [コースセクションの要素を Markdown / テキストでダウンロード（一括ダウンロード）](./docs/features/course-page/export-markdown.md)
+  - [ ] [コースセクションの PDF 等のファイルを一括ダウンロード](./docs/features/course-page/bulk-download.md)
+  - [ ] [コースセクションの順序を逆転して表示](./docs/features/course-page/reverse-sections.md)
 
 - 配布・ストア公開
   - [ ] Firefox Add-ons ストアへの公開
