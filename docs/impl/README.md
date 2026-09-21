@@ -162,6 +162,12 @@ Tailwind CSS v4（`@tailwindcss/vite`）を使う。グローバルCSSは `src/a
 
 対応する指示書がまだ無い場合は「実装」セクションごと省く。「未着手」などと書かない。実装状況の記載はリポジトリ直下の README.md だけが持つ。
 
-## モジュール関連図
+## モジュール一覧と関連
 
-指示書が増えるたびに更新する。
+新しくモジュールを作る場合、まずここで既存のものを確認する。再発明を避けるため。
+
+| 指示書 | 対象 | 主な関連 |
+|---|---|---|
+| [`menu/navbar.md`](./menu/navbar.md) | `src/features/menu/navbar/` | 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
+
+指示書が3本を超えた時点で mermaid の関連図へ切り替える。
