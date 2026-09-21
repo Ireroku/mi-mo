@@ -1,16 +1,10 @@
-# Navbar
-Moodleのトップバー（PC）やドロワー（モバイル）など、ナビゲーションメニューの要素を操作する。  
+# Moodle ナビゲーションバー
 
-## 目的
-Moodle側がどうであれ、固定された方法でナビゲーションメニューの要素に対して追加・削除等の操作を行えるよう、抽象化する。  
+Moodle 4.5 のナビゲーションメニューのDOM構造リファレンス。実画面から採取したもの。
 
-## ファイル
-```plaintext
-- drawer.dom.ts: モバイル時のナビゲーションメニューを抽象化
-- primaryNav.dom.ts: PC時のナビゲーションメニューを抽象化
-- types.ts: 全体で使用する型
-- menu.manager.ts: ナビゲーションメニュー全体を抽象化して操作可能にする
-```
+PC表示のトップバー（`nav.navbar`）とモバイル表示のドロワー（`#theme_boost-drawers-primary`）でマークアップが異なるため、両方を記載する。
+
+このDOMを操作するモジュールの指示書は [`docs/impl/menu/navbar.md`](../impl/menu/navbar.md)。
 
 ## ナビゲーションバーについて
 セレクタ：`nav.navbar`

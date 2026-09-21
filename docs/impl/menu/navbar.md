@@ -140,6 +140,7 @@ new MenuManager().applyConfig(config);
 ### アダプター共通
 
 - コンテナはコンストラクタで取得する。以後は `isConnected` が false になった時点で取り直す
+- `isReady` はコンテナの再取得を伴う。単なる状態の読み取りではない
 - `hideItem` / `insertItem` はコンテナを取得できなければ false を返す
 
 ### NavbarAdapter
@@ -194,9 +195,9 @@ new MenuManager().applyConfig(config);
 
 | | NavbarAdapter | DrawerAdapter |
 |---|---|---|
-| 入れ子を持つ要素 | `.dropdown-menu` を内包する場合、主リンク（`:scope > a, a.nav-link, a`）のみを照合対象にする | `.collapse` クラスを持つ要素そのものは照合対象外 |
+| 入れ子を持つ要素 | `.dropdown-menu` を内包する場合、主リンク（`:scope > a, a.nav-link, a`）のみを照合対象にする。内包しない場合は要素内の全 `<a>` の href を照合する | `.collapse` クラスを持つ要素そのものは照合対象外 |
 | href の除外 | なし | `#` または `#` 始まりの href は照合しない |
-| テキストの正規化 | ドロップダウンでは主リンクのテキストのみ使う | `.collapse` / `.sr-only` / `.visually-hidden` を除いたクローンから取得し、「折りたたむ」「展開する」を除去してから比較する |
+| テキストの正規化 | ドロップダウンでは主リンクのテキストのみ使う | 子要素を持たない場合は `textContent` をそのまま使う。持つ場合は `.collapse` / `.sr-only` / `.visually-hidden` を除いたクローンから取得し、「折りたたむ」「展開する」を除去してから比較する |
 
 ## 決めごと
 
