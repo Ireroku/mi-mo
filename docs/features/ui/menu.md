@@ -66,3 +66,5 @@ Moodle の全ページ。ナビゲーションメニューは共通して表示�
 ## 実装
 
 - [`docs/impl/menu/navbar.md`](../../impl/menu/navbar.md) — 項目の削除・追加
+- [`docs/impl/menu/clock.md`](../../impl/menu/clock.md) — 時計
+- [`docs/impl/menu/countdownBadge.md`](../../impl/menu/countdownBadge.md) — カウントダウン

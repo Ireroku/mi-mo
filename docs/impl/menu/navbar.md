@@ -33,6 +33,8 @@ flowchart TD
 ## 関連
 
 - 資料: [`docs/moodle/navbar.md`](../../moodle/navbar.md) — 操作対象のDOM構造とセレクタ。アダプターを触る前に読む
+- 参考: [`clock.md`](./clock.md) — 同じナビゲーションメニューに載るバッジ。あちらは Shadow DOM へ Svelte を注入する別方式
+- 参考: [`countdownBadge.md`](./countdownBadge.md) — 同上
 
 ## 対象ファイル
 
