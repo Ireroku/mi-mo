@@ -1,6 +1,7 @@
 // document_start で動くもの。描画前に CSS を注入するものなど
 import { applyHideElements } from "@/features/home/hideElements";
-import { homeHideElementsSetting } from "@/utils/settings";
+import { applyMenuLogo } from "@/features/menu/logo";
+import { homeHideElementsSetting, menuLogoSetting } from "@/utils/settings";
 import { applySectionTitleLink } from "@/features/coursePage/sectionTitleLink";
 import { applySectionToggleDesign } from "@/features/coursePage/sectionToggleDesign";
 import { applyClickableCard } from "@/features/myCourses/clickableCard";
@@ -10,8 +11,12 @@ export default defineContentScript({
   matches: ["*://lms-m41.mie-u.ac.jp/*"],
   runAt: "document_start",
   async main() {
-    const config = await homeHideElementsSetting.getValue();
-    applyHideElements(config);
+    const [homeHideElements, menuLogo] = await Promise.all([
+      homeHideElementsSetting.getValue(),
+      menuLogoSetting.getValue(),
+    ]);
+    applyHideElements(homeHideElements);
+    applyMenuLogo(menuLogo);
     applySectionTitleLink();
     applySectionToggleDesign();
     applyClickableCard();

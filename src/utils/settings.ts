@@ -4,6 +4,7 @@ import { storage } from "wxt/utils/storage";
 import type { HideElementsConfig } from "@/features/home/hideElements";
 import type { MenuBadgesConfig } from "@/features/menu";
 import type { MenuConfig } from "@/features/menu/navbar/types";
+import type { MenuLogoConfig } from "@/features/menu/logo";
 import type { CourseRef } from "@/moodle/courseList";
 
 export const homeHideElementsSetting = storage.defineItem<HideElementsConfig>(
@@ -63,4 +64,9 @@ export interface CourseListCache {
 export const courseListCacheSetting = storage.defineItem<CourseListCache>(
   "local:moodle.courseList",
   { fallback: { courses: [], updatedAt: "" } },
+);
+
+export const menuLogoSetting = storage.defineItem<MenuLogoConfig>(
+  "local:menu.logo",
+  { fallback: { hidden: false } },
 );
