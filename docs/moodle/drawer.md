@@ -127,6 +127,67 @@
 
 クイックドロワー機能（ドロワーの削除・コースのピン留め）はこの左ドロワーを対象としないため、詳細な内部構造は採取していない。
 
+## コースインデックスのセクションの開閉状態
+
+[`index-toggle.md`](../features/course-page/index-toggle.md) が必要とする状態。同じ機能が使う一括開閉の2リンク（`expandallcourseindexsections` / `collapseallcourseindexsections`）自体は [`course-page.md`](./course-page.md) の「コースインデックスの一括開閉ボタン」節に採取済み。2つを1つのトグルへまとめるには、押した時点で全体が開いているか閉じているかを判定する手段が要る。ここではその判定方法だけを補う。
+
+採取に使ったコース：コンパイラ(2026年度)（id=2163、セクション17件）。
+
+### 開閉状態が現れる要素
+
+セレクタ：`#course-index [data-for="section"]`（17件、コースのセクション数と一致）
+
+各セクションの `div[data-for="section"]` 自身に `aria-expanded` 属性が付く。開いていれば `"true"`、閉じていれば `"false"`。**`class` は開閉で変化しない**（常に `courseindex-section` のまま）。
+
+`collapsed` クラスが付くのは子要素の `a.courseindex-chevron`（開閉トグルのシェブロンアイコン）で、`div[data-for="section"]` 自身には付かない。
+
+```html
+<!-- 閉じた状態 -->
+<div class="courseindex-section  " data-for="section" data-id="28081" aria-expanded="false" ...>
+  <div class="courseindex-item d-flex ... courseindex-section-title" data-for="section_item">
+    <a data-toggle="collapse" class="courseindex-chevron icons-collapse-expand collapsed"
+       aria-expanded="false" aria-controls="courseindexcollapse0" href="#courseindexcollapse0">...</a>
+    ...
+  </div>
+</div>
+```
+
+セクション本文を包む `div#courseindexcollapse<n>`（Bootstrap の collapse コンポーネント）も `show` クラスの有無で開閉に追随する。
+
+### 3状態での件数
+
+| 状態 | `[aria-expanded="true"]` | `[aria-expanded="false"]` | `.courseindex-chevron.collapsed` | `[id^="courseindexcollapse"].show` |
+|---|---|---|---|---|
+| 初期状態（ページを開いた直後） | 17 | 0 | 0 | 17 |
+| 「すべてを展開する」実行後 | 17 | 0 | 0 | 17 |
+| 「すべてを折りたたむ」実行後 | 0 | 17 | 17 | 0 |
+
+（`[aria-expanded="..."]` の対象はいずれも `#course-index [data-for="section"]`。`.courseindex-chevron.collapsed` と `[id^="courseindexcollapse"].show` の対象は `#course-index` 配下全体）
+
+初期状態は全開。コンパイラ(2026年度) を開いた直後、17セクションすべてが `aria-expanded="true"` だった。「すべてを展開する」実行後に変化が無いのは、既に全開だったため。
+
+### 全体の開閉を1つのセレクタで判定できる
+
+`document.querySelectorAll('#course-index [data-for="section"][aria-expanded="false"]').length` で、閉じているセクションの数を数える。0件なら全開、セクション総数と同じなら全閉と判定できる。
+
+### 混在状態（一部だけ手動で開閉した場合）
+
+全折りたたみの状態から、セクション0とセクション3のシェブロンだけを個別にクリックし、残り15件を閉じたまま確認した。
+
+- `[aria-expanded="true"]` が2件、`[aria-expanded="false"]` が15件になった。各セクションの `aria-expanded` はそのセクション単独の開閉状態をそのまま反映し、他のセクションの開閉には連動しない
+- 混在状態でもオプションドロップダウンの2リンク（`expandallcourseindexsections` / `collapseallcourseindexsections`）は両方 DOM に残ったまま。状態に応じて片方を隠す・無効化するような挙動は無い
+
+混在時にトグルをどちらへ倒すか（1件でも閉じていれば「展開」扱いにするか、1件でも開いていれば「折りたたみ」扱いにするか）は、この採取だけでは決まらない。件数を数える上記のセレクタを使えば、どちらの基準でも実装できる。
+
+### `#courseindexdrawercontrolsmenubutton`（オプションボタン）自身の状態
+
+`aria-expanded` 属性を持つが、これはドロップダウンメニュー自体の開閉（開いていれば `"true"`）を示すもので、セクションの開閉状態とは無関係。初期状態・全展開後・全折りたたみ後のいずれでも値は `"false"`（メニューを閉じている間）のまま変化しなかった。セクションの開閉状態を読み取る用途には使えない。
+
+### 未確認
+
+- モバイル表示でのコースインデックス開閉状態は未確認。冒頭の「未確認」節にある採取環境の制約（`resize_window` を使っても `window.innerWidth` が変わらない）と同じ理由
+- 17件以外のセクション数、format-weeks 以外のコースフォーマットでも同じ挙動になるかは未確認。コンパイラ(2026年度)（format-weeks、17セクション）1コースのみで確認した
+
 ## 未確認
 
 - **モバイル表示は未確認。** [`home.md`](./home.md) と同じ理由で、`resize_window` を使っても採取環境の `window.innerWidth` が変わらず、ビューポート幅を変えて再採取できなかった

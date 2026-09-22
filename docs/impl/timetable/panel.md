@@ -7,31 +7,19 @@
 ## 関連
 
 - 使う: [`./schedule.md`](./schedule.md) — 実日程と回数。表示する値はすべてここから受け取る
-- 使う: [`../moodle/page.md`](../moodle/page.md) — サイトホームとダッシュボードの判定
+- 使う: [`../home/container.md`](../home/container.md) — ホームへ差し込む器。ページ種別ごとの差し込み先はあちらが持つ
 - 使う: [`../utils/periods.md`](../utils/periods.md) — 時限の番号と時刻
-- 資料: [`../../moodle/home.md`](../../moodle/home.md) — 2つのページそれぞれの差し込み先
 - 参考: [`../menu/clock.md`](../menu/clock.md) — `createShadowRootUi` でバッジを差し込む書き方
 
 ## 対象ファイル
 
 | パス | 役割 |
 |---|---|
-| `src/features/timetable/index.ts` | 設定を受け取り、差し込み先を探してマウントする |
-| `src/features/timetable/mount.dom.ts` | ページ種別ごとの差し込み先 |
+| `src/features/timetable/index.ts` | 設定を受け取り、器を取ってマウントする |
 | `src/features/timetable/Timetable.svelte` | 週の表の描画 |
 | `src/entrypoints/shared.content.ts` | 設定を読み、初期化を呼ぶ |
 
 ## インターフェース
-
-```ts
-// src/features/timetable/mount.dom.ts
-export interface TimetableMountPoint {
-  anchor: string;
-  append: "before" | "first";
-}
-
-export function findMountPoint(): TimetableMountPoint | undefined;
-```
 
 ```ts
 // src/features/timetable/index.ts
@@ -80,18 +68,9 @@ export const timetableSetting = storage.defineItem<TimetableConfig>(
 
 ## 処理の流れ
 
-### findMountPoint
-
-[`../moodle/page.md`](../moodle/page.md) の判定を使い、次を返す。どちらでもない場合は `undefined`。
-
-| ページ | anchor | append |
-|---|---|---|
-| サイトホーム | `#region-main div.course-content` | `before` |
-| ダッシュボード | `#block-region-content` | `first` |
-
 ### initTimetable
 
-1. `findMountPoint()` を呼ぶ。`undefined` なら何もせず戻る
+1. `ensureHomeContainer()` を呼ぶ。`undefined` なら何もせず戻る
 2. `buildSchedule(config, periods)` で実日程を組み立てる
 3. `createShadowRootUi` で `Timetable.svelte` をマウントする
 
@@ -99,8 +78,8 @@ export const timetableSetting = storage.defineItem<TimetableConfig>(
 |---|---|
 | `name` | `mimo-timetable` |
 | `position` | `inline` |
-| `anchor` | `findMountPoint()` の `anchor` |
-| `append` | `findMountPoint()` の `append` |
+| `anchor` | `ensureHomeContainer()` の戻り値 |
+| `append` | `last` |
 
 ### Timetable.svelte
 
@@ -127,7 +106,7 @@ export const timetableSetting = storage.defineItem<TimetableConfig>(
 ## 決めごと
 
 - **サイトホームとダッシュボードの両方に出す。** 仕様書の対象が「ホーム」で、Moodle ではこの2つが別ページにあたる。どちらを開いても同じものが見えるようにする
-- **差し込み先の違いを `mount.dom.ts` に閉じ込める。** 表示側はどのページに出ているかを知らない
+- **差し込み先を自分で探さず、[`../home/container.md`](../home/container.md) の器へ入れる。** 挨拶と前回アクセスも同じ場所へ出るため、それぞれが Moodle の DOM へ割り込むと並び順が定まらない。表示側はどのページに出ているかを知らないままで済む
 - **`createShadowRootUi` を使い、Moodle の CSS から隔離する。** Moodle 側の表のスタイルが当たると、行の高さや罫線が崩れる
 - **表示するのは今週だけにする。** 前後の週へ送る操作は仕様書に無い。学期全体は `.ics` へ書き出して他のアプリで見る形にする
 - **回数は表示している週の回数を出す。** 「次に何回目か」ではなく、そのセルが指す授業が何回目かを出す

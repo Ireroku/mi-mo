@@ -17,3 +17,7 @@
 ## 設定項目
 
 なし。
+
+## 実装
+
+- [`docs/impl/home/lastAccess.md`](../../impl/home/lastAccess.md)

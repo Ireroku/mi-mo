@@ -21,3 +21,7 @@ Moodle 4.5 はログイン直後に「こんにちは、<ユーザー名>！」�
 ## 設定項目
 
 挨拶の文面。
+
+## 実装
+
+- [`docs/impl/home/greeting.md`](../../impl/home/greeting.md)
