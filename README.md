@@ -108,10 +108,10 @@ pnpm dev:firefox
 
 - コースページ
   - [ ] [よりモダンなパンくずリスト](./docs/features/course-page/breadcrumb.md)
-  - [ ] [コースセクションの一括開閉ボタンのデザインを美しく](./docs/features/course-page/section-toggle-design.md)
+  - [x] [コースセクションの一括開閉ボタンのデザインを美しく](./docs/features/course-page/section-toggle-design.md)
   - [ ] [コースインデックスの一括開閉ボタンをトグルに変更](./docs/features/course-page/index-toggle.md)
   - [ ] [コースと評定を一括表示可能に](./docs/features/course-page/grade-inline.md)
-  - [ ] [コースセクションのタイトルがリンクであることを強調](./docs/features/course-page/section-title-link.md)
+  - [x] [コースセクションのタイトルがリンクであることを強調](./docs/features/course-page/section-title-link.md)
   - [ ] [autoattend による出席リンクをボタンにし、コースの最上部またはフローティングUIに変更可能に](./docs/features/course-page/autoattend-button.md)
   - [ ] [autoattend の出席数と現在の出席率を常時表示](./docs/features/course-page/autoattend-stats.md)
   - [ ] [コースセクションの要素を Markdown / テキストでダウンロード（一括ダウンロード）](./docs/features/course-page/export-markdown.md)
