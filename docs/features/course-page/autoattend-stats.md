@@ -17,3 +17,7 @@ autoattend が設置されたコースページ。
 ## 設定項目
 
 表示するかどうか。
+
+## 実装
+
+- [`docs/impl/coursePage/autoattendStats.md`](../../impl/coursePage/autoattendStats.md)

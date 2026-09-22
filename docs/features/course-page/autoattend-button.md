@@ -19,3 +19,7 @@ autoattend が設置されたコースページ。
 ## 設定項目
 
 ボタンの配置（コース最上部 / フローティング）。
+
+## 実装
+
+- [`docs/impl/coursePage/autoattendButton.md`](../../impl/coursePage/autoattendButton.md)

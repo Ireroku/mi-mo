@@ -15,3 +15,7 @@
 ## 設定項目
 
 なし。
+
+## 実装
+
+- [`docs/impl/ui/breadcrumb.md`](../../impl/ui/breadcrumb.md)

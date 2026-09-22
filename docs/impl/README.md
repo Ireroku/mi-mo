@@ -263,6 +263,9 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`coursePage/sectionToggleDesign.md`](./coursePage/sectionToggleDesign.md) | `src/features/coursePage/sectionToggleDesign.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`ui/floatingHint.md`](./ui/floatingHint.md) | `src/features/ui/floatingHint.ts` | 使う: styleSheet ／ 資料: [`../moodle/common.md`](../moodle/common.md) |
 | [`ui/quickDrawer.md`](./ui/quickDrawer.md) | `src/features/ui/quickDrawer.ts` | 使う: styleSheet ／ moodle/courseList ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
+| [`ui/breadcrumb.md`](./ui/breadcrumb.md) | `src/features/ui/breadcrumb.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
+| [`coursePage/autoattendButton.md`](./coursePage/autoattendButton.md) | `src/features/coursePage/autoattendButton.*` | 使う: moodle/page ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
+| [`coursePage/autoattendStats.md`](./coursePage/autoattendStats.md) | `src/features/coursePage/autoattendStats.*` | 使う: moodle/page ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`myCourses/clickableCard.md`](./myCourses/clickableCard.md) | `src/features/myCourses/clickableCard.ts` | 使う: styleSheet ／ 資料: [`../moodle/my-courses.md`](../moodle/my-courses.md) |
 | [`myCourses/incrementalSearch.md`](./myCourses/incrementalSearch.md) | `src/features/myCourses/incrementalSearch.ts` | 使う: moodle/page ／ styleSheet |
 | [`timetable/schedule.md`](./timetable/schedule.md) | `src/features/timetable/schedule.logic.ts` | 使う: utils/periods ／ 実日程と回数の計算 |
