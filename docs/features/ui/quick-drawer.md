@@ -26,3 +26,8 @@ Moodle の右側に表示されるドロワーに対して、2つの操作を行
 
 - ドロワーを隠すかどうか
 - ピン留めするコース
+
+## 実装
+
+- [`docs/impl/ui/quickDrawer.md`](../../impl/ui/quickDrawer.md)
+- [`docs/impl/moodle/courseList.md`](../../impl/moodle/courseList.md)

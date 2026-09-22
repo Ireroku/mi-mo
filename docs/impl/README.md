@@ -260,7 +260,11 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`home/hideElements.md`](./home/hideElements.md) | `src/features/home/hideElements.ts` | 資料: [`../moodle/home.md`](../moodle/home.md) |
 | [`coursePage/reverseSections.md`](./coursePage/reverseSections.md) | `src/features/coursePage/reverseSections.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/sectionTitleLink.md`](./coursePage/sectionTitleLink.md) | `src/features/coursePage/sectionTitleLink.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
+| [`coursePage/sectionToggleDesign.md`](./coursePage/sectionToggleDesign.md) | `src/features/coursePage/sectionToggleDesign.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
+| [`ui/floatingHint.md`](./ui/floatingHint.md) | `src/features/ui/floatingHint.ts` | 使う: styleSheet ／ 資料: [`../moodle/common.md`](../moodle/common.md) |
+| [`ui/quickDrawer.md`](./ui/quickDrawer.md) | `src/features/ui/quickDrawer.ts` | 使う: styleSheet ／ moodle/courseList ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
 | [`myCourses/clickableCard.md`](./myCourses/clickableCard.md) | `src/features/myCourses/clickableCard.ts` | 使う: styleSheet ／ 資料: [`../moodle/my-courses.md`](../moodle/my-courses.md) |
+| [`myCourses/incrementalSearch.md`](./myCourses/incrementalSearch.md) | `src/features/myCourses/incrementalSearch.ts` | 使う: moodle/page ／ styleSheet |
 | [`timetable/schedule.md`](./timetable/schedule.md) | `src/features/timetable/schedule.logic.ts` | 使う: utils/periods ／ 実日程と回数の計算 |
 | [`timetable/panel.md`](./timetable/panel.md) | `src/features/timetable/` | 使う: timetable/schedule ／ moodle/page |
 | [`timetable/ics.md`](./timetable/ics.md) | `src/features/timetable/ics.ts` | 使う: timetable/schedule ／ utils/periods |
@@ -272,5 +276,6 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`utils/styleSheet.md`](./utils/styleSheet.md) | `src/utils/styleSheet.ts` | 参考: [`home/hideElements.md`](./home/hideElements.md) |
 | [`utils/theme.md`](./utils/theme.md) | `src/utils/theme.ts` | 資料: [`../../src/assets/global.css`](../../src/assets/global.css) |
 | [`moodle/page.md`](./moodle/page.md) | `src/moodle/page.ts` | 資料: [`../moodle/`](../moodle/) の各ページ |
+| [`moodle/courseList.md`](./moodle/courseList.md) | `src/moodle/courseList.ts` | 資料: [`../moodle/drawer.md`](../moodle/drawer.md) ／ 使う: utils/settings |
 
 一覧はテーブルのまま保つ。ここを開く目的が「既にあるものを探す」ことなので、名前の探しやすさを優先する。依存関係が言葉で追えなくなった時点で、テーブルへ mermaid の関連図を併記する。

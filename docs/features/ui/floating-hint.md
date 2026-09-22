@@ -15,3 +15,7 @@ Moodle が画面隅に重ねて表示するヒント用のフローティング�
 ## 設定項目
 
 隠すかどうかの切り替え。
+
+## 実装
+
+- [`docs/impl/ui/floatingHint.md`](../../impl/ui/floatingHint.md)
