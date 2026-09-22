@@ -281,6 +281,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`coursePage/autoattendButton.md`](./coursePage/autoattendButton.md) | `src/features/coursePage/autoattendButton.*` | 使う: moodle/page ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/autoattendStats.md`](./coursePage/autoattendStats.md) | `src/features/coursePage/autoattendStats.*` | 使う: moodle/page ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/indexToggle.md`](./coursePage/indexToggle.md) | `src/features/coursePage/indexToggle.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
+| [`coursePage/gradeInline.md`](./coursePage/gradeInline.md) | `src/features/coursePage/gradeInline.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/grade.md`](../moodle/grade.md) |
 | [`coursePage/exportMarkdown.md`](./coursePage/exportMarkdown.md) | `src/features/coursePage/exportMarkdown.*` | 使う: moodle/page ／ utils/download |
 | [`coursePage/bulkDownload.md`](./coursePage/bulkDownload.md) | `src/features/coursePage/bulkDownload.ts` | 使う: moodle/page ／ utils/download |
 | [`myCourses/clickableCard.md`](./myCourses/clickableCard.md) | `src/features/myCourses/clickableCard.ts` | 使う: styleSheet ／ 資料: [`../moodle/my-courses.md`](../moodle/my-courses.md) |

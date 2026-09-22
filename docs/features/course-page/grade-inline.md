@@ -15,3 +15,7 @@
 ## 設定項目
 
 評定を表示するかどうか。
+
+## 実装
+
+- [`docs/impl/coursePage/gradeInline.md`](../../impl/coursePage/gradeInline.md)

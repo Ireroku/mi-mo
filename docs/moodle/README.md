@@ -34,6 +34,7 @@ Moodle 実画面から採取した DOM 構造とセレクタを置く。実装�
 | [`home.md`](./home.md) | `/` と `/my/` の両方 | [`home/`](../features/home/) の5本 |
 | [`my-courses.md`](./my-courses.md) | `/my/courses.php` | [`my-courses/`](../features/my-courses/) の3本 |
 | [`course-page.md`](./course-page.md) | `/course/view.php?id=<id>` | [`course-page/`](../features/course-page/) の10本 |
+| [`grade.md`](./grade.md) | `/grade/report/user/index.php?id=<id>` | [`course-page/grade-inline.md`](../features/course-page/grade-inline.md) |
 
 コースページは2種類を見る。autoattend を含まない一般的なコースと、含むコース。autoattend 系2機能は後者でしか採取できない。
 
