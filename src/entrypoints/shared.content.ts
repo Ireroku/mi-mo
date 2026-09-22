@@ -3,6 +3,7 @@ import "@/assets/global.css";
 import { initMenu, initMenuBadges } from "@/features/menu";
 import { readCourseList } from "@/moodle/courseList";
 import { initIndexToggle } from "@/features/coursePage/indexToggle";
+import { initIncrementalSearch } from "@/features/myCourses/incrementalSearch";
 import {
   menuSetting,
   menuBadgesSetting,
@@ -32,5 +33,6 @@ export default defineContentScript({
     }
 
     await initIndexToggle(ctx);
+    initIncrementalSearch();
   },
 });
