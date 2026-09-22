@@ -17,6 +17,7 @@ export default defineConfig({
   }),
   manifest: {
     // wxt/utils/storage が browser.storage.local を使う。WXT は自動検出しない
-    permissions: ['storage'],
+    // downloads API は background で使用
+    permissions: ['storage', 'downloads'],
   },
 });
