@@ -66,7 +66,7 @@ pnpm dev:firefox
 各機能の詳細は [docs/features/](./docs/features/) にあります。
 
 - UI
-  - [ ] [拡張機能の設定画面](./docs/features/ui/settings.md)
+  - [x] [拡張機能の設定画面](./docs/features/ui/settings.md)
   - [x] [上部メニュー要素の削除・追加](./docs/features/ui/menu.md)
     - [x] メニュー項目の非表示・追加（設定はコード内固定。モバイル表示は未検証）
     - [x] 時計の追加（PC表示のみ。設定はコード内固定）
