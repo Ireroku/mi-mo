@@ -85,24 +85,24 @@ pnpm dev:firefox
   - [x] [最終ログイン時刻の表示](./docs/features/home/last-login.md)
   - [x] [気さくな挨拶](./docs/features/home/greeting.md)
     - [x] ユーザ名を常に表示
-  - [ ] [時間割カレンダー](./docs/features/home/timetable.md)
-    - [ ] 自由に設定可能な時間割
-    - [ ] クリック先のリンク設定（コースページ等に設定）
-    - [ ] `.ics` でのエクスポート
-    - [ ] 変則的な予定の一括設定
-      - [ ] 休みの設定
-      - [ ] 休みの代替日の入れ替え設定
-    - [ ] 授業の週の表示
-      - [ ] 代替日があっても正しく授業の回数を表示
-    - [ ] 設定可能な色（白、黒、水色、ピンク、緑）
-    - [ ] ダークモード対応
+  - [x] [時間割カレンダー](./docs/features/home/timetable.md)
+    - [x] 自由に設定可能な時間割
+    - [x] クリック先のリンク設定（コースページ等に設定）
+    - [x] `.ics` でのエクスポート
+    - [x] 変則的な予定の一括設定
+      - [x] 休みの設定
+      - [x] 休みの代替日の入れ替え設定
+    - [x] 授業の週の表示
+      - [x] 代替日があっても正しく授業の回数を表示
+    - [x] 設定可能な色（白、黒、水色、ピンク、緑）
+    - [x] ダークモード対応
   - [x] [不要な要素の非表示化](./docs/features/home/hide-elements.md)（設定はコード内固定）
     - [x] お知らせ
     - [x] コースカテゴリ
     - [x] コース検索
 
 - マイコース
-  - [ ] [カレンダーと同期して「今日の授業順」で表示](./docs/features/my-courses/today-order.md)
+  - [x] [カレンダーと同期して「今日の授業順」で表示](./docs/features/my-courses/today-order.md)
   - [x] [コース要素全体のどこをクリックしてもコースページが開くように改善](./docs/features/my-courses/clickable-card.md)
   - [x] [即座に絞り込む検索](./docs/features/my-courses/incremental-search.md)
 

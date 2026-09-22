@@ -17,6 +17,9 @@ import type { AutoattendStatsConfig } from "@/features/coursePage/autoattendStat
 import type { GradeInlineConfig } from "@/features/coursePage/gradeInline";
 import type { ExportConfig } from "@/features/coursePage/exportMarkdown";
 import type { CourseRef } from "@/moodle/courseList";
+import type { PeriodTableConfig } from "@/utils/periods";
+import type { TimetableConfig } from "@/features/timetable/types";
+import type { TodayOrderConfig } from "@/features/myCourses/todayOrder";
 
 export const homeHideElementsSetting = storage.defineItem<HideElementsConfig>(
   "local:home.hideElements",
@@ -152,4 +155,47 @@ export const coursePageExportSetting = storage.defineItem<ExportConfig>(
   "local:coursePage.export",
   { fallback: { enabled: true, format: "markdown" } },
 );
+
+export const periodTableSetting = storage.defineItem<PeriodTableConfig>(
+  "local:periods.table",
+  {
+    fallback: {
+      periods: [
+        { period: 1, start: "09:00", end: "10:30" },
+        { period: 2, start: "10:40", end: "12:10" },
+        { period: 3, start: "13:00", end: "14:30" },
+        { period: 4, start: "14:40", end: "16:10" },
+        { period: 5, start: "16:20", end: "17:50" },
+        { period: 6, start: "18:00", end: "19:30" },
+      ],
+    },
+  },
+);
+
+export const timetableSetting = storage.defineItem<TimetableConfig>(
+  "local:home.timetable",
+  {
+    fallback: {
+      enabled: true,
+      startDate: "2026-04-06",
+      lessonCount: 15,
+      grid: {
+        mon: [],
+        tue: [],
+        wed: [],
+        thu: [],
+        fri: [],
+      },
+      holidays: [],
+      substitutes: [],
+      color: "sky",
+    },
+  },
+);
+
+export const myCoursesTodayOrderSetting = storage.defineItem<TodayOrderConfig>(
+  "local:myCourses.todayOrder",
+  { fallback: { enabled: false } },
+);
+
 

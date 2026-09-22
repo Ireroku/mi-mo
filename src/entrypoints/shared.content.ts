@@ -9,10 +9,12 @@ import { initGradeInline } from "@/features/coursePage/gradeInline";
 import { initExportMarkdown } from "@/features/coursePage/exportMarkdown";
 import { initBulkDownload } from "@/features/coursePage/bulkDownload";
 import { initIncrementalSearch } from "@/features/myCourses/incrementalSearch";
+import { initTodayOrder } from "@/features/myCourses/todayOrder";
 import { initLoginComponent } from "@/features/home/loginComponent";
 import { initGreeting } from "@/features/home/greeting";
 import { advanceRecord, initLastAccess } from "@/features/home/lastAccess";
 import { initPinnedCourses } from "@/features/ui/quickDrawer";
+import { initTimetable } from "@/features/timetable";
 import {
   menuSetting,
   menuBadgesSetting,
@@ -24,6 +26,9 @@ import {
   coursePageAutoattendStatsSetting,
   coursePageGradeInlineSetting,
   coursePageExportSetting,
+  periodTableSetting,
+  timetableSetting,
+  myCoursesTodayOrderSetting,
 } from "@/utils/settings";
 
 export default defineContentScript({
@@ -42,6 +47,9 @@ export default defineContentScript({
       autoattendStatsConfig,
       gradeInlineConfig,
       exportConfig,
+      periodTableConfig,
+      timetableConfig,
+      todayOrderConfig,
     ] = await Promise.all([
       menuSetting.getValue(),
       menuBadgesSetting.getValue(),
@@ -52,6 +60,9 @@ export default defineContentScript({
       coursePageAutoattendStatsSetting.getValue(),
       coursePageGradeInlineSetting.getValue(),
       coursePageExportSetting.getValue(),
+      periodTableSetting.getValue(),
+      timetableSetting.getValue(),
+      myCoursesTodayOrderSetting.getValue(),
     ]);
 
     initMenu(menuConfig);
@@ -100,5 +111,13 @@ export default defineContentScript({
     }
 
     initBulkDownload();
+
+    if (timetableConfig.enabled) {
+      await initTimetable(ctx, timetableConfig, periodTableConfig.periods);
+    }
+
+    if (todayOrderConfig.enabled) {
+      initTodayOrder(todayOrderConfig, timetableConfig, periodTableConfig.periods);
+    }
   },
 });
