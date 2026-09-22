@@ -191,9 +191,61 @@ div#region-main
 
 ## ログインコンポーネント
 
-[`login-component.md`](../features/home/login-component.md) は未ログイン時のログインフォームを対象にしているが、**ログイン状態では採取できなかった。** 採取中は常にログイン済みで、ログアウトすると認証情報を失いこの調査自体ができなくなるため、意図的にログアウトしていない。
+[`login-component.md`](../features/home/login-component.md) が対象にする要素。ログアウトした状態で採取した。
 
-未ログイン時に `/` を開いた際のフォーム構造は、別途ログアウト済みの状態で調査するか、ユーザーに確認してから進める必要がある。
+### 未ログイン時の body クラス
+
+```
+limitedwidth format-site course path-site chrome dir-ltr lang-ja yui-skin-sam yui3-skin-sam lms-m41-mie-u-ac-jp pagelayout-frontpage course-1 context-2 notloggedin theme uses-drawers jsenabled
+```
+
+ログイン済みとの差分は `notloggedin` が付くことと、`drawer-open-index` が付かないこと。**ログイン状態の判定にはこの `notloggedin` を使う。**
+
+### ページごとの挙動
+
+| URL | 未ログインで開いた結果 |
+|---|---|
+| `/` | サイトホームがそのまま開く。ログインフォームは右ドロワーの中にある |
+| `/my/` | `/login/index.php` へリダイレクトされる |
+| `/login/index.php` | 本文（`#region-main`）に `form#login` が直接置かれる |
+
+**ダッシュボードは未ログインでは開けない。** この機能の対象はサイトホーム（`/`）だけになる。
+
+### ログインフォームの位置
+
+セレクタ：`#theme_boost-drawers-blocks section.block_login`（1件）
+
+**フォーム自体は Moodle が既に出している。** ただし右のブロックドロワーの中にあり、ドロワーを開かないと見えない。
+
+```
+div#theme_boost-drawers-blocks.drawer.drawer-right
+  div.drawercontent.drag-container
+    aside#block-region-side-pre.block-region
+      section#inst<動的ID>.block_login.block.card
+        div.card-body.p-3
+          div.card-text.content.mt-3
+            form#login.loginform
+```
+
+`section` の `id`（`inst7877` のような形）は動的なため、セレクタには `.block_login` を使う。
+
+### フォームの構造
+
+```html
+<form id="login" class="loginform" method="post"
+      action="https://lms-m41.mie-u.ac.jp/login/index.php">
+  <div class="mb-3">
+    <input type="text" name="username" id="login_username" class="form-control">
+  </div>
+  <div class="mb-3">
+    <input type="password" name="password" id="login_password" class="form-control">
+  </div>
+  <input type="submit">
+  <input type="hidden" name="logintoken">
+</form>
+```
+
+`logintoken` は CSRF 対策の値で、ページを開くたびに変わる。**フォームを自前で組み立て直さず、この `form` をそのまま使う。** 複製や作り直しをすると、トークンの扱いを自分で引き受けることになる。
 
 ## 気付いた注意点
 

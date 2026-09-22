@@ -19,10 +19,18 @@
 
 ```ts
 // src/moodle/user.ts
+export function isLoggedIn(): boolean;
+
 export function readUserName(): string | undefined;
 ```
 
 ## 処理の流れ
+
+### isLoggedIn
+
+`document.body` に `notloggedin` クラスが付いていなければ `true` を返す。`body` が無い段階（`document_start`）では `false` を返す。
+
+### readUserName
 
 1. `#usernavigation [data-region="usermenu"] .avatar.current [title]` を探す
 2. 見つかれば `title` 属性の値を返す
@@ -35,5 +43,7 @@ export function readUserName(): string | undefined;
 - **`title` を先に見て、無ければ `img[alt]` を見る。** 採取できたのはイニシャル表示の場合だけで、アバター画像を設定した状態は未確認。画像の場合に `alt` へ氏名が入る作りが Moodle の通例のため、両方を辿る
 - **`.avatar.current` で絞る。** ユーザーメニューには他の利用者のアバターが並ぶ場面（ロールの切り替えなど）があり、現在のユーザーを指すのは `current` が付いた方
 - **未ログインの場合に `undefined` を返す。** ユーザーメニュー自体が出ないため、呼び出し側は名前が取れない場合の表示を用意する
+- **ログイン状態を `body` の `notloggedin` クラスで判定する。** ユーザーメニューの有無でも分かりますが、クラスの方が直接的で、メニューの構造が変わっても壊れない。[`../../moodle/home.md`](../../moodle/home.md) に採取結果がある
+- **否定形のクラスをそのまま返さず、`isLoggedIn` として肯定形にする。** 呼び出し側の条件が二重否定にならないようにする
 - **結果をキャッシュしない。** 呼び出しのたびに DOM を読む。状態は DOM だけが持つという [`./page.md`](./page.md) と同じ方針にそろえる
 - **ユーザーIDやメールアドレスは読まない。** 必要とする機能が無い。増やす場合はこのモジュールへ足す
