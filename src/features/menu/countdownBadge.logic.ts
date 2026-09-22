@@ -1,7 +1,19 @@
+import { findNextPeriodStart, type PeriodSlot } from "./clock.logic";
+
 export interface CountdownTarget {
   id: string;
   label: string;
   getTargetTime: () => Date;
+}
+
+export type CountdownSource =
+  | { kind: "nextPeriod" }
+  | { kind: "fixedDate"; at: string };
+
+export interface CountdownConfig {
+  id: string;
+  label: string;
+  source: CountdownSource;
 }
 
 export const COUNTDOWN_ENDED_LABEL = "終了しました";
@@ -54,4 +66,30 @@ export function describeCountdown(
   now: Date = new Date(),
 ): string {
   return formatRemaining(target.getTargetTime().getTime() - now.getTime());
+}
+
+/**
+ * 保存できる形の CountdownConfig[] を、実行時の CountdownTarget[] へ変換する。
+ * periods はソート済みであることを前提とする（findNextPeriodStart の要件を引き継ぐ）。
+ */
+export function buildCountdownTargets(
+  configs: CountdownConfig[],
+  periods: PeriodSlot[],
+): CountdownTarget[] {
+  return configs.map(({ id, label, source }) => {
+    switch (source.kind) {
+      case "nextPeriod":
+        return {
+          id,
+          label,
+          getTargetTime: () => findNextPeriodStart(new Date(), periods) ?? new Date(),
+        };
+      case "fixedDate":
+        return {
+          id,
+          label,
+          getTargetTime: () => new Date(source.at),
+        };
+    }
+  });
 }

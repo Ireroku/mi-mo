@@ -96,10 +96,10 @@ pnpm dev:firefox
       - [ ] 代替日があっても正しく授業の回数を表示
     - [ ] 設定可能な色（白、黒、水色、ピンク、緑）
     - [ ] ダークモード対応
-  - [ ] [不要な要素の非表示化](./docs/features/home/hide-elements.md)
-    - [ ] お知らせ
-    - [ ] コースカテゴリ
-    - [ ] コース検索
+  - [x] [不要な要素の非表示化](./docs/features/home/hide-elements.md)（設定はコード内固定）
+    - [x] お知らせ
+    - [x] コースカテゴリ
+    - [x] コース検索
 
 - マイコース
   - [ ] [カレンダーと同期して「今日の授業順」で表示](./docs/features/my-courses/today-order.md)

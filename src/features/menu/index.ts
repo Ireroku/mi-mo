@@ -3,51 +3,21 @@ import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { MenuManager, type MenuConfig } from "./navbar/menu.manager";
 import ClockBadge from "./clock.svelte";
 import CountdownBadge from "./countdownBadge.svelte";
-import { findNextPeriodStart, type ClockConfig, type PeriodSlot } from "./clock.logic";
-import type { CountdownTarget } from "./countdownBadge.logic";
+import type { ClockConfig, PeriodSlot } from "./clock.logic";
+import { buildCountdownTargets, type CountdownConfig } from "./countdownBadge.logic";
 
-const menuConfig: MenuConfig = {
-  hidden: [
-    "Office365",
-    "Google",
-    "eラーニング",
-    "Scilets",
-    "三重創生ファンタジスタ",
-    "旧Moodle",
-  ],
-};
-
-const clockConfig: ClockConfig = {
-  showSeconds: true,
-  showDate: true,
-  showWeekday: true,
-  showPeriod: true,
-};
-
-// 三重大学の標準時限割
-const periodTable: PeriodSlot[] = [
-  { period: 1, start: "09:00", end: "10:30" },
-  { period: 2, start: "10:40", end: "12:10" },
-  { period: 3, start: "13:00", end: "14:30" },
-  { period: 4, start: "14:40", end: "16:10" },
-  { period: 5, start: "16:20", end: "17:50" },
-  { period: 6, start: "18:00", end: "19:30" },
-];
-
-const countdownTargets: CountdownTarget[] = [
-  {
-    id: "next-period",
-    label: "次の時限まで",
-    getTargetTime: () => findNextPeriodStart(new Date(), periodTable) ?? new Date(),
-  },
-];
+export interface MenuBadgesConfig {
+  clock: ClockConfig;
+  periods: PeriodSlot[];
+  countdowns: CountdownConfig[];
+}
 
 /**
  * ナビゲーションメニュー機能を初期化する。エントリーポイント（shared.content.ts）から呼び出す。
  */
-export function initMenu(): void {
+export function initMenu(config: MenuConfig): void {
   const menuManager = new MenuManager();
-  menuManager.applyConfig(menuConfig);
+  menuManager.applyConfig(config);
 }
 
 /**
@@ -74,12 +44,22 @@ async function mountBadge<Props extends Record<string, unknown>>(
   ui.mount();
 }
 
+function sortByStart(periods: PeriodSlot[]): PeriodSlot[] {
+  return [...periods].sort((a, b) => a.start.localeCompare(b.start));
+}
+
 /**
  * 時計・カウントダウンバッジをShadow DOM経由でnavbarに差し込む。エントリーポイント（shared.content.ts）から呼び出す。
  */
-export async function initMenuBadges(ctx: ContentScriptContext): Promise<void> {
+export async function initMenuBadges(
+  ctx: ContentScriptContext,
+  config: MenuBadgesConfig,
+): Promise<void> {
+  const periodTable = sortByStart(config.periods);
+  const countdownTargets = buildCountdownTargets(config.countdowns, periodTable);
+
   await Promise.all([
-    mountBadge(ctx, "mimo-clock-badge", ClockBadge, { config: clockConfig, periodTable }),
+    mountBadge(ctx, "mimo-clock-badge", ClockBadge, { config: config.clock, periodTable }),
     mountBadge(ctx, "mimo-countdown-badge", CountdownBadge, { targets: countdownTargets }),
   ]);
 }
