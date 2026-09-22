@@ -35,6 +35,7 @@ flowchart TD
 - 資料: [`docs/moodle/navbar.md`](../../moodle/navbar.md) — 操作対象のDOM構造とセレクタ。アダプターを触る前に読む
 - 参考: [`clock.md`](./clock.md) — 同じナビゲーションメニューに載るバッジ。あちらは Shadow DOM へ Svelte を注入する別方式
 - 参考: [`countdownBadge.md`](./countdownBadge.md) — 同上
+- 使う: [`../utils/settings.md`](../utils/settings.md) — 設定の取得。参照するのは entrypoint のみで、機能側は参照しない
 
 ## 対象ファイル
 
@@ -44,7 +45,8 @@ flowchart TD
 | `src/features/menu/navbar/menu.manager.ts` | `MenuManager`。全アダプターへ操作をブロードキャストする |
 | `src/features/menu/navbar/primaryNav.dom.ts` | `NavbarAdapter`。PC表示のトップバーを操作する |
 | `src/features/menu/navbar/drawer.dom.ts` | `DrawerAdapter`。モバイル表示のドロワーを操作する |
-| `src/features/menu/index.ts` | 設定オブジェクトを定義し、`MenuManager` へ渡して初期化する |
+| `src/features/menu/index.ts` | 設定を受け取り、`MenuManager` へ渡して初期化する |
+| `src/entrypoints/shared.content.ts` | 設定を読み、`initMenu` へ渡す |
 
 ## インターフェース
 
@@ -106,10 +108,24 @@ export class DrawerAdapter implements MenuAdapter {
 
 `hideItem` と `insertItem` の戻り値は「1つ以上のアダプターが処理できたか」を表す。
 
-呼び出し側（`src/features/menu/index.ts`）での使い方:
+```ts
+// index.ts
+export function initMenu(config: MenuConfig): void;
+```
+
+`initMenu` は受け取った設定をそのまま `new MenuManager().applyConfig(config)` へ渡す。
+
+呼び出し側（`src/entrypoints/shared.content.ts`）での使い方:
 
 ```ts
-const config: MenuConfig = {
+const menuConfig = await menuSetting.getValue();
+initMenu(menuConfig);
+```
+
+設定の中身は次の形になる。
+
+```ts
+{
   hidden: ["Office365", "Google", "旧Moodle"],
   items: [
     {
@@ -119,9 +135,7 @@ const config: MenuConfig = {
       position: { target: "マイコース", where: "after" },
     },
   ],
-};
-
-new MenuManager().applyConfig(config);
+}
 ```
 
 ## 処理の流れ
@@ -211,3 +225,4 @@ new MenuManager().applyConfig(config);
 - **アダプターはコンストラクタ引数で差し替えられる。** 既定値は `[new NavbarAdapter(), new DrawerAdapter()]`
 - **`insertItem` はコンテナさえ取得できれば true を返す。** 位置指定に失敗しても末尾へ挿入するため、false にはならない
 - **`export { MenuManager as NavbarManager }` は初期設計時の名前の名残。** 現在この別名を参照している箇所は無い
+- **設定は entrypoint が読み、`initMenu` が引数で受け取る。** このモジュールは設定の保存場所も形式も参照しない

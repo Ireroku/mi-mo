@@ -9,6 +9,7 @@ Moodle のナビゲーションメニューに現在時刻を表示する。時�
 - 参考: [`navbar.md`](./navbar.md) — 同じナビゲーションメニューを対象にするが、あちらは実DOMの属性操作、こちらは Shadow DOM への注入
 - 参考: [`countdownBadge.md`](./countdownBadge.md) — `startClockTicker` を共有する。タイマーの仕様を変える時は両方へ影響する
 - 資料: [`docs/moodle/navbar.md`](../../moodle/navbar.md) — マウント先のアンカー要素
+- 使う: [`../utils/settings.md`](../utils/settings.md) — 設定の取得。参照するのは entrypoint のみで、機能側は参照しない
 
 ## 対象ファイル
 
@@ -16,7 +17,8 @@ Moodle のナビゲーションメニューに現在時刻を表示する。時�
 |---|---|
 | `src/features/menu/clock.logic.ts` | 書式化、時限判定、自己補正タイマー |
 | `src/features/menu/clock.svelte` | 表示 |
-| `src/features/menu/index.ts` | 設定の定義と Shadow DOM へのマウント |
+| `src/features/menu/index.ts` | 設定を受け取り、バッジを Shadow DOM へマウントする |
+| `src/entrypoints/shared.content.ts` | 設定を読み、`initMenuBadges` へ渡す |
 
 ## インターフェース
 
@@ -63,6 +65,29 @@ interface Props {
 ```
 
 `startClockTicker` の戻り値はクリーンアップ関数。タイマーの破棄とイベントリスナーの解除を行う。
+
+```ts
+// index.ts
+export interface MenuBadgesConfig {
+  clock: ClockConfig;
+  periods: PeriodSlot[];
+  countdowns: CountdownConfig[];
+}
+
+export async function initMenuBadges(
+  ctx: ContentScriptContext,
+  config: MenuBadgesConfig,
+): Promise<void>;
+```
+
+`MenuBadgesConfig` は時計とカウントダウンの両方の設定を持つ。`CountdownConfig` は [`countdownBadge.md`](./countdownBadge.md) が定義する。すべて JSON へ変換できる形にしてあり、そのまま storage へ保存できる。
+
+呼び出し側（`src/entrypoints/shared.content.ts`）での使い方:
+
+```ts
+const badgesConfig = await menuBadgesSetting.getValue();
+await initMenuBadges(ctx, badgesConfig);
+```
 
 ## 処理の流れ
 
@@ -115,3 +140,5 @@ interface Props {
 - **時限の判定は `start` 以上 `end` 未満。** 終了時刻ちょうどは、その枠に含めない
 - **スタイルは生CSSで書く。** Shadow DOM 内にマウントするため Tailwind のユーティリティが届かない
 - **クラス名には `mimo-` 接頭辞を付ける。** Moodle 側との衝突を避けるため
+- **設定は entrypoint が読み、`initMenuBadges` が引数で受け取る。** このモジュールは設定の保存場所も形式も参照しない
+- **`initMenuBadges` は受け取った `periods` を1度だけ開始時刻の順にソートし、以降はソート済みのものを渡す。** 設定から来る時限表は順序が保証されず、`findNextPeriodStart` は1秒ごとに呼ばれるため内部でソートしない

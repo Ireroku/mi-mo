@@ -42,8 +42,12 @@ docs 配下のすべてに適用する。
 |---|---|
 | `src/entrypoints/` | WXT のファイルベースルーティング対象。ファイル名から manifest が自動生成される |
 | `src/features/<機能名>/` | 機能の実装本体。UIロジックはすべてここに置く |
+| `src/moodle/` | Moodle からのデータ取得・操作のうち、複数の機能が共有するもの。ページ種別の判定、ユーザー名の取得など |
+| `src/utils/` | Moodle に依存しない汎用処理。日付の整形、数値の変換など |
 | `src/lib/` | shadcn-svelte が自動生成するコンポーネント・フック用。手動でファイルを作らない |
 | `src/assets/` | グローバルCSSなどの静的アセット |
+
+`src/utils/` と `src/moodle/` は WXT のディレクトリ構造に沿って空の状態で存在する。git は空ディレクトリを記録しないため、リポジトリのツリーには現れない。
 
 ### ファイル名のサフィックス
 
@@ -58,13 +62,38 @@ docs 配下のすべてに適用する。
 
 `$lib` が `src/lib` を指す。`vite.config.js` と `tsconfig.json` の両方で定義している。
 
+### import の書き方
+
+自分で書いたモジュール（`src/features/`・`src/moodle/`・`src/utils/`）は import 文を明示的に書く。識別子がどこから来たかを読んで判断できるようにするため。
+
+WXT と Svelte の API（`defineContentScript`・`createShadowRootUi`・`storage`・`onMount` など）は auto-import に任せる。既存のコードがそうなっており、対象の一覧は `.wxt/types/imports.d.ts` に生成される。
+
 ## アーキテクチャ方針
 
 ### entrypoint は薄く保つ
 
-UIロジックを entrypoint 本体に書かない。`src/features/<機能名>/` に実装し、entrypoint からは import して呼び出す。entrypoint が担当するのは設定と初期化だけ。
+UIロジックを entrypoint 本体に書かない。`src/features/<機能名>/` に実装し、entrypoint からは import して呼び出す。entrypoint が担当するのは設定の取得と初期化だけ。
 
-現状の主なパターンは、`src/entrypoints/shared.content.ts` から `src/features/menu/index.ts` を呼び出す形。
+### entrypoint は run_at で分ける
+
+entrypoint を機能カテゴリで分けない。同じカテゴリの機能でも必要な実行タイミングが違うため、機能で切ると同じカテゴリ用の entrypoint が複数必要になり、名前が意味を失う。
+
+| ファイル | run_at | 用途 |
+|---|---|---|
+| `src/entrypoints/shared.content.ts` | 既定（`document_idle`） | DOM が揃ってから動くもの |
+| `src/entrypoints/early.content.ts` | `document_start` | 描画前に CSS を注入するものなど |
+
+1つの entrypoint を複数の機能が共有する。そのため複数の指示書が同じ entrypoint を「対象ファイル」に挙げる。各指示書が担当するのは自分の機能を呼び出す行だけで、他の機能の行は触らない。
+
+### 設定は entrypoint が取得し、機能へ引数で渡す
+
+`src/features/` の実装は設定の出所を知らない。設定を引数で受け取り、保存場所も形式も参照しない。
+
+entrypoint が [`utils/settings.md`](./utils/settings.md) 経由で設定を読み、機能へ引数として渡す。設定の内容によっては機能の呼び出し自体を省く。
+
+設定の型は機能側が定義して export し、`src/utils/settings.ts` がそれを import する。逆向きにすると機能が設定モジュールへ依存する。
+
+1つの entrypoint が複数の設定を読む場合、`Promise.all` でまとめて待つ。指示書はモジュールごとに分かれているため、各指示書の呼び出し例をそのまま並べると直列になる。entrypoint 全体の形は個々の指示書では決まらず、ここで決める。
 
 ### Moodle の DOM 操作は Adapter パターンで抽象化する
 
@@ -75,6 +104,14 @@ Moodle は表示モードによってマークアップが異なる。PC表示�
 新しく Moodle の DOM を操作する機能を追加する場合も、「宣言的な設定オブジェクトを受け取る Manager」と「DOM構造ごとの Adapter」に分ける。
 
 参考実装は `src/features/menu/navbar/`。
+
+### 複数の機能が共有する Moodle 操作は src/moodle/ に置く
+
+ページ種別の判定、ユーザー名の取得など、複数の機能が同じ情報を Moodle から取る処理は `src/moodle/` に置く。
+
+単一の機能だけが使う DOM 操作は `src/features/<機能名>/*.dom.ts` に置く。境界は「外から参照されるか」で引く。設計と実装の境界と同じ軸を使う。
+
+Moodle に依存しない汎用処理（日付の整形、数値の変換など）は `src/utils/` に置く。
 
 ### DOM 構造の採取結果は docs/moodle/ に残す
 
@@ -133,9 +170,13 @@ Tailwind CSS v4（`@tailwindcss/vite`）を使う。グローバルCSSは `src/a
 
 説明には開く理由だけ書く。リンク先の中身は説明しない。開かずに判断できる状態にするのが目的。
 
+**対象ファイル** には、manifest へ影響する設定ファイル（`wxt.config.ts` など）も含める。permission の宣言はコードに現れないため、指示書に書かないと漏れる。漏れても型チェックは通り、実行時に初めて失敗する。生成物の `.output/<target>/manifest.json` を見れば確認できる。
+
 **対象ファイル** に新規・変更の区別は書かない。1回目の実装では正しくても2回目の修正で嘘になるため。実装者は「無ければ作る、あれば直す」で判断する。ここに列挙されていないファイルは触らない。これがスコープ境界になる。
 
 **インターフェース** は実コードで書く。他のモジュールがここに依存するため曖昧だと整合が取れず、また型は自然言語より短くて正確なため。実装コード本体は書かない。
+
+entrypoint だけは例外として、呼び出し部分を実コードで書く。設定をどう取得して機能へどう渡すかが設計判断にあたるため。
 
 **決めごと** は、読んだ人が迷う箇所を潰すために書く。「IDを数値にするか文字列にするか」のような、どちらでも動くが決めておかないと食い違う判断を記載する。
 
@@ -190,5 +231,8 @@ Tailwind CSS v4（`@tailwindcss/vite`）を使う。グローバルCSSは `src/a
 | [`menu/navbar.md`](./menu/navbar.md) | `src/features/menu/navbar/` | 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
 | [`menu/clock.md`](./menu/clock.md) | `src/features/menu/clock.*` | 参考: navbar / countdownBadge |
 | [`menu/countdownBadge.md`](./menu/countdownBadge.md) | `src/features/menu/countdownBadge.*` | 使う: clock の `startClockTicker` |
+| [`home/hideElements.md`](./home/hideElements.md) | `src/features/home/hideElements.ts` | 資料: [`../moodle/home.md`](../moodle/home.md) |
+| [`utils/settings.md`](./utils/settings.md) | `src/utils/settings.ts` | 使う: 各機能が export する設定の型 |
+| [`moodle/page.md`](./moodle/page.md) | `src/moodle/page.ts` | 資料: [`../moodle/`](../moodle/) の各ページ |
 
-指示書が3本を超えた時点で mermaid の関連図へ切り替える。
+一覧はテーブルのまま保つ。ここを開く目的が「既にあるものを探す」ことなので、名前の探しやすさを優先する。依存関係が言葉で追えなくなった時点で、テーブルへ mermaid の関連図を併記する。

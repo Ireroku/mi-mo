@@ -15,7 +15,7 @@
 
 **注意：autoattend は珍しくない。** 「オペレーティングシステム (2026)」「ソフトウェア工学（2026）」など、一見関係なさそうなコースにも autoattend 活動が置かれている。一般コースの採取には autoattend が無いことを個別に確認した「コンパイラ(2026年度)」を使った。
 
-**フォーマットは format-weeks しか確認できていない。** 履修コースが偏っており、format-topics のコース（例：INFOSS情報倫理）は自己登録ページ（`/enrol/index.php`）止まりで中身を見られなかった。セクション一覧のコンテナ（後述）はクラス名がフォーマット依存（`ul.weeks`）だが、`data-for="course_sectionlist"` 属性はコア共通のテンプレートに由来するため他フォーマットでも同じはずだが、実機では未確認。
+**フォーマットは format-weeks しか確認できていない。** 履修コースが偏っており、format-topics のコース（例：INFOSS情報倫理）は自己登録ページ（`/enrol/index.php`）止まりで中身を見られなかった。セクション一覧のコンテナ（後述）はクラス名がフォーマット依存（`ul.weeks`）ですが、`data-for="course_sectionlist"` 属性はコア共通のテンプレートに由来するため他フォーマットでも同じはず。実機では未確認。
 
 ### body クラス
 
@@ -103,7 +103,7 @@ format-weeks limitedwidth  path-course path-course-view chrome dir-ltr lang-ja y
 
 セレクタ：`#region-main div.course-content > div > ul[data-for="course_sectionlist"]`（1件）
 
-`ul` のクラス名（`weeks`）はコースフォーマット依存だが、`data-for="course_sectionlist"` はコア共通の属性なので、フォーマットが変わってもこちらの方が安定する（他フォーマットでの実機確認はできていない。上記「採取に使ったコース」の注記を参照）。
+`ul` のクラス名（`weeks`）はコースフォーマット依存ですが、`data-for="course_sectionlist"` はコア共通の属性なので、フォーマットが変わってもこちらの方が安定する（他フォーマットでの実機確認はできていない。上記「採取に使ったコース」の注記を参照）。
 
 **注意：`ul[data-for="course_sectionlist"]` は祖先を絞らないと2件ヒットすることがある。** コンパイラ(2026年度) のあるセクションの概要文（`summarytext`）内に、Moodle のセクション一覧を模した HTML の断片が教員によって貼り付けられており、同じ `data-for` 属性を持つ `<ul>` が紛れ込んでいた。`div.course-content > div > ul[...]` のように直下の子で辿ると1件に絞れる。
 
@@ -165,7 +165,7 @@ format-weeks limitedwidth  path-course path-course-view chrome dir-ltr lang-ja y
 | 小テスト | `modtype_quiz` | 未詳細採取 | 一覧に存在するのみ確認 |
 | autoattend（出欠） | `modtype_autoattendmod` | `/mod/autoattendmod/view.php?id=<id>` | 「autoattend を含むコースについて」節を参照 |
 
-**フォルダ（`modtype_folder`）は今回のコースでは見つからなかった。** 複数ファイルをまとめた資料がある場合に使われる形式だが、採取したコースには無かったため未確認。
+**フォルダ（`modtype_folder`）は今回のコースでは見つからなかった。** 複数ファイルをまとめた資料がある場合に使われる形式ですが、採取したコースには無かったため未確認。
 
 ### リンクを持つ活動の共通構造（資料の例）
 
@@ -240,7 +240,7 @@ format-weeks limitedwidth  path-course path-course-view chrome dir-ltr lang-ja y
 
 [`bulk-download.md`](../features/course-page/bulk-download.md) が対象にする要素。
 
-資料（`modtype_resource`）のリンク先 `/mod/resource/view.php?id=<id>` は中間ページで、**リンクのテキストやDOM上のどこにもファイル名・拡張子は出てこない。** 活動アイコンの画像（`img.activityicon` の `src`）はファイル種別ごとの汎用アイコン（例：`f/powerpoint`、`f/pdf`）であり、種別の見分けはつくが実際の拡張子とは限らない（例：`f/powerpoint` は `.ppt` と `.pptx` の両方に使われうる）。
+資料（`modtype_resource`）のリンク先 `/mod/resource/view.php?id=<id>` は中間ページで、**リンクのテキストやDOM上のどこにもファイル名・拡張子は出てこない。** 活動アイコンの画像（`img.activityicon` の `src`）はファイル種別ごとの汎用アイコン（例：`f/powerpoint`、`f/pdf`）で、種別の見分けはつくものの実際の拡張子とは限らない（例：`f/powerpoint` は `.ppt` と `.pptx` の両方に使われうる）。
 
 **実際の拡張子は、`/mod/resource/view.php?id=<id>` へのリクエストがリダイレクトした先の URL からしか分からない。** リダイレクト先は `/pluginfile.php/<contextid>/mod_resource/content/<revision>/<元のファイル名>` で、ここに本来のファイル名と拡張子がそのまま入っている。
 

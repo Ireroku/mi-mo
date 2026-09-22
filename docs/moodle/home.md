@@ -163,7 +163,7 @@ div#region-main
       span#sb-6
 ```
 
-**お知らせ・コースカテゴリ・コース検索はダッシュボードには無い。** サイトホーム（`/`）だけの要素であり、`hide-elements.md` の対象は `/` のみで完結する。
+**お知らせ・コースカテゴリ・コース検索はダッシュボードには無い。** サイトホーム（`/`）だけの要素で、`hide-elements.md` の対象は `/` のみで完結する。
 
 中央カラム（`#block-region-content`）には既定でプロフィールブロック（`block_myprofile`）しか無い。新規要素を挿入するなら、**`section.block_myprofile` の直前**（= `#block-region-content` の先頭）が自然な差し込み先。
 

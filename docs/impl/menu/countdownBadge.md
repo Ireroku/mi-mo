@@ -6,7 +6,8 @@
 
 ## 関連
 
-- 使う: [`clock.md`](./clock.md) — `startClockTicker` でタイマーを回す
+- 使う: [`clock.md`](./clock.md) — `startClockTicker` でタイマーを回す。`PeriodSlot` 型と `initMenuBadges` の定義もそちらにある
+- 使う: [`../utils/settings.md`](../utils/settings.md) — 設定の取得。参照するのは entrypoint のみで、機能側は参照しない
 - 参考: [`navbar.md`](./navbar.md) — 同じナビゲーションメニューを対象にするが、あちらは実DOMの属性操作、こちらは Shadow DOM への注入
 - 資料: [`docs/moodle/navbar.md`](../../moodle/navbar.md) — マウント先のアンカー要素
 
@@ -14,9 +15,10 @@
 
 | パス | 役割 |
 |---|---|
-| `src/features/menu/countdownBadge.logic.ts` | 残り時間の計算と書式化 |
+| `src/features/menu/countdownBadge.logic.ts` | 残り時間の計算と書式化、設定から対象への変換 |
 | `src/features/menu/countdownBadge.svelte` | 表示 |
-| `src/features/menu/index.ts` | 対象の定義と Shadow DOM へのマウント |
+| `src/features/menu/index.ts` | 設定を受け取り、Shadow DOM へマウントする |
+| `src/entrypoints/shared.content.ts` | 設定を読み、`initMenuBadges` へ渡す |
 
 ## インターフェース
 
@@ -28,6 +30,16 @@ export interface CountdownTarget {
   getTargetTime: () => Date;
 }
 
+export type CountdownSource =
+  | { kind: "nextPeriod" }
+  | { kind: "fixedDate"; at: string };
+
+export interface CountdownConfig {
+  id: string;
+  label: string;
+  source: CountdownSource;
+}
+
 export const COUNTDOWN_ENDED_LABEL = "終了しました";
 
 export function formatRemaining(remainingMs: number): string;
@@ -35,7 +47,13 @@ export function describeCountdown(
   target: CountdownTarget,
   now?: Date,
 ): string;
+export function buildCountdownTargets(
+  configs: CountdownConfig[],
+  periods: PeriodSlot[],
+): CountdownTarget[];
 ```
+
+`PeriodSlot` と `findNextPeriodStart` は [`clock.md`](./clock.md) の `clock.logic.ts` から import する。`fixedDate` の `at` は ISO 8601 の文字列。
 
 ```ts
 // countdownBadge.svelte の Props
@@ -66,9 +84,18 @@ interface Props {
 | 7日以下 | `2日と5時間` | `2日` |
 | 7日超 | `10日` | — |
 
+### buildCountdownTargets
+
+保存できる形の `CountdownConfig[]` を、実行時の `CountdownTarget[]` へ変換する。
+
+1. 各 `CountdownConfig` の `source.kind` を見る
+2. `"nextPeriod"` の場合、`getTargetTime` を `() => findNextPeriodStart(new Date(), periods) ?? new Date()` にする
+3. `"fixedDate"` の場合、`getTargetTime` を `() => new Date(source.at)` にする
+4. `id` と `label` はそのまま引き継ぐ
+
 ### マウント
 
-`index.ts` の `initMenuBadges` が `createShadowRootUi` で差し込む。
+`index.ts` の `initMenuBadges` が、受け取った設定を `buildCountdownTargets` で変換してから `createShadowRootUi` で差し込む。
 
 | 設定 | 値 |
 |---|---|
@@ -80,6 +107,8 @@ interface Props {
 ## 決めごと
 
 - **`getTargetTime` を値ではなく関数として持つ。** 固定の日時（試験日）と、その場で計算する値（次の時限の開始時刻）を同じ形で扱えるようにするため
+- **保存する形（`CountdownConfig`）と実行時の形（`CountdownTarget`）を分ける。** `getTargetTime` が関数のため、`CountdownTarget` をそのまま storage へ保存できない
+- **変換は `initMenuBadges` の内部で行い、entrypoint には出さない。** entrypoint の担当を設定の取得と受け渡しだけに保つため
 - **目標時刻を過ぎたら、非表示にせず「終了しました」と表示する。** 消えてしまうと、設定を間違えたのか終わったのかを区別できない
 - **境界値はすべて「以下」の側へ含める。** 残りちょうど15分なら秒表示にする
 - **上位の単位が0の時は省く。** 「0分34秒」ではなく「34秒」と出す

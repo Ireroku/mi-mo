@@ -21,3 +21,7 @@
 ## 設定項目
 
 それぞれについて隠すかどうか。
+
+## 実装
+
+- [`docs/impl/home/hideElements.md`](../../impl/home/hideElements.md)
