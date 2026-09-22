@@ -3,11 +3,13 @@ import { applyHideElements } from "@/features/home/hideElements";
 import { applyMenuLogo } from "@/features/menu/logo";
 import { applyFloatingHint } from "@/features/ui/floatingHint";
 import { applyFont } from "@/features/ui/font";
+import { applyReverseSections } from "@/features/coursePage/reverseSections";
 import {
   homeHideElementsSetting,
   menuLogoSetting,
   uiFloatingHintSetting,
   uiFontSetting,
+  coursePageReverseSectionsSetting,
 } from "@/utils/settings";
 import { applySectionTitleLink } from "@/features/coursePage/sectionTitleLink";
 import { applySectionToggleDesign } from "@/features/coursePage/sectionToggleDesign";
@@ -18,17 +20,24 @@ export default defineContentScript({
   matches: ["*://lms-m41.mie-u.ac.jp/*"],
   runAt: "document_start",
   async main() {
-    const [homeHideElements, menuLogo, uiFloatingHint, uiFont] =
-      await Promise.all([
-        homeHideElementsSetting.getValue(),
-        menuLogoSetting.getValue(),
-        uiFloatingHintSetting.getValue(),
-        uiFontSetting.getValue(),
-      ]);
+    const [
+      homeHideElements,
+      menuLogo,
+      uiFloatingHint,
+      uiFont,
+      coursePageReverseSections,
+    ] = await Promise.all([
+      homeHideElementsSetting.getValue(),
+      menuLogoSetting.getValue(),
+      uiFloatingHintSetting.getValue(),
+      uiFontSetting.getValue(),
+      coursePageReverseSectionsSetting.getValue(),
+    ]);
     applyHideElements(homeHideElements);
     applyMenuLogo(menuLogo);
     applyFloatingHint(uiFloatingHint);
     applyFont(uiFont);
+    applyReverseSections(coursePageReverseSections);
     applySectionTitleLink();
     applySectionToggleDesign();
     applyClickableCard();

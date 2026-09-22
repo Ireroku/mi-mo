@@ -7,6 +7,7 @@ import type { MenuConfig } from "@/features/menu/navbar/types";
 import type { MenuLogoConfig } from "@/features/menu/logo";
 import type { FloatingHintConfig } from "@/features/ui/floatingHint";
 import type { FontConfig } from "@/features/ui/font";
+import type { ReverseSectionsConfig } from "@/features/coursePage/reverseSections";
 import type { CourseRef } from "@/moodle/courseList";
 
 export const homeHideElementsSetting = storage.defineItem<HideElementsConfig>(
@@ -81,3 +82,9 @@ export const uiFloatingHintSetting = storage.defineItem<FloatingHintConfig>(
 export const uiFontSetting = storage.defineItem<FontConfig>("local:ui.font", {
   fallback: { enabled: false, family: "", scope: "all" },
 });
+
+export const coursePageReverseSectionsSetting =
+  storage.defineItem<ReverseSectionsConfig>(
+    "local:coursePage.reverseSections",
+    { fallback: { enabled: true } },
+  );
