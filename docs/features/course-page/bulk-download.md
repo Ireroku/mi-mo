@@ -15,3 +15,7 @@
 ## 設定項目
 
 なし。
+
+## 実装
+
+- [`docs/impl/coursePage/bulkDownload.md`](../../impl/coursePage/bulkDownload.md)

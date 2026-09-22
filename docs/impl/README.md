@@ -98,6 +98,14 @@ entrypoint を機能カテゴリで分けない。同じカテゴリの機能で
 
 1つの entrypoint を複数の機能が共有する。そのため複数の指示書が同じ entrypoint を「対象ファイル」に挙げる。各指示書が担当するのは自分の機能を呼び出す行だけで、他の機能の行は触らない。
 
+content script 以外の entrypoint も同じ場所に置く。
+
+| ファイル | 用途 |
+|---|---|
+| `src/entrypoints/popup/` | ツールバーから開く設定画面 |
+| `src/entrypoints/options/` | 拡張機能の管理から開く設定画面。中身はポップアップと同じ |
+| `src/entrypoints/background.ts` | content script から呼べない API を実行する。現状は [`utils/download.md`](./utils/download.md) の保存のみ |
+
 ### 設定は entrypoint が取得し、機能へ引数で渡す
 
 `src/features/` の実装は設定の出所を知らない。設定を引数で受け取り、保存場所も形式も参照しない。
@@ -273,8 +281,11 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`coursePage/autoattendButton.md`](./coursePage/autoattendButton.md) | `src/features/coursePage/autoattendButton.*` | 使う: moodle/page ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/autoattendStats.md`](./coursePage/autoattendStats.md) | `src/features/coursePage/autoattendStats.*` | 使う: moodle/page ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/indexToggle.md`](./coursePage/indexToggle.md) | `src/features/coursePage/indexToggle.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
+| [`coursePage/exportMarkdown.md`](./coursePage/exportMarkdown.md) | `src/features/coursePage/exportMarkdown.*` | 使う: moodle/page ／ utils/download |
+| [`coursePage/bulkDownload.md`](./coursePage/bulkDownload.md) | `src/features/coursePage/bulkDownload.ts` | 使う: moodle/page ／ utils/download |
 | [`myCourses/clickableCard.md`](./myCourses/clickableCard.md) | `src/features/myCourses/clickableCard.ts` | 使う: styleSheet ／ 資料: [`../moodle/my-courses.md`](../moodle/my-courses.md) |
 | [`myCourses/incrementalSearch.md`](./myCourses/incrementalSearch.md) | `src/features/myCourses/incrementalSearch.ts` | 使う: moodle/page ／ styleSheet |
+| [`myCourses/todayOrder.md`](./myCourses/todayOrder.md) | `src/features/myCourses/todayOrder.ts` | 使う: moodle/page ／ timetable/schedule |
 | [`timetable/schedule.md`](./timetable/schedule.md) | `src/features/timetable/schedule.logic.ts` | 使う: utils/periods ／ 実日程と回数の計算 |
 | [`timetable/panel.md`](./timetable/panel.md) | `src/features/timetable/` | 使う: timetable/schedule ／ moodle/page |
 | [`timetable/ics.md`](./timetable/ics.md) | `src/features/timetable/ics.ts` | 使う: timetable/schedule ／ utils/periods |
@@ -285,6 +296,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`utils/periods.md`](./utils/periods.md) | `src/utils/periods.ts` | 使う: menu/clock ／ menu/countdownBadge ／ timetable |
 | [`utils/styleSheet.md`](./utils/styleSheet.md) | `src/utils/styleSheet.ts` | 参考: [`home/hideElements.md`](./home/hideElements.md) |
 | [`utils/theme.md`](./utils/theme.md) | `src/utils/theme.ts` | 資料: [`../../src/assets/global.css`](../../src/assets/global.css) |
+| [`utils/download.md`](./utils/download.md) | `src/utils/download.ts` ／ `src/entrypoints/background.ts` | 使う: coursePage の書き出しと一括保存 |
 | [`moodle/page.md`](./moodle/page.md) | `src/moodle/page.ts` | 資料: [`../moodle/`](../moodle/) の各ページ |
 | [`moodle/courseList.md`](./moodle/courseList.md) | `src/moodle/courseList.ts` | 資料: [`../moodle/drawer.md`](../moodle/drawer.md) ／ 使う: utils/settings |
 | [`moodle/user.md`](./moodle/user.md) | `src/moodle/user.ts` | 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |

@@ -17,3 +17,7 @@
 ## 設定項目
 
 並べ替えを有効にするかどうか。
+
+## 実装
+
+- [`docs/impl/myCourses/todayOrder.md`](../../impl/myCourses/todayOrder.md)

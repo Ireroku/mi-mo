@@ -17,3 +17,7 @@
 ## 設定項目
 
 出力形式（Markdown / プレーンテキスト）。
+
+## 実装
+
+- [`docs/impl/coursePage/exportMarkdown.md`](../../impl/coursePage/exportMarkdown.md)
