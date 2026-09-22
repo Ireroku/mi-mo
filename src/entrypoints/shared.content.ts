@@ -3,6 +3,11 @@ import "@/assets/global.css";
 import { initMenu, initMenuBadges } from "@/features/menu";
 import { readCourseList } from "@/moodle/courseList";
 import { initIndexToggle } from "@/features/coursePage/indexToggle";
+import { initAutoattendButton } from "@/features/coursePage/autoattendButton";
+import { initAutoattendStats } from "@/features/coursePage/autoattendStats";
+import { initGradeInline } from "@/features/coursePage/gradeInline";
+import { initExportMarkdown } from "@/features/coursePage/exportMarkdown";
+import { initBulkDownload } from "@/features/coursePage/bulkDownload";
 import { initIncrementalSearch } from "@/features/myCourses/incrementalSearch";
 import { initLoginComponent } from "@/features/home/loginComponent";
 import { initGreeting } from "@/features/home/greeting";
@@ -15,6 +20,10 @@ import {
   homeGreetingSetting,
   homeLastAccessRecord,
   uiQuickDrawerSetting,
+  coursePageAutoattendButtonSetting,
+  coursePageAutoattendStatsSetting,
+  coursePageGradeInlineSetting,
+  coursePageExportSetting,
 } from "@/utils/settings";
 
 export default defineContentScript({
@@ -29,12 +38,20 @@ export default defineContentScript({
       greetingConfig,
       lastAccessRecord,
       quickDrawerConfig,
+      autoattendButtonConfig,
+      autoattendStatsConfig,
+      gradeInlineConfig,
+      exportConfig,
     ] = await Promise.all([
       menuSetting.getValue(),
       menuBadgesSetting.getValue(),
       homeGreetingSetting.getValue(),
       homeLastAccessRecord.getValue(),
       uiQuickDrawerSetting.getValue(),
+      coursePageAutoattendButtonSetting.getValue(),
+      coursePageAutoattendStatsSetting.getValue(),
+      coursePageGradeInlineSetting.getValue(),
+      coursePageExportSetting.getValue(),
     ]);
 
     initMenu(menuConfig);
@@ -65,5 +82,23 @@ export default defineContentScript({
 
     await initIndexToggle(ctx);
     initIncrementalSearch();
+
+    if (autoattendButtonConfig.enabled) {
+      await initAutoattendButton(ctx, autoattendButtonConfig);
+    }
+
+    if (autoattendStatsConfig.enabled) {
+      await initAutoattendStats(ctx, autoattendStatsConfig);
+    }
+
+    if (gradeInlineConfig.enabled) {
+      await initGradeInline(gradeInlineConfig);
+    }
+
+    if (exportConfig.enabled) {
+      initExportMarkdown(exportConfig);
+    }
+
+    initBulkDownload();
   },
 });

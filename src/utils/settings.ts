@@ -12,6 +12,10 @@ import type { FontConfig } from "@/features/ui/font";
 import type { QuickDrawerConfig } from "@/features/ui/quickDrawer";
 import type { LandingPageConfig } from "@/features/ui/landingPage";
 import type { ReverseSectionsConfig } from "@/features/coursePage/reverseSections";
+import type { AutoattendButtonConfig } from "@/features/coursePage/autoattendButton";
+import type { AutoattendStatsConfig } from "@/features/coursePage/autoattendStats";
+import type { GradeInlineConfig } from "@/features/coursePage/gradeInline";
+import type { ExportConfig } from "@/features/coursePage/exportMarkdown";
 import type { CourseRef } from "@/moodle/courseList";
 
 export const homeHideElementsSetting = storage.defineItem<HideElementsConfig>(
@@ -126,3 +130,26 @@ export const uiLandingPendingFlag = storage.defineItem<boolean>(
   "local:ui.landingPending",
   { fallback: false },
 );
+
+export const coursePageAutoattendButtonSetting =
+  storage.defineItem<AutoattendButtonConfig>(
+    "local:coursePage.autoattendButton",
+    { fallback: { enabled: true, placement: "top" } },
+  );
+
+export const coursePageAutoattendStatsSetting =
+  storage.defineItem<AutoattendStatsConfig>(
+    "local:coursePage.autoattendStats",
+    { fallback: { enabled: true } },
+  );
+
+export const coursePageGradeInlineSetting =
+  storage.defineItem<GradeInlineConfig>("local:coursePage.gradeInline", {
+    fallback: { enabled: true },
+  });
+
+export const coursePageExportSetting = storage.defineItem<ExportConfig>(
+  "local:coursePage.export",
+  { fallback: { enabled: true, format: "markdown" } },
+);
+
