@@ -81,10 +81,10 @@ pnpm dev:firefox
   - [x] [任意のフォントを読み出し設定可能に](./docs/features/ui/font.md)
 
 - ホーム
-  - [ ] [未ログイン時にログインコンポーネントを表示](./docs/features/home/login-component.md)
-  - [ ] [最終ログイン時刻の表示](./docs/features/home/last-login.md)
-  - [ ] [気さくな挨拶](./docs/features/home/greeting.md)
-    - [ ] ユーザ名を常に表示
+  - [x] [未ログイン時にログインコンポーネントを表示](./docs/features/home/login-component.md)
+  - [x] [最終ログイン時刻の表示](./docs/features/home/last-login.md)
+  - [x] [気さくな挨拶](./docs/features/home/greeting.md)
+    - [x] ユーザ名を常に表示
   - [ ] [時間割カレンダー](./docs/features/home/timetable.md)
     - [ ] 自由に設定可能な時間割
     - [ ] クリック先のリンク設定（コースページ等に設定）

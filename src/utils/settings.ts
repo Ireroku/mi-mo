@@ -2,6 +2,8 @@
 
 import { storage } from "wxt/utils/storage";
 import type { HideElementsConfig } from "@/features/home/hideElements";
+import type { GreetingConfig } from "@/features/home/greeting";
+import type { LastAccessRecord } from "@/features/home/lastAccess";
 import type { MenuBadgesConfig } from "@/features/menu";
 import type { MenuConfig } from "@/features/menu/navbar/types";
 import type { MenuLogoConfig } from "@/features/menu/logo";
@@ -88,3 +90,22 @@ export const coursePageReverseSectionsSetting =
     "local:coursePage.reverseSections",
     { fallback: { enabled: true } },
   );
+
+export const homeGreetingSetting = storage.defineItem<GreetingConfig>(
+  "local:home.greeting",
+  {
+    fallback: {
+      enabled: true,
+      messages: [
+        "おはようございます！",
+        "あんた、宿題やったの！？",
+        "睡眠時間を減らすと効率が落ちるそうですよ。寝ましょう。",
+      ],
+    },
+  },
+);
+
+export const homeLastAccessRecord = storage.defineItem<LastAccessRecord>(
+  "local:home.lastAccess",
+  { fallback: { previous: "", current: "" } },
+);
