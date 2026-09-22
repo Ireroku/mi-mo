@@ -7,6 +7,7 @@
     findCurrentPeriod,
     startClockTicker,
   } from "./clock.logic";
+  import { Badge } from "$lib/components/ui/badge";
 
   interface Props {
     config: ClockConfig;
@@ -29,29 +30,20 @@
   );
 </script>
 
-<div class="mimo-clock">
-  <span class="mimo-clock__time">{formatTime(now, showSeconds)}</span>
+<!-- 時刻を主役にし、日付と曜日は補助として落とす。時限はBadgeで独立させる -->
+<div class="flex h-full items-center gap-2 whitespace-nowrap px-3 font-sans">
+  <span class="text-sm font-medium tabular-nums text-foreground">
+    {formatTime(now, showSeconds)}
+  </span>
   {#if config.showDate}
-    <span class="mimo-clock__date">{formatDate(now)}</span>
+    <span class="text-xs text-muted-foreground">{formatDate(now)}</span>
   {/if}
   {#if config.showWeekday}
-    <span class="mimo-clock__weekday">{formatWeekday(now)}</span>
+    <span class="text-xs text-muted-foreground">{formatWeekday(now)}</span>
   {/if}
   {#if config.showPeriod}
-    <span class="mimo-clock__period">{currentPeriod ? `${currentPeriod.period}限` : "時間外"}</span>
+    <Badge variant="secondary">
+      {currentPeriod ? `${currentPeriod.period}限` : "時間外"}
+    </Badge>
   {/if}
 </div>
-
-<style>
-  /* Shadow DOM内にマウントされるためMoodle側CSSと衝突せず、Tailwindユーティリティも届かないので生CSSで記述する */
-  .mimo-clock {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    height: 100%;
-    padding: 0 0.75rem;
-    font-size: 0.8125rem;
-    color: #4a4a4a;
-    white-space: nowrap;
-  }
-</style>

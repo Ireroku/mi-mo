@@ -138,6 +138,9 @@ await initMenuBadges(ctx, badgesConfig);
 - **`findNextPeriodStart` は `sortedPeriods` がソート済みであることを前提とする。** カウントダウンから1秒ごとに呼ばれるため、内部でソートしない。ソートの責任は呼び出し側にある
 - **当日に残りの時限が無い場合、`findNextPeriodStart` は翌日の最初の時限を返す。** `undefined` を返すのは時限表が空の時だけ
 - **時限の判定は `start` 以上 `end` 未満。** 終了時刻ちょうどは、その枠に含めない
-- **スタイリングは [`../README.md`](../README.md) の方針に従う。** 現在の実装は生CSSですが、Shadow Root には `:root` を `:host` へ置換した CSS が注入されるため shadcn のテーマが効く
+- **時刻を主役にし、日付と曜日は `text-xs text-muted-foreground` で落とす。** 4つの情報を同じ大きさで並べると、どれを見ればよいか判断できなくなる
+- **時限は shadcn の `Badge`（`variant="secondary"`）で囲む。** 時刻や日付と違い、現在どの枠にいるかという別種の情報のため。追加は `pnpm dlx shadcn-svelte@latest add badge -y`
+- **数字には `tabular-nums` を当てる。** 桁ごとに幅が変わると、1秒ごとに横幅が揺れる
+- **ルート要素へ `font-sans` を明示する。** `createShadowRootUi` が `:host{all:initial}` でリセットするため、指定しないとブラウザ既定のフォントに落ちる
 - **設定は entrypoint が読み、`initMenuBadges` が引数で受け取る。** このモジュールは設定の保存場所も形式も参照しない
 - **`initMenuBadges` は受け取った `periods` を1度だけ開始時刻の順にソートし、以降はソート済みのものを渡す。** 設定から来る時限表は順序が保証されず、`findNextPeriodStart` は1秒ごとに呼ばれるため内部でソートしない

@@ -71,7 +71,9 @@ python3 scripts/checkdocs.py docs/impl  # 一部だけ
 
 ### パスエイリアス
 
-`$lib` が `src/lib`、`@` が `src` を指す。定義は `tsconfig.json` の `paths` にある。`vite.config.js` は存在せず、Vite の設定は `wxt.config.ts` の `vite` オプションに書く。
+`$lib` が `src/lib`、`@` が `src` を指す。`vite.config.js` は存在せず、Vite の設定は `wxt.config.ts` の `vite` オプションに書く。
+
+エイリアスを増やす場合は2箇所へ書く。`tsconfig.json` の `paths` は svelte-check が見るもので、バンドル時の解決には効かない。`wxt.config.ts` の `vite.resolve.alias` が無いと、型チェックを通過したままビルドで `failed to resolve import` になる。`@` は WXT が既定で解決するため書く必要がない。
 
 ### import の書き方
 
