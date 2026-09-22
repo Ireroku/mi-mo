@@ -1,7 +1,12 @@
 // サイト全体で読み込むもの
 import "@/assets/global.css";
 import { initMenu, initMenuBadges } from "@/features/menu";
-import { menuSetting, menuBadgesSetting } from "@/utils/settings";
+import { readCourseList } from "@/moodle/courseList";
+import {
+  menuSetting,
+  menuBadgesSetting,
+  courseListCacheSetting,
+} from "@/utils/settings";
 
 export default defineContentScript({
   matches: ["*://lms-m41.mie-u.ac.jp/*"],
@@ -16,5 +21,13 @@ export default defineContentScript({
 
     initMenu(menuConfig);
     await initMenuBadges(ctx, badgesConfig);
+
+    const courses = readCourseList();
+    if (courses.length > 0) {
+      await courseListCacheSetting.setValue({
+        courses,
+        updatedAt: new Date().toISOString(),
+      });
+    }
   },
 });

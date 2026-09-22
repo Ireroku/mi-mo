@@ -4,6 +4,7 @@ import { storage } from "wxt/utils/storage";
 import type { HideElementsConfig } from "@/features/home/hideElements";
 import type { MenuBadgesConfig } from "@/features/menu";
 import type { MenuConfig } from "@/features/menu/navbar/types";
+import type { CourseRef } from "@/moodle/courseList";
 
 export const homeHideElementsSetting = storage.defineItem<HideElementsConfig>(
   "local:home.hideElements",
@@ -52,4 +53,14 @@ export const menuBadgesSetting = storage.defineItem<MenuBadgesConfig>(
       ],
     },
   },
+);
+
+export interface CourseListCache {
+  courses: CourseRef[];
+  updatedAt: string; // ISO の日時
+}
+
+export const courseListCacheSetting = storage.defineItem<CourseListCache>(
+  "local:moodle.courseList",
+  { fallback: { courses: [], updatedAt: "" } },
 );
