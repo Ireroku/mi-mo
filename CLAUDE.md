@@ -17,6 +17,8 @@ pnpm build:firefox   # Firefox向けビルド
 pnpm zip             # Chrome向けパッケージ作成
 pnpm zip:firefox     # Firefox向けパッケージ作成
 pnpm check           # svelte-check による型・構文チェック (./tsconfig.json)
+
+python3 scripts/checkdocs.py   # docs の文体規約とリンク切れを検査
 ```
 
 単体テストのスクリプトは用意していない。
