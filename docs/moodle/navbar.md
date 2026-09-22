@@ -334,6 +334,42 @@ nav.navbar > div.container-fluid
 ```
 
 #### 幅がないとき
+
+幅 393px（iPhone 16 相当。開発者ツールのデバイスモードで再現）で採取した。Bootstrap の `md`（768px）を境に、「幅があるときはここが見える」の主ナビゲーションと入れ替わる。
+
+| 要素 | 幅があるとき | 幅がないとき |
+|---|---|---|
+| `div.primary-navigation` | `display: block` | `display: none` |
+| `.navbar-toggler[data-target="theme_boost-drawers-primary"]` | `display: none` | `display: block` |
+| `#usernavigation` | `display: flex` | `display: flex`（変わらない） |
+
+ドロワを開くハンバーガーのセレクタ：`.navbar-toggler[data-target="theme_boost-drawers-primary"]`（`aria-label="サイドパネル"`、`data-action="toggle"`）。クラスに `d-block d-md-none` を持ち、幅がないときだけ現れる。
+
+`#usernavigation` は幅を問わず残り、子は通知（`#nav-notification-popover-container`）・メッセージ・ユーザーメニュー（`.usermenu-container`）の3つで変わらない。`#usernavigation` の手前へ差し込む要素は、幅がないときも同じ位置に入る。
+
+### 開閉で変わる属性
+
+ハンバーガーを `element.click()` で操作すると、次のように変わる。
+
+| 対象 | 閉 | 開 |
+|---|---|---|
+| `#theme_boost-drawers-primary` の `aria-hidden` | `"true"` | 属性ごと消える |
+| 同 `class` | `drawer drawer-left drawer-primary d-print-none` | 末尾に `show` が付く |
+| 子孫の `a` の `tabindex` | `"-1"` | 属性ごと消える |
+
+下に載せたHTMLは閉じた状態のため、各リンクに `tabindex="-1"` と `data-aria-hidden-tab-index` が付いている。開いた状態では両方とも消える。
+
+### コンテンツの並び
+
+`div.drawercontent` は `drag-container` クラスを併せ持ち、その直下に `div.list-group` が入る。直下の子（`:scope > .list-group-item`）は16件で、リンク項目・折りたたみのトグル・トグルの中身が兄弟として並ぶ。
+
+| 種類 | セレクタ | 備考 |
+|---|---|---|
+| リンク | `a.list-group-item.list-group-item-action` | 現在地には `active` と `aria-current="true"` が付く |
+| トグル | `a[data-toggle="collapse"][data-target="#drop-down-menu-<n>"]` | Bootstrap 4 形式の `data-toggle`。`data-bs-toggle` ではない |
+| トグルの中身 | `div.collapse.list-group-item[role="menu"]` | `id` がトグルの `data-target` と対応する |
+| 中身のリンク | `div.collapse a.ps-5.bg-light.list-group-item` | インデントを `ps-5`、背景を `bg-light` で表す |
+
 div#theme_boost-drawers-primary: ドロワ
   - div.drawerheader: ロゴ等を表示するヘッダ
     - button.btn または button.drawertoggle: ドロワを閉じるボタン

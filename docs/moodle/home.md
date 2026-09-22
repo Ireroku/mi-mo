@@ -249,7 +249,8 @@ div#theme_boost-drawers-blocks.drawer.drawer-right
 
 ## 気付いた注意点
 
-- **モバイル表示は確認できなかった。** `resize_window` でウィンドウサイズを変更しても、このページで採取している環境では `window.innerWidth` が変化せず（常に `1540`）、実際のビューポート幅が変わらなかった。Bootstrap のブレークポイントクラス（`d-md-*` 等）が [`navbar.md`](./navbar.md) 同様に効いている可能性はあるが未確認。モバイル実機か、別の手段でビューポートを変えて再確認する必要がある。
+- **幅がないときも差し込み先は同じセレクタで取れる。** 幅 393px（iPhone 16 相当。開発者ツールのデバイスモードで再現）で確認した。サイトホームの `#region-main div.course-content` とダッシュボードの `#block-region-content` はどちらもそのまま存在し、幅はいずれも 377px（画面 393px から `body` の左右余白を引いた値）になる。`body` の `limitedwidth` も幅を問わず付く。ナビゲーションが主ナビゲーションからドロワーへ入れ替わる件は [`navbar.md`](./navbar.md) を参照する。
+- **ダッシュボードの `#block-region-content` は先頭の子が `h2.sr-only` の見出し。** ブロック領域の先頭へ新規要素を足す場合、この見出しより前と後ろのどちらへ入れるかを決める必要がある。
 - `#region-main` 直下の無名 `div`（`id` も `class` も無し）は、お知らせ・コースカテゴリ・コース検索・新規要素すべての共通の親。ここには安定した名前が無いため、セレクタとして直接参照せず、内部の要素（`div.course-content` 等）を基準にする。
 - ダッシュボードの `context-*` はユーザーごとに変わる値なので、body クラスでページ種別を判定する際は `path-my` / `pagelayout-mydashboard` を使う（`context-14104` は使わない）。
 - サイトホームの `#frontpage-category-names` 配下、トップレベル以外のカテゴリは `class="category notloaded"` で中身が空（遅延読み込み）。全カテゴリを数えたい場合はクリックで展開が必要。
