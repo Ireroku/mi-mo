@@ -56,3 +56,10 @@
 | 休み | 授業を行わない日 |
 | 代替日 | 別の曜日の授業を行う日と、その曜日 |
 | 色 | 白 / 黒 / 水色 / ピンク / 緑 |
+
+## 実装
+
+- [`docs/impl/timetable/schedule.md`](../../impl/timetable/schedule.md)
+- [`docs/impl/timetable/panel.md`](../../impl/timetable/panel.md)
+- [`docs/impl/timetable/ics.md`](../../impl/timetable/ics.md)
+- [`docs/impl/settings/timetableFields.md`](../../impl/settings/timetableFields.md)

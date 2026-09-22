@@ -21,3 +21,8 @@ mi-mo のすべての設定を GUI で行う画面を用意する。ブラウザ
 ## 設定項目
 
 この画面自体の設定はない。
+
+## 実装
+
+- [`docs/impl/settings/panel.md`](../../impl/settings/panel.md)
+- [`docs/impl/settings/menuFields.md`](../../impl/settings/menuFields.md)

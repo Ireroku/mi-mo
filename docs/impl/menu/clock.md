@@ -10,6 +10,7 @@ Moodle のナビゲーションメニューに現在時刻を表示する。時�
 - 参考: [`countdownBadge.md`](./countdownBadge.md) — `startClockTicker` を共有する。タイマーの仕様を変える時は両方へ影響する
 - 資料: [`docs/moodle/navbar.md`](../../moodle/navbar.md) — マウント先のアンカー要素
 - 使う: [`../utils/settings.md`](../utils/settings.md) — 設定の取得。参照するのは entrypoint のみで、機能側は参照しない
+- 使う: [`../utils/periods.md`](../utils/periods.md) — `PeriodSlot` の型と、時刻から時限を引く計算
 
 ## 対象ファイル
 
@@ -31,30 +32,18 @@ export interface ClockConfig {
   showPeriod?: boolean;
 }
 
-export interface PeriodSlot {
-  period: number;
-  start: string; // "HH:MM"
-  end: string; // "HH:MM"
-}
-
 export type ClockGranularity = "second" | "minute";
 
 export function formatTime(date: Date, showSeconds: boolean): string;
 export function formatDate(date: Date): string;
 export function formatWeekday(date: Date): string;
-export function findCurrentPeriod(
-  date: Date,
-  periods: PeriodSlot[],
-): PeriodSlot | undefined;
-export function findNextPeriodStart(
-  date: Date,
-  sortedPeriods: PeriodSlot[],
-): Date | undefined;
 export function startClockTicker(
   onTick: (now: Date) => void,
   granularity?: ClockGranularity,
 ): () => void;
 ```
+
+`PeriodSlot` と `findCurrentPeriod`・`findNextPeriodStart` は [`../utils/periods.md`](../utils/periods.md) から import する。時限表は時計・カウントダウン・時間割の3つが共有するため、時計の持ち物にしない。
 
 ```ts
 // clock.svelte の Props
@@ -70,13 +59,13 @@ interface Props {
 // index.ts
 export interface MenuBadgesConfig {
   clock: ClockConfig;
-  periods: PeriodSlot[];
   countdowns: CountdownConfig[];
 }
 
 export async function initMenuBadges(
   ctx: ContentScriptContext,
   config: MenuBadgesConfig,
+  periods: PeriodSlot[],
 ): Promise<void>;
 ```
 
@@ -85,8 +74,11 @@ export async function initMenuBadges(
 呼び出し側（`src/entrypoints/shared.content.ts`）での使い方:
 
 ```ts
-const badgesConfig = await menuBadgesSetting.getValue();
-await initMenuBadges(ctx, badgesConfig);
+const [badgesConfig, periodTable] = await Promise.all([
+  menuBadgesSetting.getValue(),
+  periodTableSetting.getValue(),
+]);
+await initMenuBadges(ctx, badgesConfig, periodTable.periods);
 ```
 
 ## 処理の流れ
@@ -135,12 +127,11 @@ await initMenuBadges(ctx, badgesConfig);
 
 - **`setInterval` を使わず、`setTimeout` で次の境界までを毎回計算し直す。** `setInterval` は誤差が累積するため
 - **`visibilitychange` で表示へ戻った時点に再同期する。** バックグラウンドタブではタイマーが間引かれるため。ただし表示値は毎回 `new Date()` から計算するので、遅れるのは更新のタイミングだけで、表示内容そのものが狂うことはない
-- **`findNextPeriodStart` は `sortedPeriods` がソート済みであることを前提とする。** カウントダウンから1秒ごとに呼ばれるため、内部でソートしない。ソートの責任は呼び出し側にある
-- **当日に残りの時限が無い場合、`findNextPeriodStart` は翌日の最初の時限を返す。** `undefined` を返すのは時限表が空の時だけ
-- **時限の判定は `start` 以上 `end` 未満。** 終了時刻ちょうどは、その枠に含めない
+- **時限まわりの計算は [`../utils/periods.md`](../utils/periods.md) に任せる。** ソート済みを前提とする理由や、当日に残りが無い場合の扱いはあちらが持つ
 - **時刻を主役にし、日付と曜日は `text-xs text-muted-foreground` で落とす。** 4つの情報を同じ大きさで並べると、どれを見ればよいか判断できなくなる
 - **時限は shadcn の `Badge`（`variant="secondary"`）で囲む。** 時刻や日付と違い、現在どの枠にいるかという別種の情報のため。追加は `pnpm dlx shadcn-svelte@latest add badge -y`
 - **数字には `tabular-nums` を当てる。** 桁ごとに幅が変わると、1秒ごとに横幅が揺れる
 - **ルート要素へ `font-sans` を明示する。** `createShadowRootUi` が `:host{all:initial}` でリセットするため、指定しないとブラウザ既定のフォントに落ちる
 - **設定は entrypoint が読み、`initMenuBadges` が引数で受け取る。** このモジュールは設定の保存場所も形式も参照しない
-- **`initMenuBadges` は受け取った `periods` を1度だけ開始時刻の順にソートし、以降はソート済みのものを渡す。** 設定から来る時限表は順序が保証されず、`findNextPeriodStart` は1秒ごとに呼ばれるため内部でソートしない
+- **`initMenuBadges` は受け取った `periods` を1度だけ `sortPeriodsByStart` に通し、以降はソート済みのものを渡す。** 設定から来る時限表は順序が保証されず、`findNextPeriodStart` は1秒ごとに呼ばれるため内部でソートしない
+- **時限表を `MenuBadgesConfig` に含めず、別の引数で受け取る。** 時間割も同じ表を使うため、バッジの設定の一部にすると時間割がバッジの設定を読むことになる

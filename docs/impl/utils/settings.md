@@ -24,6 +24,7 @@ import { storage } from "wxt/utils/storage";
 import type { HideElementsConfig } from "@/features/home/hideElements";
 import type { MenuBadgesConfig } from "@/features/menu";
 import type { MenuConfig } from "@/features/menu/navbar/types";
+import type { PeriodTableConfig } from "@/utils/periods";
 
 export const homeHideElementsSetting = storage.defineItem<HideElementsConfig>(
   "local:home.hideElements",
@@ -39,6 +40,11 @@ export const menuSetting = storage.defineItem<MenuConfig>(
 
 export const menuBadgesSetting = storage.defineItem<MenuBadgesConfig>(
   "local:menu.badges",
+  { fallback: /* 下の決めごとを参照 */ },
+);
+
+export const periodTableSetting = storage.defineItem<PeriodTableConfig>(
+  "local:periods.table",
   { fallback: /* 下の決めごとを参照 */ },
 );
 ```
@@ -70,5 +76,6 @@ const config = await homeHideElementsSetting.getValue();
 - **`getValue()` が非同期であることを前提に組む。** 現状は既定値を返すだけなので同期にもできるが、設定画面が保存を始めた時点でシグネチャを変えることになる
 - **変数名は `<機能><設定名>Setting` の形にする。** import した先で何の設定か分かるようにするため
 - **「インターフェース」に並ぶ項目は例示で、全項目の一覧ではない。** どの項目を定義するかは各機能の指示書が自分の分を持つ。ここへ全部を集めると、機能が増えるたびに2箇所を直すことになる
-- **`menuSetting` と `menuBadgesSetting` の既定値は、`src/features/menu/index.ts` にハードコードされている `menuConfig`・`clockConfig`・`periodTable`・`countdownTargets` の値をそのまま移す。** 移行前後で表示が変わらないようにするため。`countdownTargets` だけは関数を持つため、[`../menu/countdownBadge.md`](../menu/countdownBadge.md) の `CountdownConfig` の形へ書き換える
+- **`menuSetting`・`menuBadgesSetting`・`periodTableSetting` の既定値は、`src/features/menu/index.ts` にハードコードされている `menuConfig`・`clockConfig`・`periodTable`・`countdownTargets` の値をそのまま移す。** 移行前後で表示が変わらないようにするため。`countdownTargets` だけは関数を持つため、[`../menu/countdownBadge.md`](../menu/countdownBadge.md) の `CountdownConfig` の形へ書き換える
+- **時限表は `menuBadgesSetting` の中に入れず、独立した項目にする。** 時計・カウントダウン・時間割の3つが同じ表を使う。バッジの設定の一部にすると、時間割がバッジの設定を読むことになる。キーを `local:periods.table` としたのも、特定の機能に属さないことを示すため
 - **設定画面（[`../../features/ui/settings.md`](../../features/ui/settings.md)）はまだ無い。** 現状このモジュールが返すのは常に `fallback` の値

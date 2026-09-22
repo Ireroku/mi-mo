@@ -6,7 +6,8 @@
 
 ## 関連
 
-- 使う: [`clock.md`](./clock.md) — `startClockTicker` でタイマーを回す。`PeriodSlot` 型と `initMenuBadges` の定義もそちらにある
+- 使う: [`clock.md`](./clock.md) — `startClockTicker` でタイマーを回す。`initMenuBadges` の定義もそちらにある
+- 使う: [`../utils/periods.md`](../utils/periods.md) — `PeriodSlot` の型と `findNextPeriodStart`
 - 使う: [`../utils/settings.md`](../utils/settings.md) — 設定の取得。参照するのは entrypoint のみで、機能側は参照しない
 - 参考: [`navbar.md`](./navbar.md) — 同じナビゲーションメニューを対象にするが、あちらは実DOMの属性操作、こちらは Shadow DOM への注入
 - 資料: [`docs/moodle/navbar.md`](../../moodle/navbar.md) — マウント先のアンカー要素
@@ -53,7 +54,7 @@ export function buildCountdownTargets(
 ): CountdownTarget[];
 ```
 
-`PeriodSlot` と `findNextPeriodStart` は [`clock.md`](./clock.md) の `clock.logic.ts` から import する。`fixedDate` の `at` は ISO 8601 の文字列。
+`PeriodSlot` と `findNextPeriodStart` は [`../utils/periods.md`](../utils/periods.md) の `periods.ts` から import する。`fixedDate` の `at` は `new Date()` が解釈できる日時の文字列。設定画面は `datetime-local` の値（`YYYY-MM-DDTHH:MM`、秒とタイムゾーンを持たない形）をそのまま入れる。
 
 ```ts
 // countdownBadge.svelte の Props
