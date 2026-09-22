@@ -71,7 +71,7 @@ python3 scripts/checkdocs.py docs/impl  # 一部だけ
 
 ### パスエイリアス
 
-`$lib` が `src/lib` を指す。`vite.config.js` と `tsconfig.json` の両方で定義している。
+`$lib` が `src/lib`、`@` が `src` を指す。定義は `tsconfig.json` の `paths` にある。`vite.config.js` は存在せず、Vite の設定は `wxt.config.ts` の `vite` オプションに書く。
 
 ### import の書き方
 
@@ -130,7 +130,20 @@ Moodle 実画面から採取したセレクタと構造は [`../moodle/`](../moo
 
 ### スタイリング
 
-Tailwind CSS v4（`@tailwindcss/vite`）を使う。グローバルCSSは `src/assets/global.css`。shadcn-svelte を導入済み（`components.json`: style=rhea, iconLibrary=lucide）。
+Tailwind CSS v4 と shadcn-svelte を使う。**UIは自作せず、shadcn のコンポーネントを入れて組み合わせる。**
+
+| 場所 | 中身 |
+|---|---|
+| `wxt.config.ts` | `@tailwindcss/vite` を Vite プラグインとして登録する |
+| `src/assets/global.css` | Tailwind 本体と shadcn のテーマ変数。shadcn の CLI が生成する |
+| `src/lib/components/ui/` | shadcn のコンポーネント。CLI が生成するので手で書かない |
+| `components.json` | shadcn の設定。style=nova, baseColor=taupe, iconLibrary=lucide |
+
+content script で Tailwind を使うには、entrypoint から `@/assets/global.css` を import する。
+
+**Shadow DOM 内でも shadcn のテーマが効く。** `createShadowRootUi` が注入前に CSS の `:root` を `:host` へ置換し、`@property` を document 側へ分離するため。Shadow Root には `:host{all:initial}` のリセットも入る。
+
+**フォントを `global.css` へ import しない。** `@fontsource-variable/*` は woff2 を base64 で CSS へ埋め込むため、content script の CSS が 5.85 kB から 888 kB へ膨らむ。Moodle のページには既定のフォントがあり、フォントの差し替えは [`../features/ui/font.md`](../features/ui/font.md) の機能として別に設計する。
 
 ## 実装指示書テンプレート
 

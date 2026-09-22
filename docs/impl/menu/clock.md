@@ -138,7 +138,6 @@ await initMenuBadges(ctx, badgesConfig);
 - **`findNextPeriodStart` は `sortedPeriods` がソート済みであることを前提とする。** カウントダウンから1秒ごとに呼ばれるため、内部でソートしない。ソートの責任は呼び出し側にある
 - **当日に残りの時限が無い場合、`findNextPeriodStart` は翌日の最初の時限を返す。** `undefined` を返すのは時限表が空の時だけ
 - **時限の判定は `start` 以上 `end` 未満。** 終了時刻ちょうどは、その枠に含めない
-- **スタイルは生CSSで書く。** Shadow DOM 内にマウントするため Tailwind のユーティリティが届かない
-- **クラス名には `mimo-` 接頭辞を付ける。** Moodle 側との衝突を避けるため
+- **スタイリングは [`../README.md`](../README.md) の方針に従う。** 現在の実装は生CSSですが、Shadow Root には `:root` を `:host` へ置換した CSS が注入されるため shadcn のテーマが効く
 - **設定は entrypoint が読み、`initMenuBadges` が引数で受け取る。** このモジュールは設定の保存場所も形式も参照しない
 - **`initMenuBadges` は受け取った `periods` を1度だけ開始時刻の順にソートし、以降はソート済みのものを渡す。** 設定から来る時限表は順序が保証されず、`findNextPeriodStart` は1秒ごとに呼ばれるため内部でソートしない

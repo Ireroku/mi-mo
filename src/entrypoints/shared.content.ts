@@ -1,4 +1,5 @@
 // サイト全体で読み込むもの
+import "@/assets/global.css";
 import { initMenu, initMenuBadges } from "@/features/menu";
 import { menuSetting, menuBadgesSetting } from "@/utils/settings";
 
