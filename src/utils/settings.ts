@@ -5,6 +5,7 @@ import type { HideElementsConfig } from "@/features/home/hideElements";
 import type { MenuBadgesConfig } from "@/features/menu";
 import type { MenuConfig } from "@/features/menu/navbar/types";
 import type { MenuLogoConfig } from "@/features/menu/logo";
+import type { FloatingHintConfig } from "@/features/ui/floatingHint";
 import type { CourseRef } from "@/moodle/courseList";
 
 export const homeHideElementsSetting = storage.defineItem<HideElementsConfig>(
@@ -69,4 +70,9 @@ export const courseListCacheSetting = storage.defineItem<CourseListCache>(
 export const menuLogoSetting = storage.defineItem<MenuLogoConfig>(
   "local:menu.logo",
   { fallback: { hidden: false } },
+);
+
+export const uiFloatingHintSetting = storage.defineItem<FloatingHintConfig>(
+  "local:ui.floatingHint",
+  { fallback: { hidden: true } },
 );
