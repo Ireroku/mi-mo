@@ -69,5 +69,6 @@ const config = await homeHideElementsSetting.getValue();
 - **既定値は `fallback` で与える。** 未設定時に `null` が返らなくなり、呼び出し側の分岐が消える
 - **`getValue()` が非同期であることを前提に組む。** 現状は既定値を返すだけなので同期にもできるが、設定画面が保存を始めた時点でシグネチャを変えることになる
 - **変数名は `<機能><設定名>Setting` の形にする。** import した先で何の設定か分かるようにするため
+- **「インターフェース」に並ぶ項目は例示で、全項目の一覧ではない。** どの項目を定義するかは各機能の指示書が自分の分を持つ。ここへ全部を集めると、機能が増えるたびに2箇所を直すことになる
 - **`menuSetting` と `menuBadgesSetting` の既定値は、`src/features/menu/index.ts` にハードコードされている `menuConfig`・`clockConfig`・`periodTable`・`countdownTargets` の値をそのまま移す。** 移行前後で表示が変わらないようにするため。`countdownTargets` だけは関数を持つため、[`../menu/countdownBadge.md`](../menu/countdownBadge.md) の `CountdownConfig` の形へ書き換える
 - **設定画面（[`../../features/ui/settings.md`](../../features/ui/settings.md)）はまだ無い。** 現状このモジュールが返すのは常に `fallback` の値

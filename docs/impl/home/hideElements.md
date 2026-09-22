@@ -8,13 +8,14 @@
 
 - 資料: [`docs/moodle/home.md`](../../moodle/home.md) — 対象3要素のセレクタ。同名の要素が別の場所にも出るため、採取結果を見てから書く
 - 使う: [`docs/impl/utils/settings.md`](../utils/settings.md) — 設定の取得。参照するのは entrypoint のみで、機能側は参照しない
+- 使う: [`docs/impl/utils/styleSheet.md`](../utils/styleSheet.md) — 組み立てた CSS の注入
 - 資料: [`docs/features/home/hide-elements.md`](../../features/home/hide-elements.md) — 何を隠すか、なぜ隠すかの仕様
 
 ## 対象ファイル
 
 | パス | 役割 |
 |---|---|
-| `src/features/home/hideElements.ts` | 設定の型、対象とセレクタの対応、CSS の組み立てと注入 |
+| `src/features/home/hideElements.ts` | 設定の型、対象とセレクタの対応、CSS の組み立て |
 | `src/entrypoints/early.content.ts` | `document_start` で設定を読み、機能へ引数として渡す |
 
 ## インターフェース
@@ -59,11 +60,9 @@ export default defineContentScript({
 ### applyHideElements
 
 1. `config` の値が true のキーを集め、対応するセレクタの配列にする
-2. `document.getElementById("mimo-home-hide-style")` で既存の style を探す
-3. 配列が空の場合、既存の style があれば `textContent` を空文字列にして戻る。無ければ何もせず戻る
-4. セレクタを `,` で連結し、`{ display: none !important; }` を付けた CSS 文字列を作る
-5. 既存の style があれば、その `textContent` を 4 の文字列で差し替える
-6. 無ければ `<style id="mimo-home-hide-style">` を作り、4 の文字列を入れて `document.head`（無ければ `document.documentElement`）へ追加する
+2. 配列が空の場合、空文字を `applyStyleSheet` へ渡して戻る
+3. セレクタを `,` で連結し、`{ display: none !important; }` を付けた CSS 文字列を作る
+4. `applyStyleSheet("mimo-home-hide-style", 3 で作った文字列)` を呼ぶ
 
 ## 決めごと
 
@@ -73,8 +72,7 @@ export default defineContentScript({
 - **`div.course-content` は body クラスでの限定を外せない。** コースページにも同名のクラスが存在するため、外すとコースページの本文ごと消える
 - **コース検索は `#region-main` で絞る。** `div.simplesearchform` はページ内に3件あり、残り2件はサイト全体検索のフォームで対象外
 - **コース検索の親（`div.box.py-3.d-flex.justify-content-center`）はセレクタに使わない。** 1件に特定はできるが、Bootstrap のユーティリティクラスの並びに依存するためテーマの更新で壊れる
-- **style の追加先は `document.head`、無ければ `document.documentElement`。** `document_start` の時点では `head` がまだ存在しないことがある
-- **同じ id の style があれば中身を差し替える。** 設定の変更を監視して再適用する場合に、2枚目を積まずに済む
-- **隠す対象が1つも無い場合も、既存の style を空にする。** 設定をすべて false へ変えて再適用した時に、前回注入した CSS が残って隠れたままになるのを防ぐ
+- **style 要素の注入そのものは [`../utils/styleSheet.md`](../utils/styleSheet.md) へ任せる。** 同じ手順を複数の機能が必要とするため切り出してある。追加先の選択と id による差し替えはあちらの責務
+- **隠す対象が1つも無い場合も、空文字を渡して既存の CSS を消す。** 設定をすべて false へ変えて再適用した時に、前回注入した CSS が残って隠れたままになるのを防ぐ
 - **`src/features/home/index.ts` を作らない。** 現状 home の機能はこれ1つで、re-export だけの層になる。home の機能が増えて entrypoint 側の import が膨らんだ時点で改めて検討する
 - **entrypoint は機能ではなく `run_at` で分ける。** `early.content.ts` は `document_start` を必要とするものの共通の入れ物として使う。既存の [`shared.content.ts`](../../../src/entrypoints/shared.content.ts) には相乗りできない。あちらは `createShadowRootUi` の anchor に `#usernavigation` を指定して `ui.mount()` を直接呼ぶため、`document_start` では anchor が存在せずバッジのマウントに失敗する

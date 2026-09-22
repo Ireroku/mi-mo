@@ -15,3 +15,7 @@
 ## 設定項目
 
 なし。
+
+## 実装
+
+- [`docs/impl/coursePage/sectionTitleLink.md`](../../impl/coursePage/sectionTitleLink.md)

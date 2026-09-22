@@ -58,7 +58,7 @@ python3 scripts/checkdocs.py docs/impl  # 一部だけ
 | `src/lib/` | shadcn-svelte が自動生成するコンポーネント・フック用。手動でファイルを作らない |
 | `src/assets/` | グローバルCSSなどの静的アセット |
 
-`src/utils/` と `src/moodle/` は WXT のディレクトリ構造に沿って空の状態で存在する。git は空ディレクトリを記録しないため、リポジトリのツリーには現れない。
+`<機能名>` は camelCase で書き、リポジトリ直下の [README.md](../../README.md) の機能一覧の見出しに対応させる（`coursePage`、`myCourses`）。`docs/impl/` のディレクトリも同じ名前で揃える。仕様書を置く [`../features/`](../features/) だけはハイフン区切り（`course-page/`）を使い、見出しとの対応より URL の読みやすさを優先する。
 
 ### ファイル名のサフィックス
 
@@ -258,7 +258,11 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`menu/clock.md`](./menu/clock.md) | `src/features/menu/clock.*` | 参考: navbar / countdownBadge |
 | [`menu/countdownBadge.md`](./menu/countdownBadge.md) | `src/features/menu/countdownBadge.*` | 使う: clock の `startClockTicker` |
 | [`home/hideElements.md`](./home/hideElements.md) | `src/features/home/hideElements.ts` | 資料: [`../moodle/home.md`](../moodle/home.md) |
+| [`coursePage/reverseSections.md`](./coursePage/reverseSections.md) | `src/features/coursePage/reverseSections.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
+| [`coursePage/sectionTitleLink.md`](./coursePage/sectionTitleLink.md) | `src/features/coursePage/sectionTitleLink.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
+| [`myCourses/clickableCard.md`](./myCourses/clickableCard.md) | `src/features/myCourses/clickableCard.ts` | 使う: styleSheet ／ 資料: [`../moodle/my-courses.md`](../moodle/my-courses.md) |
 | [`utils/settings.md`](./utils/settings.md) | `src/utils/settings.ts` | 使う: 各機能が export する設定の型 |
+| [`utils/styleSheet.md`](./utils/styleSheet.md) | `src/utils/styleSheet.ts` | 参考: [`home/hideElements.md`](./home/hideElements.md) |
 | [`moodle/page.md`](./moodle/page.md) | `src/moodle/page.ts` | 資料: [`../moodle/`](../moodle/) の各ページ |
 
 一覧はテーブルのまま保つ。ここを開く目的が「既にあるものを探す」ことなので、名前の探しやすさを優先する。依存関係が言葉で追えなくなった時点で、テーブルへ mermaid の関連図を併記する。

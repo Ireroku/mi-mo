@@ -17,3 +17,7 @@
 ## 設定項目
 
 逆転するかどうか。
+
+## 実装
+
+- [`docs/impl/coursePage/reverseSections.md`](../../impl/coursePage/reverseSections.md)

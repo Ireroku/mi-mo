@@ -261,6 +261,41 @@ format-weeks limitedwidth  path-course path-course-view chrome dir-ltr lang-ja y
 
 トピック0（`data-number="0"`、「一般」）も同じ `ul` の最初の子として並ぶため、逆転の対象に含めるかどうかは実装側の決めごとになる。
 
+### コースインデックス側のコンテナ
+
+セレクタ：`#theme_boost-drawers-courseindex #course-index`（1件）
+
+左ドロワーのコースインデックスは、本文とは別にセクションの並びを持つ。直下の子が `div.courseindex-section[data-for="section"]` で、コースのセクション数と一致する（コンパイラ(2026年度) で17件）。
+
+```
+div#theme_boost-drawers-courseindex.drawer.drawer-left
+  div#courseindex-content
+    div#course-index.courseindex
+      div.courseindex-section[data-for="section"][data-id="<セクションの内部ID>"]
+        div[data-for="section_item"]
+          （[data-for="section_title"] がセクション名）
+        ul.courseindex-sectioncontent[data-for="cmlist"]
+          li.courseindex-item[data-for="cm"][data-id="<活動ID>"]
+```
+
+本文側だけを反転すると、この索引は元の並びのまま残り、同じ画面に逆向きの一覧が2つ並ぶ。`#course-index` へ本文と同じ `flex-direction: column-reverse` を当てると左右が揃い、各項目の幅も崩れない（実機で確認済み）。
+
+## リンクの色
+
+[`section-title-link.md`](../features/course-page/section-title-link.md) が参照する値。
+
+Moodle 4 の Boost が `:root` へ CSS 変数を出力している。コースページで採取した実測値は次の通り。
+
+| 変数 | 値 |
+|---|---|
+| `--primary` | `#0f6cbf` |
+| `--secondary` | `#ced4da` |
+| `--info` | `#008196` |
+
+リンク（`a.aalink`）の文字色は `rgb(15, 108, 191)` で `--primary` と一致する。一方セクションタイトルのリンク（`.sectionname > a`）は `rgb(29, 33, 37)` の本文色で、下線も付かない（`text-decoration-line: none`）。見た目がリンクと分からないのはこのため。
+
+三重大のテーマが色を変えた場合も `--primary` が追随するため、リンク色を指す場合は値を直接書かず `var(--primary)` を使う。
+
 ## autoattend を含むコースについて
 
 autoattend が設置されたコースには、通常の活動一覧とは別に、右側のブロックドロワーに「自動出欠ブロック」が追加で表示される。**出席リンクと出席統計は別々の場所にある。**

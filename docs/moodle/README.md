@@ -27,7 +27,8 @@ Moodle 実画面から採取した DOM 構造とセレクタを置く。実装�
 
 | ファイル | 対象URL | 参照する仕様書 |
 |---|---|---|
-| [`navbar.md`](./navbar.md) | 全ページ共通 | [`ui/menu.md`](../features/ui/menu.md) |
+| [`navbar.md`](./navbar.md) | 全ページ共通（上部メニュー） | [`ui/menu.md`](../features/ui/menu.md) |
+| [`common.md`](./common.md) | 全ページ共通（上部メニュー以外） | [`ui/floating-hint.md`](../features/ui/floating-hint.md) |
 | [`home.md`](./home.md) | `/` と `/my/` の両方 | [`home/`](../features/home/) の5本 |
 | [`my-courses.md`](./my-courses.md) | `/my/courses.php` | [`my-courses/`](../features/my-courses/) の3本 |
 | [`course-page.md`](./course-page.md) | `/course/view.php?id=<id>` | [`course-page/`](../features/course-page/) の10本 |

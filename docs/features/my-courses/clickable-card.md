@@ -17,3 +17,7 @@
 ## 設定項目
 
 なし。
+
+## 実装
+
+- [`docs/impl/myCourses/clickableCard.md`](../../impl/myCourses/clickableCard.md)
