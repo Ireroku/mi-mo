@@ -3,7 +3,11 @@ import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { MenuManager, type MenuConfig } from "./navbar/menu.manager";
 import ClockBadge from "./clock.svelte";
 import CountdownBadge from "./countdownBadge.svelte";
-import type { ClockConfig, PeriodSlot } from "./clock.logic";
+import type { ClockConfig } from "./clock.logic";
+import {
+  sortPeriodsByStart,
+  type PeriodSlot,
+} from "@/utils/periods";
 import { buildCountdownTargets, type CountdownConfig } from "./countdownBadge.logic";
 
 export interface MenuBadgesConfig {
@@ -44,10 +48,6 @@ async function mountBadge<Props extends Record<string, unknown>>(
   ui.mount();
 }
 
-function sortByStart(periods: PeriodSlot[]): PeriodSlot[] {
-  return [...periods].sort((a, b) => a.start.localeCompare(b.start));
-}
-
 /**
  * 時計・カウントダウンバッジをShadow DOM経由でnavbarに差し込む。エントリーポイント（shared.content.ts）から呼び出す。
  */
@@ -55,7 +55,7 @@ export async function initMenuBadges(
   ctx: ContentScriptContext,
   config: MenuBadgesConfig,
 ): Promise<void> {
-  const periodTable = sortByStart(config.periods);
+  const periodTable = sortPeriodsByStart(config.periods);
   const countdownTargets = buildCountdownTargets(config.countdowns, periodTable);
 
   await Promise.all([

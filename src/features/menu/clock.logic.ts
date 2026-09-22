@@ -5,11 +5,8 @@ export interface ClockConfig {
   showPeriod?: boolean;
 }
 
-export interface PeriodSlot {
-  period: number;
-  start: string; // "HH:MM"
-  end: string; // "HH:MM"
-}
+export type { PeriodSlot } from "@/utils/periods";
+export { findCurrentPeriod, findNextPeriodStart } from "@/utils/periods";
 
 export type ClockGranularity = "second" | "minute";
 
@@ -31,53 +28,6 @@ export function formatDate(date: Date): string {
 
 export function formatWeekday(date: Date): string {
   return `${WEEKDAYS[date.getDay()]}曜日`;
-}
-
-function toMinutes(hhmm: string): number {
-  const [hours = 0, minutes = 0] = hhmm.split(":").map(Number);
-  return hours * 60 + minutes;
-}
-
-function dateToMinutes(date: Date): number {
-  return date.getHours() * 60 + date.getMinutes();
-}
-
-export function findCurrentPeriod(
-  date: Date,
-  periods: PeriodSlot[],
-): PeriodSlot | undefined {
-  const minutes = dateToMinutes(date);
-  return periods.find(
-    (slot) => minutes >= toMinutes(slot.start) && minutes < toMinutes(slot.end),
-  );
-}
-
-/**
- * 現在時刻以降で最も近い時限の開始時刻を返す。当日に残りの時限がなければ翌日の最初の時限にフォールバックする。
- * `sortedPeriods` は呼び出し側で `start` 昇順にソート済みであることを前提とする
- * （countdownの1秒tickごとに呼ばれるため、ここでのソートは避けている）。
- */
-export function findNextPeriodStart(
-  date: Date,
-  sortedPeriods: PeriodSlot[],
-): Date | undefined {
-  if (sortedPeriods.length === 0) {
-    return undefined;
-  }
-
-  const minutes = dateToMinutes(date);
-  const todayNext = sortedPeriods.find((slot) => toMinutes(slot.start) > minutes);
-
-  // sortedPeriodsはlength > 0からの派生なので必ず要素を持つ
-  const slot = todayNext ?? sortedPeriods[0]!;
-  const base = todayNext
-    ? date
-    : new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
-
-  const [hours = 0, mins = 0] = slot.start.split(":").map(Number);
-  const target = new Date(base);
-  target.setHours(hours, mins, 0, 0);
-  return target;
 }
 
 function msUntilNextBoundary(date: Date, granularity: ClockGranularity): number {
