@@ -17,3 +17,7 @@
 ## 設定項目
 
 遷移先のURL。
+
+## 実装
+
+- [`docs/impl/ui/landingPage.md`](../../impl/ui/landingPage.md)

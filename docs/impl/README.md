@@ -257,6 +257,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`menu/navbar.md`](./menu/navbar.md) | `src/features/menu/navbar/` | 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
 | [`menu/clock.md`](./menu/clock.md) | `src/features/menu/clock.*` | 参考: navbar / countdownBadge |
 | [`menu/countdownBadge.md`](./menu/countdownBadge.md) | `src/features/menu/countdownBadge.*` | 使う: clock の `startClockTicker` |
+| [`menu/logo.md`](./menu/logo.md) | `src/features/menu/logo.ts` | 使う: styleSheet ／ 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
 | [`home/hideElements.md`](./home/hideElements.md) | `src/features/home/hideElements.ts` | 資料: [`../moodle/home.md`](../moodle/home.md) |
 | [`home/container.md`](./home/container.md) | `src/features/home/container.ts` | 使う: moodle/page ／ 挨拶・前回アクセス・時間割の器 |
 | [`home/greeting.md`](./home/greeting.md) | `src/features/home/greeting.*` | 使う: home/container ／ moodle/user |
@@ -267,6 +268,8 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`ui/floatingHint.md`](./ui/floatingHint.md) | `src/features/ui/floatingHint.ts` | 使う: styleSheet ／ 資料: [`../moodle/common.md`](../moodle/common.md) |
 | [`ui/quickDrawer.md`](./ui/quickDrawer.md) | `src/features/ui/quickDrawer.ts` | 使う: styleSheet ／ moodle/courseList ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
 | [`ui/breadcrumb.md`](./ui/breadcrumb.md) | `src/features/ui/breadcrumb.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
+| [`ui/landingPage.md`](./ui/landingPage.md) | `src/features/ui/landingPage.ts` | 使う: utils/settings ／ ログイン直後の遷移 |
+| [`ui/font.md`](./ui/font.md) | `src/features/ui/font.ts` | 使う: styleSheet ／ utils/settings |
 | [`coursePage/autoattendButton.md`](./coursePage/autoattendButton.md) | `src/features/coursePage/autoattendButton.*` | 使う: moodle/page ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/autoattendStats.md`](./coursePage/autoattendStats.md) | `src/features/coursePage/autoattendStats.*` | 使う: moodle/page ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/indexToggle.md`](./coursePage/indexToggle.md) | `src/features/coursePage/indexToggle.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |

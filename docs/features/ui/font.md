@@ -18,3 +18,7 @@ Moodle の全ページ。
 
 - 使用するフォント
 - 適用範囲（本文のみ / 全体）
+
+## 実装
+
+- [`docs/impl/ui/font.md`](../../impl/ui/font.md)
