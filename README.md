@@ -67,18 +67,18 @@ pnpm dev:firefox
 
 - UI
   - [ ] [拡張機能の設定画面](./docs/features/ui/settings.md)
-  - [ ] [上部メニュー要素の削除・追加](./docs/features/ui/menu.md)
+  - [x] [上部メニュー要素の削除・追加](./docs/features/ui/menu.md)
     - [x] メニュー項目の非表示・追加（設定はコード内固定。モバイル表示は未検証）
     - [x] 時計の追加（PC表示のみ。設定はコード内固定）
     - [x] 設定可能な定期試験までの残り時間カウントダウン（PC表示のみ。設定はコード内固定）
       - [x] 何日前から時間表示にし、何時間前から分刻み・秒刻みにするか任意に設定可能（閾値は固定値）
-    - [ ] ロゴの非表示
-  - [ ] [フローティングヒントボタンの削除](./docs/features/ui/floating-hint.md)
+    - [x] ロゴの非表示
+  - [x] [フローティングヒントボタンの削除](./docs/features/ui/floating-hint.md)
   - [ ] [右側のクイックドロワー](./docs/features/ui/quick-drawer.md)
     - [ ] 削除可能に
     - [ ] 任意のコースのピン留め
   - [ ] [ログイン後に初めに表示するページを設定可能に](./docs/features/ui/landing-page.md)
-  - [ ] [任意のフォントを読み出し設定可能に](./docs/features/ui/font.md)
+  - [x] [任意のフォントを読み出し設定可能に](./docs/features/ui/font.md)
 
 - ホーム
   - [ ] [未ログイン時にログインコンポーネントを表示](./docs/features/home/login-component.md)
@@ -104,19 +104,19 @@ pnpm dev:firefox
 - マイコース
   - [ ] [カレンダーと同期して「今日の授業順」で表示](./docs/features/my-courses/today-order.md)
   - [x] [コース要素全体のどこをクリックしてもコースページが開くように改善](./docs/features/my-courses/clickable-card.md)
-  - [ ] [即座に絞り込む検索](./docs/features/my-courses/incremental-search.md)
+  - [x] [即座に絞り込む検索](./docs/features/my-courses/incremental-search.md)
 
 - コースページ
   - [x] [よりモダンなパンくずリスト](./docs/features/course-page/breadcrumb.md)
   - [x] [コースセクションの一括開閉ボタンのデザインを美しく](./docs/features/course-page/section-toggle-design.md)
-  - [ ] [コースインデックスの一括開閉ボタンをトグルに変更](./docs/features/course-page/index-toggle.md)
+  - [x] [コースインデックスの一括開閉ボタンをトグルに変更](./docs/features/course-page/index-toggle.md)
   - [ ] [コースと評定を一括表示可能に](./docs/features/course-page/grade-inline.md)
   - [x] [コースセクションのタイトルがリンクであることを強調](./docs/features/course-page/section-title-link.md)
   - [ ] [autoattend による出席リンクをボタンにし、コースの最上部またはフローティングUIに変更可能に](./docs/features/course-page/autoattend-button.md)
   - [ ] [autoattend の出席数と現在の出席率を常時表示](./docs/features/course-page/autoattend-stats.md)
   - [ ] [コースセクションの要素を Markdown / テキストでダウンロード（一括ダウンロード）](./docs/features/course-page/export-markdown.md)
   - [ ] [コースセクションの PDF 等のファイルを一括ダウンロード](./docs/features/course-page/bulk-download.md)
-  - [ ] [コースセクションの順序を逆転して表示](./docs/features/course-page/reverse-sections.md)
+  - [x] [コースセクションの順序を逆転して表示](./docs/features/course-page/reverse-sections.md)
 
 - 配布・ストア公開
   - [ ] Firefox Add-ons ストアへの公開
