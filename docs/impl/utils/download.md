@@ -56,6 +56,7 @@ export default defineBackground(() => {
 
 1. `items` が空なら何もせず戻る
 2. `DownloadMessage` を組み立て、`browser.runtime.sendMessage` で送る
+3. 送信が済んだ時点で解決する。保存の完了は待たない
 
 ### toTextDataUrl
 
@@ -67,6 +68,7 @@ export default defineBackground(() => {
 1. メッセージの `type` が `DOWNLOAD_MESSAGE_TYPE` でなければ何もしない
 2. `items` を順に `browser.downloads.download({ url, filename })` へ渡す
 3. `filename` が無い項目は、保存名を `downloads` に決めさせる
+4. リスナーは値を返さない。`Promise` も返さない
 
 ## 決めごと
 
@@ -77,3 +79,5 @@ export default defineBackground(() => {
 - **保存名が期待と違った場合は、依頼する側でリダイレクト先を解決してから渡す。** 資料（[`../../moodle/course-page.md`](../../moodle/course-page.md)）が記録している通り、拡張子を知るにはファイルごとに1回の往復が要る。まず往復なしで組み、実機で名前を確かめる
 - **リンクのクリックによる保存（`<a download>`）を使わない。** content script から起こすダウンロードはブラウザによって止められる
 - **失敗を呼び出し側へ返さない。** 保存の成否は background が受け取るもので、依頼する側の画面では扱えない。利用者はブラウザのダウンロード欄で結果を見る
+- **`requestDownloads` は送信した時点で解決し、保存の完了を待たない。** `browser.runtime.onMessage` のリスナーが `Promise` を返すと、送信側の `sendMessage` がその解決まで待つ。待ったところで呼び出し側にできることが無く、ファイルが多いほど待ち時間だけが伸びる。リスナー側は値を返さない形で揃える
+- **Safari では `browser.downloads` が使えない。** Chrome・Firefox・Edge は対応しますが、Safari は対応しない。リポジトリ直下の [README.md](../../../README.md) で Safari 向けの公開は未定のため今は問題になりませんが、着手する時点でこの窓口の中身を別の手段へ差し替えることになる。差し替えの影響を [`../coursePage/exportMarkdown.md`](../coursePage/exportMarkdown.md) と [`../coursePage/bulkDownload.md`](../coursePage/bulkDownload.md) へ及ばせないため、保存の経路をこのモジュールへ集めてある

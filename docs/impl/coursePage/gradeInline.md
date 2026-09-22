@@ -101,9 +101,38 @@ if (config.enabled) {
 
 ### 差し込む内容
 
-`grade` があれば `<grade> / <range の右側> (<percentage>)` の形で出す。`range` は `0–26` のように範囲で入っているため、右側だけを満点として使う。`feedback` があれば、その下に小さく添える。
+次の形の要素を作り、`.activity-name-area` の末尾へ足す。
 
-`grade` が無く `feedback` だけある場合は、フィードバックのみを出す。
+```html
+<div class="mimo-grade">
+  <span class="mimo-grade-score">12.00 / 26.00</span>
+  <span class="mimo-grade-percentage">(46%)</span>
+  <p class="mimo-grade-feedback">よくできています</p>
+</div>
+```
+
+`range` は `0–26` のように範囲で入っているため、区切りの右側だけを満点として使う。`percentage` と `feedback` は、値が無ければその要素ごと置かない。`grade` が無く `feedback` だけある場合は `.mimo-grade-score` と `.mimo-grade-percentage` を置かず、フィードバックだけを出す。
+
+### 注入する CSS
+
+```css
+body.pagelayout-course .mimo-grade {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--primary, #0f6cbf);
+}
+
+body.pagelayout-course .mimo-grade-percentage {
+  margin-left: 0.25rem;
+  opacity: 0.8;
+}
+
+body.pagelayout-course .mimo-grade-feedback {
+  margin: 0.125rem 0 0;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+```
 
 ## 決めごと
 
@@ -115,4 +144,6 @@ if (config.enabled) {
 - **失敗しても黙って戻る。** 評定が無いコース、権限の無いコース、通信の失敗のいずれでも、コースページの表示自体は壊さない
 - **毎回取りに行き、結果を控えない。** 点数は更新されるもので、古い値を出す方が害が大きい。`document_idle` の後の非同期処理のため、ページの表示自体は待たせない
 - **素の DOM で差し込み、Shadow DOM を使わない。** 活動の数だけ要素を作ることになり、`createShadowRootUi` を回数分呼ぶと重い。見た目は注入した CSS で整える
+- **クラス名を `mimo-` で始める。** Moodle 側のクラスと衝突させない。同じ理由で、セレクタも `body.pagelayout-course` で絞る
+- **得点の色をリンク色（`--primary`）に合わせる。** 活動名の下に添える小さな情報で、本文と同じ色だと埋もれる
 - **合計点を出さない。** 仕様書が求めているのは課題と点数の見比べで、合計は評定ページ側にある

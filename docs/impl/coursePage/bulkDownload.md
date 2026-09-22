@@ -47,9 +47,10 @@ initBulkDownload();
 ### initBulkDownload
 
 1. `isCoursePage()` が false なら何もせず戻る
-2. セクションをすべて取り、それぞれの `.course-section-header` の末尾へボタンを足す
+2. セクションをすべて取り、それぞれの `.course-section-header` の末尾へ `<button>` を足す。クラスは `btn btn-outline-secondary btn-sm text-nowrap`
 3. `collectResourceUrls` が空になるセクションでは、ボタンを足さない
-4. 押されたら、集めた URL を `requestDownloads` へ渡す。件数を文言に出す（「資料を保存（5件）」）
+4. 文言は件数を含めて「資料を保存（5件）」とする
+5. 押されたら、集めた URL を `requestDownloads` へ渡す
 
 ## 決めごと
 
@@ -60,5 +61,5 @@ initBulkDownload();
 - **資料が1件も無いセクションにはボタンを置かない。** 押しても何も起きないボタンを並べない
 - **件数をボタンの文言に出す。** 何件保存されるかを押す前に示す。ブラウザのダウンロード欄に同時に並ぶ数でもある
 - **確認を挟まない。** 件数が文言に出ており、保存先はブラウザの設定に従う。押す前に分かる情報で足りる
-- **ボタンを素の DOM で作る。** [`./exportMarkdown.md`](./exportMarkdown.md) と同じ理由で、セクションの数だけ Shadow DOM を作らない
+- **ボタンを素の DOM で作り、クラスに `btn btn-outline-secondary btn-sm text-nowrap` を使う。** [`./exportMarkdown.md`](./exportMarkdown.md) と同じ理由で、セクションの数だけ Shadow DOM を作らない。クラスは Moodle 自身がコースページで最も多く使っている組み合わせに揃える
 - **設定を持たない。** 仕様書（[`../../features/course-page/bulk-download.md`](../../features/course-page/bulk-download.md)）に設定項目が無い

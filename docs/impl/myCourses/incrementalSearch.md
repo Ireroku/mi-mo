@@ -73,7 +73,7 @@ body.pagelayout-mycourses [data-mimo-search-empty] {
 
 ### 再描画の監視
 
-`.block-myoverview` の子要素の変化（`childList` を `subtree` つき）を監視し、変化があれば入力欄の現在の値で絞り込み直す。属性の変化は監視しない。
+`.block-myoverview` へ `MutationObserver` を `{ childList: true, subtree: true }` で張り、変化があれば入力欄の現在の値で絞り込み直す。コース要素自身には張らない。描き直しのたびに別のノードへ入れ替わるため、そこを監視すると1度で外れる。
 
 ## 決めごと
 

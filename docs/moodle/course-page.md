@@ -109,6 +109,25 @@ format-weeks limitedwidth  path-course path-course-view chrome dir-ltr lang-ja y
 
 各 `li.section.course-section` は `data-number`（0始まりの表示順）、`data-id`（セクションの内部ID）、`data-sectionname` を持つ。**DOM上の並び順と `data-number` の昇順は一致している。**
 
+### セクションのヘッダ
+
+[`export-markdown.md`](../features/course-page/export-markdown.md) と [`bulk-download.md`](../features/course-page/bulk-download.md) が、操作のボタンを足す先として使う要素。
+
+セレクタ：`#region-main div.course-content > div > ul[data-for="course_sectionlist"] > li.section .course-section-header`（セクション数と一致。コンパイラ(2026年度) で17件）
+
+```
+div.course-section-header.d-flex
+  div.bulkselect.align-self-center.d-none      ← 編集モード用の選択欄。通常は非表示
+  div.d-flex.align-items-center.position-relative
+    a.btn.btn-icon.icons-collapse-expand       ← セクション個別の開閉トグル
+    h3.sectionname …                           ← 「セクションタイトルのリンク」節の要素
+  div.sectionbadges.d-flex.align-items-center  ← 「現在の週」などのバッジ
+```
+
+末尾は `div.sectionbadges` で、その後ろへ要素を足すとバッジの右隣に並ぶ。
+
+**ボタンを足す場合のクラス。** このページで最も多く使われているボタンの組み合わせは `btn btn-outline-secondary btn-sm text-nowrap`（採取時点で30件）。Moodle 自身がこの形を使っているため、同じクラスを付けると見た目が揃う。
+
 ### 評定へのリンク
 
 セレクタ：`.secondary-navigation li[data-key="grades"] a`（1件）
