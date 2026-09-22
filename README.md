@@ -103,11 +103,11 @@ pnpm dev:firefox
 
 - マイコース
   - [ ] [カレンダーと同期して「今日の授業順」で表示](./docs/features/my-courses/today-order.md)
-  - [ ] [コース要素全体のどこをクリックしてもコースページが開くように改善](./docs/features/my-courses/clickable-card.md)
+  - [x] [コース要素全体のどこをクリックしてもコースページが開くように改善](./docs/features/my-courses/clickable-card.md)
   - [ ] [即座に絞り込む検索](./docs/features/my-courses/incremental-search.md)
 
 - コースページ
-  - [ ] [よりモダンなパンくずリスト](./docs/features/course-page/breadcrumb.md)
+  - [x] [よりモダンなパンくずリスト](./docs/features/course-page/breadcrumb.md)
   - [x] [コースセクションの一括開閉ボタンのデザインを美しく](./docs/features/course-page/section-toggle-design.md)
   - [ ] [コースインデックスの一括開閉ボタンをトグルに変更](./docs/features/course-page/index-toggle.md)
   - [ ] [コースと評定を一括表示可能に](./docs/features/course-page/grade-inline.md)

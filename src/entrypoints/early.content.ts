@@ -3,6 +3,8 @@ import { applyHideElements } from "@/features/home/hideElements";
 import { homeHideElementsSetting } from "@/utils/settings";
 import { applySectionTitleLink } from "@/features/coursePage/sectionTitleLink";
 import { applySectionToggleDesign } from "@/features/coursePage/sectionToggleDesign";
+import { applyClickableCard } from "@/features/myCourses/clickableCard";
+import { applyBreadcrumb } from "@/features/ui/breadcrumb";
 
 export default defineContentScript({
   matches: ["*://lms-m41.mie-u.ac.jp/*"],
@@ -12,5 +14,7 @@ export default defineContentScript({
     applyHideElements(config);
     applySectionTitleLink();
     applySectionToggleDesign();
+    applyClickableCard();
+    applyBreadcrumb();
   },
 });
