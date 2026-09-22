@@ -9,6 +9,8 @@ import type { MenuConfig } from "@/features/menu/navbar/types";
 import type { MenuLogoConfig } from "@/features/menu/logo";
 import type { FloatingHintConfig } from "@/features/ui/floatingHint";
 import type { FontConfig } from "@/features/ui/font";
+import type { QuickDrawerConfig } from "@/features/ui/quickDrawer";
+import type { LandingPageConfig } from "@/features/ui/landingPage";
 import type { ReverseSectionsConfig } from "@/features/coursePage/reverseSections";
 import type { CourseRef } from "@/moodle/courseList";
 
@@ -108,4 +110,19 @@ export const homeGreetingSetting = storage.defineItem<GreetingConfig>(
 export const homeLastAccessRecord = storage.defineItem<LastAccessRecord>(
   "local:home.lastAccess",
   { fallback: { previous: "", current: "" } },
+);
+
+export const uiQuickDrawerSetting = storage.defineItem<QuickDrawerConfig>(
+  "local:ui.quickDrawer",
+  { fallback: { hidden: false, pinned: [] } },
+);
+
+export const uiLandingPageSetting = storage.defineItem<LandingPageConfig>(
+  "local:ui.landingPage",
+  { fallback: { enabled: false, url: "" } },
+);
+
+export const uiLandingPendingFlag = storage.defineItem<boolean>(
+  "local:ui.landingPending",
+  { fallback: false },
 );

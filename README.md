@@ -74,10 +74,10 @@ pnpm dev:firefox
       - [x] 何日前から時間表示にし、何時間前から分刻み・秒刻みにするか任意に設定可能（閾値は固定値）
     - [x] ロゴの非表示
   - [x] [フローティングヒントボタンの削除](./docs/features/ui/floating-hint.md)
-  - [ ] [右側のクイックドロワー](./docs/features/ui/quick-drawer.md)
-    - [ ] 削除可能に
-    - [ ] 任意のコースのピン留め
-  - [ ] [ログイン後に初めに表示するページを設定可能に](./docs/features/ui/landing-page.md)
+  - [x] [右側のクイックドロワー](./docs/features/ui/quick-drawer.md)
+    - [x] 削除可能に
+    - [x] 任意のコースのピン留め
+  - [x] [ログイン後に初めに表示するページを設定可能に](./docs/features/ui/landing-page.md)
   - [x] [任意のフォントを読み出し設定可能に](./docs/features/ui/font.md)
 
 - ホーム

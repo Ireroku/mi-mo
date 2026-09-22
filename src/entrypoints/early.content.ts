@@ -4,12 +4,17 @@ import { applyMenuLogo } from "@/features/menu/logo";
 import { applyFloatingHint } from "@/features/ui/floatingHint";
 import { applyFont } from "@/features/ui/font";
 import { applyReverseSections } from "@/features/coursePage/reverseSections";
+import { applyQuickDrawerVisibility } from "@/features/ui/quickDrawer";
+import { decideLanding } from "@/features/ui/landingPage";
 import {
   homeHideElementsSetting,
   menuLogoSetting,
   uiFloatingHintSetting,
   uiFontSetting,
   coursePageReverseSectionsSetting,
+  uiQuickDrawerSetting,
+  uiLandingPageSetting,
+  uiLandingPendingFlag,
 } from "@/utils/settings";
 import { applySectionTitleLink } from "@/features/coursePage/sectionTitleLink";
 import { applySectionToggleDesign } from "@/features/coursePage/sectionToggleDesign";
@@ -26,18 +31,36 @@ export default defineContentScript({
       uiFloatingHint,
       uiFont,
       coursePageReverseSections,
+      quickDrawerConfig,
+      landingConfig,
+      landingPending,
     ] = await Promise.all([
       homeHideElementsSetting.getValue(),
       menuLogoSetting.getValue(),
       uiFloatingHintSetting.getValue(),
       uiFontSetting.getValue(),
       coursePageReverseSectionsSetting.getValue(),
+      uiQuickDrawerSetting.getValue(),
+      uiLandingPageSetting.getValue(),
+      uiLandingPendingFlag.getValue(),
     ]);
+
     applyHideElements(homeHideElements);
     applyMenuLogo(menuLogo);
     applyFloatingHint(uiFloatingHint);
     applyFont(uiFont);
     applyReverseSections(coursePageReverseSections);
+    applyQuickDrawerVisibility(quickDrawerConfig);
+
+    const decision = decideLanding(landingConfig, landingPending, window.location);
+    if (decision.pending !== landingPending) {
+      await uiLandingPendingFlag.setValue(decision.pending);
+    }
+    if (decision.redirectTo) {
+      window.location.replace(decision.redirectTo);
+      return;
+    }
+
     applySectionTitleLink();
     applySectionToggleDesign();
     applyClickableCard();

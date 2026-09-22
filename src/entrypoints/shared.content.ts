@@ -7,12 +7,14 @@ import { initIncrementalSearch } from "@/features/myCourses/incrementalSearch";
 import { initLoginComponent } from "@/features/home/loginComponent";
 import { initGreeting } from "@/features/home/greeting";
 import { advanceRecord, initLastAccess } from "@/features/home/lastAccess";
+import { initPinnedCourses } from "@/features/ui/quickDrawer";
 import {
   menuSetting,
   menuBadgesSetting,
   courseListCacheSetting,
   homeGreetingSetting,
   homeLastAccessRecord,
+  uiQuickDrawerSetting,
 } from "@/utils/settings";
 
 export default defineContentScript({
@@ -21,13 +23,19 @@ export default defineContentScript({
   cssInjectionMode: "ui",
 
   async main(ctx) {
-    const [menuConfig, badgesConfig, greetingConfig, lastAccessRecord] =
-      await Promise.all([
-        menuSetting.getValue(),
-        menuBadgesSetting.getValue(),
-        homeGreetingSetting.getValue(),
-        homeLastAccessRecord.getValue(),
-      ]);
+    const [
+      menuConfig,
+      badgesConfig,
+      greetingConfig,
+      lastAccessRecord,
+      quickDrawerConfig,
+    ] = await Promise.all([
+      menuSetting.getValue(),
+      menuBadgesSetting.getValue(),
+      homeGreetingSetting.getValue(),
+      homeLastAccessRecord.getValue(),
+      uiQuickDrawerSetting.getValue(),
+    ]);
 
     initMenu(menuConfig);
     await initMenuBadges(ctx, badgesConfig);
@@ -42,6 +50,10 @@ export default defineContentScript({
     await homeLastAccessRecord.setValue(
       advanceRecord(lastAccessRecord, new Date()),
     );
+
+    if (!quickDrawerConfig.hidden && quickDrawerConfig.pinned.length > 0) {
+      await initPinnedCourses(ctx, quickDrawerConfig);
+    }
 
     const courses = readCourseList();
     if (courses.length > 0) {
