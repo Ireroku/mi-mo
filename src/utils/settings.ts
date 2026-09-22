@@ -6,6 +6,7 @@ import type { MenuBadgesConfig } from "@/features/menu";
 import type { MenuConfig } from "@/features/menu/navbar/types";
 import type { MenuLogoConfig } from "@/features/menu/logo";
 import type { FloatingHintConfig } from "@/features/ui/floatingHint";
+import type { FontConfig } from "@/features/ui/font";
 import type { CourseRef } from "@/moodle/courseList";
 
 export const homeHideElementsSetting = storage.defineItem<HideElementsConfig>(
@@ -76,3 +77,7 @@ export const uiFloatingHintSetting = storage.defineItem<FloatingHintConfig>(
   "local:ui.floatingHint",
   { fallback: { hidden: true } },
 );
+
+export const uiFontSetting = storage.defineItem<FontConfig>("local:ui.font", {
+  fallback: { enabled: false, family: "", scope: "all" },
+});
