@@ -73,7 +73,6 @@ pnpm dev:firefox
       - [x] 何日前から時間表示にし、何時間前から分刻み・秒刻みにするか任意に設定可能（閾値は固定値）
     - [ ] ロゴの非表示
   - [ ] [フローティングヒントボタンの削除](./docs/features/ui/floating-hint.md)
-  - [ ] [モダンな通知ウィンドウUI](./docs/features/ui/notification.md)
   - [ ] [右側のクイックドロワー](./docs/features/ui/quick-drawer.md)
     - [ ] 削除可能に
     - [ ] 任意のコースのピン留め
