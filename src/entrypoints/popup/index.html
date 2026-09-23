@@ -5,8 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mi-mo 設定</title>
     <meta name="manifest.type" content="browser_action" />
+    <style>
+      html,
+      body {
+        width: 500px;
+        min-width: 500px;
+        max-width: 500px;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        scrollbar-gutter: stable;
+      }
+    </style>
   </head>
-  <body>
+  <body class="bg-background text-foreground">
     <div id="app"></div>
     <script type="module" src="./main.ts"></script>
   </body>

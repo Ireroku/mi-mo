@@ -58,7 +58,7 @@
   }
 </script>
 
-<div class="mx-auto w-full min-w-96 max-w-3xl p-4 font-sans text-foreground">
+<div class="mx-auto w-full max-w-3xl p-4 font-sans text-foreground">
   <header class="mb-4 flex items-center justify-between pb-2 border-b">
     <div class="flex items-center gap-2">
       <span class="text-base font-bold tracking-tight">mi-mo 設定</span>
