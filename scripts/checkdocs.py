@@ -12,7 +12,7 @@
 正規表現は句読点まで含めて誤検出を避ける。記号と絵文字の規約はコードの
 コメントが対象なので、ここでは検査しない。
 
-docs/superpowers/ は作業ログで仕様の正典ではないため対象から外す。
+docs/AGENTS/ は作業メモで仕様の正典ではないため対象から外す。
 """
 
 import re
@@ -40,7 +40,10 @@ def collect(args: list[str]) -> list[Path]:
     files: list[Path] = []
     for path in targets:
         found = sorted(path.rglob("*.md")) if path.is_dir() else [path]
-        files.extend(f for f in found if "superpowers" not in f.parts)
+        files.extend(
+            f for f in found
+            if not f.resolve().is_relative_to(ROOT / "docs" / "AGENTS")
+        )
     return files
 
 

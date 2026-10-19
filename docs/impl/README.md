@@ -26,7 +26,7 @@ python3 scripts/checkdocs.py            # docs/ 全体
 python3 scripts/checkdocs.py docs/impl  # 一部だけ
 ```
 
-`docs/superpowers/` は作業ログのため対象から外してある。
+[AGENTS.md](../../AGENTS.md) の配置ルールに従う作業メモは検査対象から外してある。
 
 ## 実装者の責務
 
