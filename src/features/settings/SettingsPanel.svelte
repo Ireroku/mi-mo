@@ -1,4 +1,5 @@
 <script lang="ts">
+  // import
   import { settingsGroups } from "./fields";
   import {
     CATEGORY_LABELS,
@@ -14,6 +15,7 @@
   } from "$lib/components/ui/tabs";
   import { Separator } from "$lib/components/ui/separator";
 
+  // 上部タブ一覧
   const categories: SettingsCategory[] = [
     "ui",
     "home",
@@ -21,6 +23,7 @@
     "coursePage",
   ];
 
+  // ルーン
   let selectedTab = $state<SettingsCategory>("ui");
   let groupValues = $state<Record<string, Record<string, unknown>>>({});
   let loaded = $state(false);
@@ -67,7 +70,9 @@
   </header>
 
   {#if !loaded}
-    <div class="flex h-40 items-center justify-center text-xs text-muted-foreground">
+    <div
+      class="flex h-40 items-center justify-center text-xs text-muted-foreground"
+    >
       設定を読み込み中...
     </div>
   {:else}
