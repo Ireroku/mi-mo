@@ -1,6 +1,7 @@
 // 時間割設定から学期の実日程（コマごとの授業実施日と回数）を計算する純粋関数群。
 
 import type { PeriodSlot } from "@/utils/periods";
+import { formatDateKey, isSameDay } from "./date";
 import type {
   TimetableConfig,
   Weekday,
@@ -34,13 +35,6 @@ export function weekdayOf(date: Date): Weekday | undefined {
     default:
       return undefined;
   }
-}
-
-function formatDateKey(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
 }
 
 function parseStartDate(dateStr: string): Date {
@@ -149,17 +143,7 @@ export function lessonsOn(
   date: Date,
   schedule: readonly LessonOccurrence[],
 ): LessonOccurrence[] {
-  const y = date.getFullYear();
-  const m = date.getMonth();
-  const d = date.getDate();
-
   return schedule
-    .filter((occ) => {
-      return (
-        occ.date.getFullYear() === y &&
-        occ.date.getMonth() === m &&
-        occ.date.getDate() === d
-      );
-    })
+    .filter((occ) => isSameDay(occ.date, date))
     .sort((a, b) => a.periodIndex - b.periodIndex);
 }

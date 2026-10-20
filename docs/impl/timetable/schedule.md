@@ -16,6 +16,7 @@
 |---|---|
 | `src/features/timetable/types.ts` | 時間割の設定の型 |
 | `src/features/timetable/schedule.logic.ts` | 実日程の組み立てと回数の計算 |
+| `src/features/timetable/date.ts` | 計算と表示が共有するローカル日付の規則 |
 
 ## インターフェース
 
@@ -75,6 +76,14 @@ export function lessonsOn(
 
 export function weekdayOf(date: Date): Weekday | undefined;
 ```
+
+```ts
+// src/features/timetable/date.ts
+export function formatDateKey(date: Date): string;
+export function isSameDay(first: Date, second: Date): boolean;
+```
+
+`formatDateKey` はローカル年月日を `YYYY-MM-DD` に整形する。`isSameDay` は時刻を無視してローカル年月日を比較する。日程計算と[時間割パネル](./panel.md)はこの規則を共有する。UTC への変換は行わず、ICS の出力日時は[ICS モジュール](./ics.md)で扱う。
 
 ## 処理の流れ
 

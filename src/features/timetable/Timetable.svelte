@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PeriodSlot } from "@/utils/periods";
   import type { TimetableConfig, Weekday } from "./types";
+  import { formatDateKey, isSameDay } from "./date";
   import {
     lessonsOn,
     type LessonOccurrence,
@@ -43,21 +44,6 @@
   }
 
   let weekDays = $derived(getThisWeekDays());
-
-  function isSameDay(d1: Date, d2: Date): boolean {
-    return (
-      d1.getFullYear() === d2.getFullYear() &&
-      d1.getMonth() === d2.getMonth() &&
-      d1.getDate() === d2.getDate()
-    );
-  }
-
-  function formatDateKey(d: Date): string {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  }
 
   const today = new Date();
 
