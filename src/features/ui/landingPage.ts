@@ -36,7 +36,6 @@ export function decideLanding(
     location.pathname === "/my/" ||
     location.pathname === "/" ||
     location.pathname === "/index.php";
-
   if (!isDefaultLanding) {
     return { pending: true };
   }

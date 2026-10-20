@@ -21,9 +21,10 @@ const PAGE_CLASSES: Record<KnownPage, string> = {
 
 export function getMoodlePage(): MoodlePage {
   const { body } = document;
-
   // document_start の時点では body がまだ無い。
-  if (!body) return "other";
+  if (!body) {
+    return "other";
+  }
 
   const pages = Object.keys(PAGE_CLASSES) as KnownPage[];
   return (

@@ -21,10 +21,11 @@ export async function initTimetable(
   periods: PeriodSlot[],
 ): Promise<void> {
   const container = ensureHomeContainer();
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   const schedule = buildSchedule(config, periods);
-
   const ui = await createShadowRootUi(ctx, {
     name: "mimo-timetable",
     position: "inline",
@@ -41,9 +42,10 @@ export async function initTimetable(
       });
     },
     onRemove: (mounted) => {
-      if (mounted) unmount(mounted);
+      if (mounted) {
+        unmount(mounted);
+      }
     },
   });
-
   ui.mount();
 }

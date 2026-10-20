@@ -39,7 +39,9 @@ function orderCourseItems(items: CourseItem[], todayCourseIds: string[]): HTMLEl
   const prioritized: HTMLElement[] = [];
   for (const id of todayCourseIds) {
     const found = items.find((item) => item.courseId === id);
-    if (found) prioritized.push(found.wrapper);
+    if (found) {
+      prioritized.push(found.wrapper);
+    }
   }
 
   const others = items
@@ -56,7 +58,9 @@ export function initTodayOrder(
   timetable: TimetableConfig,
   periods: PeriodSlot[],
 ): void {
-  if (!config.enabled || !isMyCourses()) return;
+  if (!config.enabled || !isMyCourses()) {
+    return;
+  }
 
   const today = new Date();
   const schedule = buildSchedule(timetable, periods);
@@ -64,7 +68,10 @@ export function initTodayOrder(
 
   const todayCourseIds: string[] = [];
   for (const lesson of todayLessons) {
-    if (!lesson.slot.url) continue;
+    if (!lesson.slot.url) {
+      continue;
+    }
+
     const id = parseCourseIdFromUrl(lesson.slot.url);
     if (id && !todayCourseIds.includes(id)) {
       todayCourseIds.push(id);
@@ -72,16 +79,22 @@ export function initTodayOrder(
   }
 
   // 今日の授業が1つもなければ並べ替え不要
-  if (todayCourseIds.length === 0) return;
+  if (todayCourseIds.length === 0) {
+    return;
+  }
 
   const reorderCourses = () => {
     const items = collectCourseItems();
     const parent = items[0]?.wrapper.parentElement;
-    if (!parent) return;
+    if (!parent) {
+      return;
+    }
 
     const newOrder = orderCourseItems(items, todayCourseIds);
     // 自分のDOM変更も非同期で通知される。同じ順序なら変更せず監視を収束させる。
-    if (newOrder.every((node, index) => node === items[index]?.wrapper)) return;
+    if (newOrder.every((node, index) => node === items[index]?.wrapper)) {
+      return;
+    }
 
     for (const node of newOrder) {
       parent.appendChild(node);

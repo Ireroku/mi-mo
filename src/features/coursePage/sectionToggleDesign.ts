@@ -30,6 +30,5 @@ body.pagelayout-course #collapsesections:focus-visible {
   outline-offset: 2px;
 }
 `;
-
   applyStyleSheet(STYLE_ELEMENT_ID, css);
 }

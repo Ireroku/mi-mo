@@ -25,6 +25,5 @@ export function applyBreadcrumb(): void {
   color: inherit;
 }
 `;
-
   applyStyleSheet(STYLE_ELEMENT_ID, css);
 }

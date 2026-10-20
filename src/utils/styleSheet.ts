@@ -2,7 +2,6 @@
 
 export function applyStyleSheet(id: string, css: string): void {
   const existing = document.getElementById(id);
-
   if (existing) {
     existing.textContent = css;
     return;

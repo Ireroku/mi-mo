@@ -31,7 +31,9 @@ function normalizeNumberString(text: string): string {
  */
 export function readAttendanceStats(): AttendanceStats | undefined {
   const cardText = document.querySelector(".block_autoattend .card-text");
-  if (!cardText) return undefined;
+  if (!cardText) {
+    return undefined;
+  }
 
   // textContent または innerText を取得し、改行区切りにする
   const rawText =
@@ -49,7 +51,9 @@ export function readAttendanceStats(): AttendanceStats | undefined {
 
   for (const line of lines) {
     const colonIndex = line.indexOf(":") !== -1 ? line.indexOf(":") : line.indexOf("：");
-    if (colonIndex === -1) continue;
+    if (colonIndex === -1) {
+      continue;
+    }
 
     const label = line.slice(0, colonIndex).trim();
     const rawVal = line.slice(colonIndex + 1).trim();
@@ -57,19 +61,29 @@ export function readAttendanceStats(): AttendanceStats | undefined {
 
     if (label === "出席") {
       const digits = normalized.replace(/[^\d]/g, "");
-      if (digits) present = parseInt(digits, 10);
+      if (digits) {
+        present = parseInt(digits, 10);
+      }
     } else if (label === "遅刻") {
       const digits = normalized.replace(/[^\d]/g, "");
-      if (digits) late = parseInt(digits, 10);
+      if (digits) {
+        late = parseInt(digits, 10);
+      }
     } else if (label === "早退") {
       const digits = normalized.replace(/[^\d]/g, "");
-      if (digits) earlyLeave = parseInt(digits, 10);
+      if (digits) {
+        earlyLeave = parseInt(digits, 10);
+      }
     } else if (label === "欠席") {
       const digits = normalized.replace(/[^\d]/g, "");
-      if (digits) absent = parseInt(digits, 10);
+      if (digits) {
+        absent = parseInt(digits, 10);
+      }
     } else if (label === "出席率") {
       const match = normalized.match(/[\d.]+/);
-      if (match) rate = parseFloat(match[0]);
+      if (match) {
+        rate = parseFloat(match[0]);
+      }
     }
   }
 
@@ -105,13 +119,19 @@ export async function initAutoattendStats(
   ctx: ContentScriptContext,
   config: AutoattendStatsConfig,
 ): Promise<void> {
-  if (!config.enabled || !isCoursePage()) return;
+  if (!config.enabled || !isCoursePage()) {
+    return;
+  }
 
   const stats = readAttendanceStats();
-  if (!stats) return;
+  if (!stats) {
+    return;
+  }
 
   const anchor = document.querySelector("#region-main .secondary-navigation");
-  if (!anchor) return;
+  if (!anchor) {
+    return;
+  }
 
   const ui = await createShadowRootUi(ctx, {
     name: "mimo-autoattend-stats",
@@ -125,9 +145,10 @@ export async function initAutoattendStats(
       });
     },
     onRemove: (mounted) => {
-      if (mounted) unmount(mounted);
+      if (mounted) {
+        unmount(mounted);
+      }
     },
   });
-
   ui.mount();
 }

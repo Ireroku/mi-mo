@@ -17,17 +17,20 @@ export function ensureHomeContainer(): HTMLElement | undefined {
   }
 
   let container: HTMLDivElement | undefined;
-
   if (isSiteHome()) {
     const target = document.querySelector("#region-main div.course-content");
-    if (!target || !target.parentElement) return undefined;
+    if (!target || !target.parentElement) {
+      return undefined;
+    }
 
     container = document.createElement("div");
     container.id = HOME_CONTAINER_ID;
     target.parentElement.insertBefore(container, target);
   } else if (isDashboard()) {
     const target = document.querySelector("#block-region-content");
-    if (!target) return undefined;
+    if (!target) {
+      return undefined;
+    }
 
     container = document.createElement("div");
     container.id = HOME_CONTAINER_ID;

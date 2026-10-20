@@ -18,7 +18,6 @@ export function readCourseList(): CourseRef[] {
 
   const seenIds = new Set<string>();
   const courses: CourseRef[] = [];
-
   for (const a of links) {
     try {
       const parsedUrl = new URL(a.href, window.location.origin);

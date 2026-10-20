@@ -46,7 +46,6 @@ export class DrawerAdapter implements MenuAdapter {
       el instanceof HTMLAnchorElement
         ? el
         : el.querySelector<HTMLAnchorElement>(":scope > a, a");
-
     if (primaryAnchor) {
       const hrefAttr = primaryAnchor.getAttribute("href");
       if (hrefAttr && hrefAttr !== "#" && !hrefAttr.startsWith("#")) {
@@ -80,7 +79,6 @@ export class DrawerAdapter implements MenuAdapter {
       .replace(/\s+/g, " ")
       .trim()
       .toLowerCase();
-
     if (text && text.includes(targetLower)) {
       return true;
     }
@@ -95,7 +93,9 @@ export class DrawerAdapter implements MenuAdapter {
       el.hasAttribute("data-target") ||
       el.hasAttribute("data-bs-target") ||
       el.nextElementSibling?.classList.contains("collapse");
-    if (!isToggle) return null;
+    if (!isToggle) {
+      return null;
+    }
 
     const targetSelector =
       el.getAttribute("data-target") || el.getAttribute("data-bs-target");
@@ -112,7 +112,9 @@ export class DrawerAdapter implements MenuAdapter {
 
     if (!collapseEl) {
       const ariaControls = el.getAttribute("aria-controls");
-      if (ariaControls) collapseEl = document.getElementById(ariaControls);
+      if (ariaControls) {
+        collapseEl = document.getElementById(ariaControls);
+      }
     }
     return collapseEl;
   }
@@ -126,13 +128,11 @@ export class DrawerAdapter implements MenuAdapter {
     }
 
     let found = false;
-
     // Search top-level items
     const topLevelItems = Array.from(this.container.children).filter(
       (child): child is HTMLElement =>
         child instanceof HTMLElement && !child.classList.contains("collapse")
     );
-
     for (const el of topLevelItems) {
       if (this.matchesTarget(el, target)) {
         el.setAttribute("data-mimo-hidden", "true");
@@ -158,7 +158,9 @@ export class DrawerAdapter implements MenuAdapter {
 
   private referenceAfterItem(targetEl: HTMLElement): Node | null {
     const nextEl = targetEl.nextElementSibling;
-    if (nextEl?.classList.contains("collapse")) return nextEl.nextSibling;
+    if (nextEl?.classList.contains("collapse")) {
+      return nextEl.nextSibling;
+    }
 
     const targetSelector =
       targetEl.getAttribute("data-target") || targetEl.getAttribute("data-bs-target");
@@ -190,7 +192,6 @@ export class DrawerAdapter implements MenuAdapter {
     }
 
     let inserted = false;
-
     if (item.position) {
       const topLevelItems = Array.from(this.container.children).filter(
         (child): child is HTMLElement =>

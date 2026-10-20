@@ -12,7 +12,6 @@ export function collectResourceUrls(section: Element): string[] {
     "li.activity.modtype_resource",
   );
   const urls: string[] = [];
-
   for (const el of resourceEls) {
     const anchor = el.querySelector<HTMLAnchorElement>(".activityname a");
     if (anchor?.href) {
@@ -27,14 +26,20 @@ export function collectResourceUrls(section: Element): string[] {
  * コースページの各セクションヘッダーに資料一括保存ボタンを配置する。
  */
 export function initBulkDownload(): void {
-  if (!isCoursePage()) return;
+  if (!isCoursePage()) {
+    return;
+  }
 
   for (const { section, header } of findCourseSectionHeaders()) {
     const urls = collectResourceUrls(section);
-    if (urls.length === 0) continue;
+    if (urls.length === 0) {
+      continue;
+    }
 
     // 既にボタンが存在する場合は追加しない
-    if (header.querySelector(".mimo-bulk-download-button")) continue;
+    if (header.querySelector(".mimo-bulk-download-button")) {
+      continue;
+    }
 
     const button = document.createElement("button");
     button.type = "button";
@@ -44,6 +49,7 @@ export function initBulkDownload(): void {
 
     button.addEventListener("click", (e) => {
       e.stopPropagation();
+
       const items = urls.map((url) => ({ url }));
       requestDownloads(items);
     });

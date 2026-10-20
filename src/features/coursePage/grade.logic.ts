@@ -16,12 +16,13 @@ export function parseGradeReport(html: string): GradeEntry[] {
   const doc = parser.parseFromString(html, "text/html");
   const rows = doc.querySelectorAll("table.user-grade tr");
   const entries: GradeEntry[] = [];
-
   for (const row of rows) {
     const itemLink = row.querySelector<HTMLAnchorElement>(
       'th.column-itemname a[href*="/mod/"]',
     );
-    if (!itemLink) continue;
+    if (!itemLink) {
+      continue;
+    }
 
     let cmid: string | null = null;
     try {
@@ -30,10 +31,15 @@ export function parseGradeReport(html: string): GradeEntry[] {
     } catch {
       // ignore parse error
     }
-    if (!cmid) continue;
+    if (!cmid) {
+      continue;
+    }
 
     const cleanText = (el: Element | null): string | undefined => {
-      if (!el) return undefined;
+      if (!el) {
+        return undefined;
+      }
+
       const t = (el.textContent || "").trim();
       return t === "" || t === "-" ? undefined : t;
     };
@@ -42,9 +48,10 @@ export function parseGradeReport(html: string): GradeEntry[] {
     const range = cleanText(row.querySelector(".column-range"));
     const percentage = cleanText(row.querySelector(".column-percentage"));
     const feedback = cleanText(row.querySelector(".column-feedback"));
-
     // grade と feedback がどちらも空の行は結果へ含めない
-    if (!grade && !feedback) continue;
+    if (!grade && !feedback) {
+      continue;
+    }
 
     entries.push({
       cmid,

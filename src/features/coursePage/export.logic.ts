@@ -31,6 +31,7 @@ function resolveKindLabel(kind: string): string | null {
   if (label !== undefined) {
     return label;
   }
+
   return kind;
 }
 
@@ -43,7 +44,6 @@ export function readSection(section: Element): ExportedSection {
 
   const activityEls = section.querySelectorAll<HTMLElement>("li.activity");
   const activities: ExportedActivity[] = [];
-
   for (const actEl of activityEls) {
     let kind = "";
     for (const cls of actEl.classList) {
@@ -80,7 +80,9 @@ export function readSection(section: Element): ExportedSection {
             .filter((t) => t.length > 0);
         }
       }
-      if (dates && dates.length === 0) dates = undefined;
+      if (dates && dates.length === 0) {
+        dates = undefined;
+      }
     }
 
     let body: string | undefined;
@@ -116,7 +118,6 @@ export function formatSection(
 ): string {
   if (format === "markdown") {
     const blocks: string[] = [`## ${section.title}`];
-
     for (const act of section.activities) {
       if (act.kind === "label") {
         if (act.body) {
@@ -127,7 +128,6 @@ export function formatSection(
 
       const kindLabel = resolveKindLabel(act.kind);
       const parts: string[] = [];
-
       let titlePart = act.name;
       if (act.url) {
         titlePart = `[${act.name}](${act.url})`;
@@ -151,7 +151,6 @@ export function formatSection(
 
   // format === "text"
   const blocks: string[] = [section.title];
-
   for (const act of section.activities) {
     if (act.kind === "label") {
       if (act.body) {
@@ -162,7 +161,6 @@ export function formatSection(
 
     const kindLabel = resolveKindLabel(act.kind);
     const parts: string[] = [];
-
     const labelPart = kindLabel ? `（${kindLabel}）` : "";
     parts.push(`${act.name}${labelPart}`);
 

@@ -22,11 +22,15 @@ function sanitizeFilename(name: string): string {
  * コースページの各セクションに書き出しボタンを配置する。
  */
 export function initExportMarkdown(config: ExportConfig): void {
-  if (!config.enabled || !isCoursePage()) return;
+  if (!config.enabled || !isCoursePage()) {
+    return;
+  }
 
   for (const { section, header } of findCourseSectionHeaders()) {
     // 既にボタンが存在する場合は追加しない
-    if (header.querySelector(".mimo-export-button")) continue;
+    if (header.querySelector(".mimo-export-button")) {
+      continue;
+    }
 
     const button = document.createElement("button");
     button.type = "button";
@@ -36,6 +40,7 @@ export function initExportMarkdown(config: ExportConfig): void {
 
     button.addEventListener("click", (e) => {
       e.stopPropagation();
+
       const exported = readSection(section);
       const text = formatSection(exported, config.format);
 

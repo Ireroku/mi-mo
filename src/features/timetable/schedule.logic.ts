@@ -55,7 +55,6 @@ export function buildSchedule(
   // 有効なコマの総数をチェック
   const weekdays: Weekday[] = ["mon", "tue", "wed", "thu", "fri"];
   const activeSlots: { weekday: Weekday; periodIndex: number; slot: TimetableSlot }[] = [];
-
   for (const w of weekdays) {
     const list = config.grid[w] || [];
     for (let i = 0; i < Math.max(list.length, periods.length); i++) {
@@ -71,6 +70,7 @@ export function buildSchedule(
   }
 
   const holidaySet = new Set(config.holidays.map((h) => h.date));
+
   const substituteMap = new Map<string, Weekday>();
   for (const sub of config.substitutes) {
     substituteMap.set(sub.date, sub.weekday);
@@ -78,7 +78,6 @@ export function buildSchedule(
 
   const occurrences: LessonOccurrence[] = [];
   const countMap = new Map<string, number>();
-
   const isCompleted = () => {
     return activeSlots.every((s) => {
       const key = `${s.weekday}-${s.periodIndex}`;
@@ -87,12 +86,12 @@ export function buildSchedule(
   };
 
   const currentDate = parseStartDate(config.startDate);
-
   for (let dayOffset = 0; dayOffset < 365; dayOffset++) {
-    if (isCompleted()) break;
+    if (isCompleted()) {
+      break;
+    }
 
     const dateKey = formatDateKey(currentDate);
-
     // 休講日チェック（休講が振替より優先）
     if (holidaySet.has(dateKey)) {
       currentDate.setDate(currentDate.getDate() + 1);
@@ -111,7 +110,9 @@ export function buildSchedule(
       const list = config.grid[targetWeekday] || [];
       for (let i = 0; i < list.length; i++) {
         const slot = list[i];
-        if (!slot) continue;
+        if (!slot) {
+          continue;
+        }
 
         const slotKey = `${targetWeekday}-${i}`;
         const currentCount = countMap.get(slotKey) ?? 0;

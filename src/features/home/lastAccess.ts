@@ -28,7 +28,6 @@ export function advanceRecord(
 
   const currentDate = new Date(record.current);
   const diffMs = now.getTime() - currentDate.getTime();
-
   if (diffMs < SESSION_GAP_MS) {
     return {
       previous: record.previous,
@@ -49,10 +48,14 @@ export async function initLastAccess(
   ctx: ContentScriptContext,
   record: LastAccessRecord,
 ): Promise<void> {
-  if (!record.previous) return;
+  if (!record.previous) {
+    return;
+  }
 
   const container = ensureHomeContainer();
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   const ui = await createShadowRootUi(ctx, {
     name: "mimo-last-access",
@@ -66,9 +69,10 @@ export async function initLastAccess(
       });
     },
     onRemove: (mounted) => {
-      if (mounted) unmount(mounted);
+      if (mounted) {
+        unmount(mounted);
+      }
     },
   });
-
   ui.mount();
 }

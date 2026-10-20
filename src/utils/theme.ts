@@ -2,7 +2,9 @@
 // document.documentElement に dark クラスを同期する。
 
 export function syncColorScheme(): void {
-  if (typeof window === "undefined" || !window.matchMedia) return;
+  if (typeof window === "undefined" || !window.matchMedia) {
+    return;
+  }
 
   const mql = window.matchMedia("(prefers-color-scheme: dark)");
 

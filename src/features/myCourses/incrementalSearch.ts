@@ -20,15 +20,15 @@ body.pagelayout-mycourses [data-mimo-search-empty] {
 
 function filterCourses(searchTerm: string): void {
   const container = document.querySelector(".block-myoverview");
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   const items = container.querySelectorAll<HTMLElement>(
     '[data-region="course-content"]',
   );
   const query = searchTerm.trim().toLowerCase();
-
   let visibleCount = 0;
-
   for (const item of items) {
     if (!query) {
       item.removeAttribute("data-mimo-filtered");
@@ -38,7 +38,6 @@ function filterCourses(searchTerm: string): void {
 
     const titleEl = item.querySelector(".coursename");
     const title = titleEl?.textContent?.trim().toLowerCase() ?? "";
-
     if (title.includes(query)) {
       item.removeAttribute("data-mimo-filtered");
       visibleCount++;
@@ -66,7 +65,9 @@ function filterCourses(searchTerm: string): void {
  * マイコースのインクリメンタル検索を初期化する。
  */
 export function initIncrementalSearch(): void {
-  if (!isMyCourses()) return;
+  if (!isMyCourses()) {
+    return;
+  }
 
   applyStyleSheet(STYLE_ID, CSS);
 
@@ -82,6 +83,7 @@ export function initIncrementalSearch(): void {
       }
 
       event.stopPropagation();
+
       const input = target as HTMLInputElement;
       filterCourses(input.value);
     },

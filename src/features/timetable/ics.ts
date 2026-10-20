@@ -28,17 +28,17 @@ function escapeIcsText(str: string): string {
 
 function foldLine(line: string): string {
   const encoder = new TextEncoder();
-  if (encoder.encode(line).length <= 75) return line;
+  if (encoder.encode(line).length <= 75) {
+    return line;
+  }
 
   const result: string[] = [];
   let current = "";
   let currentBytes = 0;
   let isFirst = true;
-
   for (const char of line) {
     const charBytes = encoder.encode(char).length;
     const max = isFirst ? 75 : 74;
-
     if (currentBytes + charBytes > max) {
       result.push(current);
       current = " " + char;
@@ -79,7 +79,6 @@ function toUtcString(date: Date, timeStr: string): string {
   const hour = pad(localDate.getUTCHours());
   const min = pad(localDate.getUTCMinutes());
   const sec = pad(localDate.getUTCSeconds());
-
   return `${y}${mon}${d}T${hour}${min}${sec}Z`;
 }
 
@@ -115,7 +114,6 @@ export function buildIcs(
   // コマごとにグルーピング
   const slotGroups = new Map<string, LessonOccurrence[]>();
   const substituteLessons: LessonOccurrence[] = [];
-
   for (const occ of schedule) {
     const actualWeekday = weekdayOf(occ.date);
     if (actualWeekday !== occ.weekday) {
@@ -137,7 +135,9 @@ export function buildIcs(
     const list = config.grid[w] || [];
     for (let periodIdx = 0; periodIdx < list.length; periodIdx++) {
       const slot = list[periodIdx];
-      if (!slot) continue;
+      if (!slot) {
+        continue;
+      }
 
       const key = `${w}-${periodIdx}`;
       const group = slotGroups.get(key) || [];
@@ -146,11 +146,15 @@ export function buildIcs(
       const endTime = period?.end ?? "10:30";
 
       // 該当コマの通常実施が全くない場合はスキップ（振替だけで実施される極端なケース）
-      if (group.length === 0) continue;
+      if (group.length === 0) {
+        continue;
+      }
 
       const firstOcc = group[0];
       const lastOcc = group[group.length - 1];
-      if (!firstOcc || !lastOcc) continue;
+      if (!firstOcc || !lastOcc) {
+        continue;
+      }
 
       const dtstart = toUtcString(firstOcc.date, startTime);
       const dtend = toUtcString(firstOcc.date, endTime);
@@ -161,7 +165,6 @@ export function buildIcs(
       const carriedOutDates = new Set(
         group.map((o) => `${o.date.getFullYear()}-${o.date.getMonth()}-${o.date.getDate()}`),
       );
-
       // 初回日から最終回日までの本来の曜日で、授業が実施されなかった日を抽出
       const cursor = new Date(firstOcc.date);
       while (cursor <= lastOcc.date) {

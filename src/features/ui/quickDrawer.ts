@@ -37,7 +37,9 @@ export async function initPinnedCourses(
   const target = document.querySelector(
     "#theme_boost-drawers-blocks #block-region-side-pre",
   );
-  if (!target) return;
+  if (!target) {
+    return;
+  }
 
   const ui = await createShadowRootUi(ctx, {
     name: "mimo-pinned-courses",
@@ -51,9 +53,10 @@ export async function initPinnedCourses(
       });
     },
     onRemove: (mounted) => {
-      if (mounted) unmount(mounted);
+      if (mounted) {
+        unmount(mounted);
+      }
     },
   });
-
   ui.mount();
 }

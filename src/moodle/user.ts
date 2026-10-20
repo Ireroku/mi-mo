@@ -8,7 +8,10 @@
  */
 export function isLoggedIn(): boolean {
   const { body } = document;
-  if (!body) return false;
+  if (!body) {
+    return false;
+  }
+
   return !body.classList.contains("notloggedin");
 }
 
@@ -25,7 +28,9 @@ export function readUserName(): string | undefined {
   );
   if (nav) {
     const title = nav.getAttribute("title")?.trim();
-    if (title) return title;
+    if (title) {
+      return title;
+    }
   }
 
   const img = document.querySelector<HTMLImageElement>(
@@ -33,7 +38,9 @@ export function readUserName(): string | undefined {
   );
   if (img) {
     const alt = img.getAttribute("alt")?.trim();
-    if (alt) return alt;
+    if (alt) {
+      return alt;
+    }
   }
 
   return undefined;

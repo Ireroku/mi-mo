@@ -16,6 +16,5 @@ body.pagelayout-course #region-main .sectionname > a:hover {
   color: var(--primary, #0f6cbf);
 }
 `;
-
   applyStyleSheet(STYLE_ELEMENT_ID, css);
 }

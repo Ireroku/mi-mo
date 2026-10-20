@@ -22,6 +22,5 @@ body.pagelayout-mycourses [data-region="course-content"] .menu {
   z-index: 2;
 }
 `;
-
   applyStyleSheet(STYLE_ELEMENT_ID, css);
 }

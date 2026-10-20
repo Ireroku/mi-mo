@@ -18,6 +18,7 @@ export function formatTime(date: Date, showSeconds: boolean): string {
   if (!showSeconds) {
     return `${hh}:${mm}`;
   }
+
   const ss = String(date.getSeconds()).padStart(2, "0");
   return `${hh}:${mm}:${ss}`;
 }

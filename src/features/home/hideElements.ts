@@ -21,10 +21,8 @@ export function applyHideElements(config: HideElementsConfig): void {
   const selectors = (Object.keys(SELECTORS) as (keyof HideElementsConfig)[])
     .filter((key) => config[key])
     .map((key) => SELECTORS[key]);
-
   const css = selectors.length > 0
     ? `${selectors.join(",")} { display: none !important; }`
     : "";
-
   applyStyleSheet(STYLE_ELEMENT_ID, css);
 }

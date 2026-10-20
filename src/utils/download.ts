@@ -26,7 +26,6 @@ export function requestDownloads(items: DownloadItem[]): Promise<void> {
     type: DOWNLOAD_MESSAGE_TYPE,
     items,
   };
-
   browser.runtime.sendMessage(message);
   return Promise.resolve();
 }

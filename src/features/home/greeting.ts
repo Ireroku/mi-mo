@@ -13,7 +13,10 @@ export interface GreetingConfig {
 }
 
 function pickRandomMessage(messages: string[]): string | undefined {
-  if (messages.length === 0) return undefined;
+  if (messages.length === 0) {
+    return undefined;
+  }
+
   const index = Math.floor(Math.random() * messages.length);
   return messages[index];
 }
@@ -26,11 +29,12 @@ export async function initGreeting(
   config: GreetingConfig,
 ): Promise<void> {
   const container = ensureHomeContainer();
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   const userName = readUserName();
   const message = pickRandomMessage(config.messages);
-
   const ui = await createShadowRootUi(ctx, {
     name: "mimo-greeting",
     position: "inline",
@@ -43,9 +47,10 @@ export async function initGreeting(
       });
     },
     onRemove: (mounted) => {
-      if (mounted) unmount(mounted);
+      if (mounted) {
+        unmount(mounted);
+      }
     },
   });
-
   ui.mount();
 }

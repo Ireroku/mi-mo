@@ -42,7 +42,6 @@ export class NavbarAdapter implements MenuAdapter {
       el instanceof HTMLAnchorElement
         ? el
         : el.querySelector<HTMLAnchorElement>(":scope > a, a.nav-link, a");
-
     if (
       primaryAnchor &&
       primaryAnchor.href &&
@@ -88,7 +87,6 @@ export class NavbarAdapter implements MenuAdapter {
     }
 
     let found = false;
-
     // Search top-level items
     const topLevelItems = this.container.querySelectorAll<HTMLElement>(":scope > li.nav-item");
     for (const li of topLevelItems) {
@@ -136,7 +134,6 @@ export class NavbarAdapter implements MenuAdapter {
     li.appendChild(a);
 
     let inserted = false;
-
     if (item.position) {
       const topLevelItems = this.container.querySelectorAll<HTMLElement>(":scope > li.nav-item");
       let targetEl: HTMLElement | null = null;

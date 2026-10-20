@@ -33,36 +33,51 @@ body.pagelayout-course .mimo-grade-feedback {
 export async function initGradeInline(
   config: GradeInlineConfig,
 ): Promise<void> {
-  if (!config.enabled || !isCoursePage()) return;
+  if (!config.enabled || !isCoursePage()) {
+    return;
+  }
 
   const gradesLink = document.querySelector<HTMLAnchorElement>(
     '.secondary-navigation li[data-key="grades"] a',
   );
-  if (!gradesLink || !gradesLink.href) return;
+  if (!gradesLink || !gradesLink.href) {
+    return;
+  }
 
   let html: string;
   try {
     const res = await fetch(gradesLink.href, { credentials: "same-origin" });
-    if (!res.ok) return;
+    if (!res.ok) {
+      return;
+    }
+
     html = await res.text();
   } catch {
     return;
   }
 
   const entries = parseGradeReport(html);
-  if (entries.length === 0) return;
+  if (entries.length === 0) {
+    return;
+  }
 
   applyStyleSheet("mimo-course-page-grade-inline", GRADE_INLINE_CSS);
 
   for (const entry of entries) {
     const moduleEl = document.querySelector(`#module-${entry.cmid}`);
-    if (!moduleEl) continue;
+    if (!moduleEl) {
+      continue;
+    }
 
     const targetArea = moduleEl.querySelector(".activity-name-area");
-    if (!targetArea) continue;
+    if (!targetArea) {
+      continue;
+    }
 
     // 既に差し込み済みならスキップ
-    if (targetArea.querySelector(".mimo-grade")) continue;
+    if (targetArea.querySelector(".mimo-grade")) {
+      continue;
+    }
 
     const container = document.createElement("div");
     container.className = "mimo-grade";

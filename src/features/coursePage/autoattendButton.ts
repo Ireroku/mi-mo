@@ -20,25 +20,31 @@ export async function initAutoattendButton(
   ctx: ContentScriptContext,
   config: AutoattendButtonConfig,
 ): Promise<void> {
-  if (!isCoursePage()) return;
+  if (!isCoursePage()) {
+    return;
+  }
 
   const autoattendLink = document.querySelector<HTMLAnchorElement>(
     "#region-main li.activity.modtype_autoattendmod a.aalink",
   );
-  if (!autoattendLink) return;
+  if (!autoattendLink) {
+    return;
+  }
 
   const href = autoattendLink.href;
-  if (!href) return;
+  if (!href) {
+    return;
+  }
 
   const anchor =
     config.placement === "top"
       ? document.querySelector("#region-main div.course-content")
       : document.body;
-
-  if (!anchor) return;
+  if (!anchor) {
+    return;
+  }
 
   const append = config.placement === "top" ? "before" : "last";
-
   const ui = await createShadowRootUi(ctx, {
     name: "mimo-autoattend-button",
     position: "inline",
@@ -54,9 +60,10 @@ export async function initAutoattendButton(
       });
     },
     onRemove: (mounted) => {
-      if (mounted) unmount(mounted);
+      if (mounted) {
+        unmount(mounted);
+      }
     },
   });
-
   ui.mount();
 }

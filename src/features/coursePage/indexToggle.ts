@@ -20,14 +20,20 @@ export function readIndexState(): IndexState | undefined {
   const sections = document.querySelectorAll(
     '#course-index [data-for="section"]',
   );
-  if (sections.length === 0) return undefined;
+  if (sections.length === 0) {
+    return undefined;
+  }
 
   const collapsedCount = document.querySelectorAll(
     '#course-index [data-for="section"][aria-expanded="false"]',
   ).length;
+  if (collapsedCount === 0) {
+    return "allExpanded";
+  }
+  if (collapsedCount === sections.length) {
+    return "allCollapsed";
+  }
 
-  if (collapsedCount === 0) return "allExpanded";
-  if (collapsedCount === sections.length) return "allCollapsed";
   return "mixed";
 }
 
@@ -36,21 +42,23 @@ export function toggleIndex(state: IndexState): void {
     state === "allCollapsed"
       ? "expandallcourseindexsections"
       : "collapseallcourseindexsections";
-
   const target = document.querySelector<HTMLElement>(`[data-action="${action}"]`);
   target?.click();
 }
 
 export async function initIndexToggle(ctx: ContentScriptContext): Promise<void> {
-  if (!isCoursePage()) return;
+  if (!isCoursePage()) {
+    return;
+  }
 
   const anchor = document.getElementById("courseindexdrawercontrolsmenubutton");
-  if (!anchor) return;
+  if (!anchor) {
+    return;
+  }
 
   applyStyleSheet(STYLE_ID, HIDE_DEFAULT_CSS);
 
   let componentInstance: { setState?: (next: IndexState) => void } | undefined;
-
   const ui = await createShadowRootUi(ctx, {
     name: "mimo-index-toggle",
     position: "inline",
@@ -63,7 +71,9 @@ export async function initIndexToggle(ctx: ContentScriptContext): Promise<void> 
           state: readIndexState() ?? "allExpanded",
           onToggle: () => {
             const observedState = readIndexState();
-            if (observedState) toggleIndex(observedState);
+            if (observedState) {
+              toggleIndex(observedState);
+            }
           },
         },
       });
@@ -72,10 +82,11 @@ export async function initIndexToggle(ctx: ContentScriptContext): Promise<void> 
     },
     onRemove: (mounted) => {
       componentInstance = undefined;
-      if (mounted) unmount(mounted);
+      if (mounted) {
+        unmount(mounted);
+      }
     },
   });
-
   ui.mount();
 
   const courseIndex = document.getElementById("course-index");

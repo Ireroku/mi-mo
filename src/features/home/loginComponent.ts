@@ -19,16 +19,24 @@ body.notloggedin #mimo-home-top .block_login {
  * 未ログイン時のログインコンポーネントを本文器の先頭へ移動する。
  */
 export function initLoginComponent(): void {
-  if (isLoggedIn()) return;
-  if (!isSiteHome()) return;
+  if (isLoggedIn()) {
+    return;
+  }
+  if (!isSiteHome()) {
+    return;
+  }
 
   const loginBlock = document.querySelector<HTMLElement>(
     "#theme_boost-drawers-blocks section.block_login",
   );
-  if (!loginBlock) return;
+  if (!loginBlock) {
+    return;
+  }
 
   const container = ensureHomeContainer();
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   container.prepend(loginBlock);
   applyStyleSheet(STYLE_ID, CSS);

@@ -6,9 +6,15 @@
   let { previous }: Props = $props();
 
   function formatDateTime(iso: string): string {
-    if (!iso) return "";
+    if (!iso) {
+      return "";
+    }
+
     const date = new Date(iso);
-    if (isNaN(date.getTime())) return "";
+    if (isNaN(date.getTime())) {
+      return "";
+    }
+
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
