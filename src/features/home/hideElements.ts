@@ -1,6 +1,8 @@
 // サイトホーム（/）のお知らせ・コースカテゴリ・コース検索を隠す。
 // DOM を走査せず、対象のセレクタだけを集めた <style> を1つ注入する。
 
+import { applyStyleSheet } from "@/utils/styleSheet";
+
 export interface HideElementsConfig {
   announcements: boolean;
   categories: boolean;
@@ -20,24 +22,9 @@ export function applyHideElements(config: HideElementsConfig): void {
     .filter((key) => config[key])
     .map((key) => SELECTORS[key]);
 
-  const existing = document.getElementById(STYLE_ELEMENT_ID);
+  const css = selectors.length > 0
+    ? `${selectors.join(",")} { display: none !important; }`
+    : "";
 
-  if (selectors.length === 0) {
-    if (existing) {
-      existing.textContent = "";
-    }
-    return;
-  }
-
-  const css = `${selectors.join(",")} { display: none !important; }`;
-
-  if (existing) {
-    existing.textContent = css;
-    return;
-  }
-
-  const style = document.createElement("style");
-  style.id = STYLE_ELEMENT_ID;
-  style.textContent = css;
-  (document.head ?? document.documentElement).appendChild(style);
+  applyStyleSheet(STYLE_ELEMENT_ID, css);
 }
