@@ -18,6 +18,36 @@ function parseCourseIdFromUrl(urlStr: string): string | null {
   }
 }
 
+interface CourseItem {
+  wrapper: HTMLElement;
+  courseId: string;
+}
+
+function collectCourseItems(): CourseItem[] {
+  return Array.from(
+    document.querySelectorAll<HTMLElement>(
+      '.block-myoverview [data-region="course-content"]',
+    ),
+    (element) => ({
+      wrapper: element.closest<HTMLElement>(".col") ?? element,
+      courseId: element.getAttribute("data-course-id") || "",
+    }),
+  );
+}
+
+function orderCourseItems(items: CourseItem[], todayCourseIds: string[]): HTMLElement[] {
+  const prioritized: HTMLElement[] = [];
+  for (const id of todayCourseIds) {
+    const found = items.find((item) => item.courseId === id);
+    if (found) prioritized.push(found.wrapper);
+  }
+
+  const others = items
+    .filter((item) => !prioritized.includes(item.wrapper))
+    .map((item) => item.wrapper);
+  return [...prioritized, ...others];
+}
+
 /**
  * マイコース一覧の並べ替えを初期化する。
  */
@@ -33,9 +63,9 @@ export function initTodayOrder(
   const todayLessons = lessonsOn(today, schedule);
 
   const todayCourseIds: string[] = [];
-  for (const occ of todayLessons) {
-    if (!occ.slot.url) continue;
-    const id = parseCourseIdFromUrl(occ.slot.url);
+  for (const lesson of todayLessons) {
+    if (!lesson.slot.url) continue;
+    const id = parseCourseIdFromUrl(lesson.slot.url);
     if (id && !todayCourseIds.includes(id)) {
       todayCourseIds.push(id);
     }
@@ -44,58 +74,17 @@ export function initTodayOrder(
   // 今日の授業が1つもなければ並べ替え不要
   if (todayCourseIds.length === 0) return;
 
-  let isReordering = false;
-
   const reorderCourses = () => {
-    if (isReordering) return;
-    isReordering = true;
+    const items = collectCourseItems();
+    const parent = items[0]?.wrapper.parentElement;
+    if (!parent) return;
 
-    try {
-      const courseElements = Array.from(
-        document.querySelectorAll<HTMLElement>(
-          '.block-myoverview [data-region="course-content"]',
-        ),
-      );
-      if (courseElements.length === 0) return;
+    const newOrder = orderCourseItems(items, todayCourseIds);
+    // 自分のDOM変更も非同期で通知される。同じ順序なら変更せず監視を収束させる。
+    if (newOrder.every((node, index) => node === items[index]?.wrapper)) return;
 
-      // 各要素のラップ要素（カード表示時の .col または要素自身）とコースIDの組を作る
-      const items: { wrapper: HTMLElement; courseId: string }[] = [];
-      const parent = (courseElements[0]?.closest(".col") ?? courseElements[0])?.parentElement;
-      if (!parent) return;
-
-      for (const el of courseElements) {
-        const courseId = el.getAttribute("data-course-id") || "";
-        const wrapper = (el.closest(".col") as HTMLElement | null) ?? el;
-        items.push({ wrapper, courseId });
-      }
-
-      // 今日の授業順に含まれるものを前へ、それ以外は元の順序を保つ
-      const prioritized: HTMLElement[] = [];
-      const others: HTMLElement[] = [];
-
-      // 今日の授業順に並べる
-      for (const id of todayCourseIds) {
-        const found = items.find((it) => it.courseId === id);
-        if (found) {
-          prioritized.push(found.wrapper);
-        }
-      }
-
-      // 今日の授業順に含まれないもの
-      for (const it of items) {
-        if (!prioritized.includes(it.wrapper)) {
-          others.push(it.wrapper);
-        }
-      }
-
-      const newOrder = [...prioritized, ...others];
-
-      // 親要素の末尾へ順に再配置
-      for (const node of newOrder) {
-        parent.appendChild(node);
-      }
-    } finally {
-      isReordering = false;
+    for (const node of newOrder) {
+      parent.appendChild(node);
     }
   };
 
@@ -106,9 +95,7 @@ export function initTodayOrder(
   const overviewBlock = document.querySelector(".block-myoverview");
   if (overviewBlock) {
     const observer = new MutationObserver(() => {
-      if (!isReordering) {
-        reorderCourses();
-      }
+      reorderCourses();
     });
 
     observer.observe(overviewBlock, {
