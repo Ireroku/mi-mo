@@ -32,12 +32,12 @@
     Promise.all(
       settingsGroups.map(async (group) => {
         const val = await group.read();
-        return { title: group.title, val };
+        return { id: group.id, val };
       }),
     ).then((results) => {
       const map: Record<string, Record<string, unknown>> = {};
       for (const res of results) {
-        map[res.title] = res.val;
+        map[res.id] = res.val;
       }
       groupValues = map;
       loaded = true;
@@ -49,10 +49,10 @@
     key: string,
     nextVal: unknown,
   ) {
-    const current = groupValues[group.title] ?? {};
+    const current = groupValues[group.id] ?? {};
     groupValues = {
       ...groupValues,
-      [group.title]: {
+      [group.id]: {
         ...current,
         [key]: nextVal,
       },
@@ -89,7 +89,7 @@
         <TabsContent value={cat} class="flex flex-col gap-6 outline-hidden">
           {@const groups = settingsGroups.filter((g) => g.category === cat)}
           {#each groups as group, idx}
-            {@const values = groupValues[group.title] ?? {}}
+            {@const values = groupValues[group.id] ?? {}}
             <div class="rounded-xl border bg-card p-4 shadow-2xs">
               <h4 class="text-sm font-semibold tracking-tight mb-3">
                 {group.title}

@@ -65,6 +65,7 @@ export interface FieldMeta<V = unknown> {
 export type FieldsOf<C> = { [K in keyof C]-?: FieldMeta<C[K]> };
 
 export interface SettingsGroup {
+  readonly id: string;
   category: SettingsCategory;
   title: string;
   fields: Record<string, FieldMeta>;
@@ -165,6 +166,8 @@ pnpm dlx shadcn-svelte@latest add tabs switch input select label separator
 
 ### defineGroup
 
+グループの `id` は WXT の保存項目が持つ `setting.key` から取得する。表示文言を変えても識別は変わらず、別の ID 定義を増やさない。保存先のキーやデータ形式の変更は伴わない。
+
 1. 渡された `fields` を `Record<string, FieldMeta>` として保持する。ここで型引数 `C` を落とす。**代入にはキャストが要る**
 2. `read` は `setting.getValue()` の結果を返す。**ここにもキャストが要る**
 3. `write(key, value)` は `setting.getValue()` で現在値を読み、`key` だけを差し替えた値を `setting.setValue()` で書く。ここはキャスト不要
@@ -183,7 +186,7 @@ const read = () => setting.getValue() as Promise<Record<string, unknown>>;
 1. `settingsGroups` を読み、`CATEGORY_LABELS` のキー順にタブを作る
 2. 各タブへ、そのカテゴリに属するグループを `fields.ts` に並べた順で置く
 3. グループごとに `title` の見出しを出し、`fields` の各エントリを `FieldRow` で描く。`footer` を持つグループは、項目の下にそれを置く
-4. 表示前に各グループの `read()` を呼び、値を保持する
+4. 表示前に各グループの `read()` を呼び、`id` をキーとして値を保持する。`title` は見出し表示に使う
 5. `FieldRow` から変更が届いたら、そのグループの `write(key, value)` を呼び、手元の値も更新する
 
 ### FieldRow

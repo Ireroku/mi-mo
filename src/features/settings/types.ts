@@ -33,6 +33,7 @@ export interface FieldMeta<V = unknown> {
 export type FieldsOf<C> = { [K in keyof C]-?: FieldMeta<C[K]> };
 
 export interface SettingsGroup {
+  readonly id: string;
   category: SettingsCategory;
   title: string;
   fields: Record<string, FieldMeta>;
@@ -60,6 +61,7 @@ export function defineGroup<C extends object>(
   };
 
   return {
+    id: setting.key,
     category,
     title,
     fields: erasedFields,
