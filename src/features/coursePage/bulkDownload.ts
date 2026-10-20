@@ -1,6 +1,7 @@
 // コースセクション内の資料（modtype_resource）を一括ダウンロードするボタンを追加する。
 
 import { isCoursePage } from "@/moodle/page";
+import { findCourseSectionHeaders } from "@/moodle/courseSections";
 import { requestDownloads } from "@/utils/download";
 
 /**
@@ -28,16 +29,9 @@ export function collectResourceUrls(section: Element): string[] {
 export function initBulkDownload(): void {
   if (!isCoursePage()) return;
 
-  const sections = document.querySelectorAll(
-    '#region-main div.course-content > div > ul[data-for="course_sectionlist"] > li.section',
-  );
-
-  for (const section of sections) {
+  for (const { section, header } of findCourseSectionHeaders()) {
     const urls = collectResourceUrls(section);
     if (urls.length === 0) continue;
-
-    const header = section.querySelector(".course-section-header");
-    if (!header) continue;
 
     // 既にボタンが存在する場合は追加しない
     if (header.querySelector(".mimo-bulk-download-button")) continue;

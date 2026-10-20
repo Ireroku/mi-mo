@@ -7,6 +7,7 @@
 ## 関連
 
 - 使う: [`../moodle/page.md`](../moodle/page.md) — コースページかどうかの判定
+- 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索
 - 使う: [`../utils/download.md`](../utils/download.md) — 書き出したテキストの保存
 - 使う: [`../utils/settings.md`](../utils/settings.md) — ストレージ項目を足す手順
 - 資料: [`../../moodle/course-page.md`](../../moodle/course-page.md) — 活動の共通構造、種別ごとのクラス、課題の日時、ラベルの本文

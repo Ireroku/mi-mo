@@ -1,6 +1,7 @@
 // コースセクションの活動を Markdown またはテキストとして書き出すボタンをセクションヘッダーに追加する。
 
 import { isCoursePage } from "@/moodle/page";
+import { findCourseSectionHeaders } from "@/moodle/courseSections";
 import { requestDownloads, toTextDataUrl } from "@/utils/download";
 import {
   formatSection,
@@ -23,14 +24,7 @@ function sanitizeFilename(name: string): string {
 export function initExportMarkdown(config: ExportConfig): void {
   if (!config.enabled || !isCoursePage()) return;
 
-  const sections = document.querySelectorAll(
-    '#region-main div.course-content > div > ul[data-for="course_sectionlist"] > li.section',
-  );
-
-  for (const section of sections) {
-    const header = section.querySelector(".course-section-header");
-    if (!header) continue;
-
+  for (const { section, header } of findCourseSectionHeaders()) {
     // 既にボタンが存在する場合は追加しない
     if (header.querySelector(".mimo-export-button")) continue;
 

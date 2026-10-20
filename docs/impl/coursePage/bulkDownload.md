@@ -7,6 +7,7 @@
 ## 関連
 
 - 使う: [`../moodle/page.md`](../moodle/page.md) — コースページかどうかの判定
+- 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索
 - 使う: [`../utils/download.md`](../utils/download.md) — 保存の依頼
 - 資料: [`../../moodle/course-page.md`](../../moodle/course-page.md) — 「ファイルリンクと拡張子判定」節。ファイル名がリダイレクト先にしか無い事情
 - 参考: [`./exportMarkdown.md`](./exportMarkdown.md) — 同じくセクションごとにボタンを置く機能
