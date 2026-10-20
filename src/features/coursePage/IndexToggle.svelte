@@ -6,17 +6,14 @@
     onToggle: () => void;
   }
 
-  let { state: propState = "allExpanded", onToggle }: Props = $props();
-  let internalState = $state<IndexState | undefined>(undefined);
+  let { state = "allExpanded", onToggle }: Props = $props();
 
   export function setState(next: IndexState) {
-    internalState = next;
+    state = next;
   }
 
-  let currentState = $derived(internalState ?? propState);
-
   let label = $derived(
-    currentState === "allCollapsed" ? "すべて開く" : "すべて閉じる",
+    state === "allCollapsed" ? "すべて開く" : "すべて閉じる",
   );
 </script>
 

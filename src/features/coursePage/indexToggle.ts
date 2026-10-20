@@ -49,7 +49,6 @@ export async function initIndexToggle(ctx: ContentScriptContext): Promise<void> 
 
   applyStyleSheet(STYLE_ID, HIDE_DEFAULT_CSS);
 
-  let currentState: IndexState = readIndexState() ?? "allExpanded";
   let componentInstance: { setState?: (next: IndexState) => void } | undefined;
 
   const ui = await createShadowRootUi(ctx, {
@@ -61,9 +60,10 @@ export async function initIndexToggle(ctx: ContentScriptContext): Promise<void> 
       const instance = mount(IndexToggle, {
         target: container,
         props: {
-          state: currentState,
+          state: readIndexState() ?? "allExpanded",
           onToggle: () => {
-            toggleIndex(currentState);
+            const observedState = readIndexState();
+            if (observedState) toggleIndex(observedState);
           },
         },
       });
@@ -82,8 +82,7 @@ export async function initIndexToggle(ctx: ContentScriptContext): Promise<void> 
   if (courseIndex) {
     const observer = new MutationObserver(() => {
       const next = readIndexState();
-      if (next && next !== currentState) {
-        currentState = next;
+      if (next) {
         componentInstance?.setState?.(next);
       }
     });

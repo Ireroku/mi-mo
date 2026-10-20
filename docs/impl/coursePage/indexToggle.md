@@ -36,9 +36,11 @@ export async function initIndexToggle(ctx: ContentScriptContext): Promise<void>;
 ```ts
 // IndexToggle.svelte の Props
 interface Props {
-  state: IndexState;
+  state?: IndexState;
   onToggle: () => void;
 }
+
+export function setState(next: IndexState): void;
 ```
 
 entrypoint からの呼び出し。`main()` の中でこのモジュールが担当するのは次の1行だけで、他の機能の行は触りません。
@@ -92,13 +94,14 @@ body.pagelayout-course #courseindexdrawercontrolsmenubutton {
 
 ### IndexToggle.svelte
 
-`state` が `allCollapsed` なら「すべて開く」、それ以外なら「すべて閉じる」と出す。押されたら `onToggle` を呼ぶ。
+`state` が `allCollapsed` なら「すべて開く」、それ以外なら「すべて閉じる」と出す。初期値は `allExpanded` とし、`setState` は同じ表示用の値を更新する。押されたら `onToggle` を呼び、呼び出し側がその時点の DOM を読み直す。セクションが無ければ開閉を実行しない。
 
 ## 決めごと
 
 - **混在している時は折りたたむ方へ倒す。** コースインデックスは回の数だけ縦に伸びるため、いくつか開いた状態からボタンを押す動機は「散らかったものを畳んで全体を見渡す」側にある。開く方へ倒すと、押すたびに一覧がさらに伸びる
 - **展開するのは全部閉じている時だけにする。** 上の裏返し。この形なら、押し続けた時に「全閉 → 全開 → 全閉」と往復する
 - **状態を自前で持たず、押すたびに DOM から読む。** 個々のセクションは手でも開閉できるため、覚えておいた状態はすぐ実態とずれる
+- **コンポーネントは表示用の値を1つだけ持つ。** 初期値と監視結果は同じ値へ渡し、開閉方向の判断には使わない。TS 側に状態のコピーを置かず、クリック時の DOM を正本にする
 - **判定に `[data-for="section"]` の `aria-expanded` を使う。** `collapsed` クラスは子要素の `a.courseindex-chevron` に付くもので、セクション自身には付かない
 - **`MutationObserver` で `aria-expanded` の変化を追い、ラベルを合わせる。** 個別に開閉した直後でも、ボタンの表示が次に何をするかを正しく示す。自分ではこの属性を書き換えないため、監視が自分の変更に反応することはない
 - **標準のドロップダウンボタンを隠す。** 中身は展開と折りたたみの2つだけで、トグルに置き換えれば役目が残らない。ボタンを消しても Moodle 側のリンクは DOM に残るため、`click()` で呼べる
