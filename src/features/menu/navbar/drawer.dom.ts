@@ -88,6 +88,35 @@ export class DrawerAdapter implements MenuAdapter {
     return false;
   }
 
+  private findCollapseForHiding(el: HTMLElement): HTMLElement | null {
+    const isToggle =
+      el.getAttribute("data-toggle") === "collapse" ||
+      el.getAttribute("data-bs-toggle") === "collapse" ||
+      el.hasAttribute("data-target") ||
+      el.hasAttribute("data-bs-target") ||
+      el.nextElementSibling?.classList.contains("collapse");
+    if (!isToggle) return null;
+
+    const targetSelector =
+      el.getAttribute("data-target") || el.getAttribute("data-bs-target");
+    let collapseEl: HTMLElement | null = null;
+    if (targetSelector && targetSelector.startsWith("#")) {
+      collapseEl =
+        this.container?.querySelector<HTMLElement>(targetSelector) ||
+        document.querySelector<HTMLElement>(targetSelector);
+    }
+
+    if (!collapseEl && el.nextElementSibling?.classList.contains("collapse")) {
+      collapseEl = el.nextElementSibling as HTMLElement;
+    }
+
+    if (!collapseEl) {
+      const ariaControls = el.getAttribute("aria-controls");
+      if (ariaControls) collapseEl = document.getElementById(ariaControls);
+    }
+    return collapseEl;
+  }
+
   hideItem(target: string): boolean {
     if (!this.container || !this.container.isConnected) {
       this.refreshContainer();
@@ -109,40 +138,7 @@ export class DrawerAdapter implements MenuAdapter {
         el.setAttribute("data-mimo-hidden", "true");
         found = true;
 
-        // If el is a collapse accordion toggle, find and hide corresponding collapse element
-        const isToggle =
-          el.getAttribute("data-toggle") === "collapse" ||
-          el.getAttribute("data-bs-toggle") === "collapse" ||
-          el.hasAttribute("data-target") ||
-          el.hasAttribute("data-bs-target") ||
-          el.nextElementSibling?.classList.contains("collapse");
-
-        if (isToggle) {
-          let collapseEl: HTMLElement | null = null;
-          const targetSelector =
-            el.getAttribute("data-target") || el.getAttribute("data-bs-target");
-
-          if (targetSelector && targetSelector.startsWith("#")) {
-            collapseEl =
-              this.container.querySelector<HTMLElement>(targetSelector) ||
-              document.querySelector<HTMLElement>(targetSelector);
-          }
-
-          if (!collapseEl && el.nextElementSibling?.classList.contains("collapse")) {
-            collapseEl = el.nextElementSibling as HTMLElement;
-          }
-
-          if (!collapseEl) {
-            const ariaControls = el.getAttribute("aria-controls");
-            if (ariaControls) {
-              collapseEl = document.getElementById(ariaControls);
-            }
-          }
-
-          if (collapseEl) {
-            collapseEl.setAttribute("data-mimo-hidden", "true");
-          }
-        }
+        this.findCollapseForHiding(el)?.setAttribute("data-mimo-hidden", "true");
       }
     }
 
@@ -158,6 +154,21 @@ export class DrawerAdapter implements MenuAdapter {
     }
 
     return found;
+  }
+
+  private referenceAfterItem(targetEl: HTMLElement): Node | null {
+    const nextEl = targetEl.nextElementSibling;
+    if (nextEl?.classList.contains("collapse")) return nextEl.nextSibling;
+
+    const targetSelector =
+      targetEl.getAttribute("data-target") || targetEl.getAttribute("data-bs-target");
+    if (targetSelector && targetSelector.startsWith("#")) {
+      const collapseTarget = this.container?.querySelector<HTMLElement>(targetSelector);
+      if (collapseTarget?.classList.contains("collapse")) {
+        return collapseTarget.nextSibling;
+      }
+    }
+    return targetEl.nextSibling;
   }
 
   insertItem(item: NewMenuItem): boolean {
@@ -199,25 +210,7 @@ export class DrawerAdapter implements MenuAdapter {
           this.container.insertBefore(a, targetEl);
           inserted = true;
         } else if (item.position.where === "after") {
-          const nextEl = targetEl.nextElementSibling;
-          let referenceNode: Node | null = targetEl.nextSibling;
-
-          if (nextEl && nextEl.classList.contains("collapse")) {
-            referenceNode = nextEl.nextSibling;
-          } else {
-            const targetSelector =
-              targetEl.getAttribute("data-target") ||
-              targetEl.getAttribute("data-bs-target");
-            if (targetSelector && targetSelector.startsWith("#")) {
-              const collapseTarget =
-                this.container.querySelector<HTMLElement>(targetSelector);
-              if (collapseTarget && collapseTarget.classList.contains("collapse")) {
-                referenceNode = collapseTarget.nextSibling;
-              }
-            }
-          }
-
-          this.container.insertBefore(a, referenceNode);
+          this.container.insertBefore(a, this.referenceAfterItem(targetEl));
           inserted = true;
         }
       }
