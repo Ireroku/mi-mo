@@ -81,6 +81,11 @@ python3 scripts/checkdocs.py docs/impl  # 一部だけ
 
 WXT と Svelte の API（`defineContentScript`・`createShadowRootUi`・`storage`・`onMount` など）は auto-import に任せる。既存のコードがそうなっており、対象の一覧は `.wxt/types/imports.d.ts` に生成される。
 
+## コードの書式
+
+- `if`・`else` の本体は、文が1つでも必ず波括弧で囲み、複数行で書く。`else if` は連鎖した形で書く。
+- 同じ目的を持つ一連の処理は連続して配置し、目的が切り替わる箇所に空行を1行置く。変数の宣言と直後の利用、値の検証とそのガードなど、密接に関連する処理の間は詰める。
+
 ## アーキテクチャ方針
 
 ### entrypoint は薄く保つ
