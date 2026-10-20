@@ -16,17 +16,21 @@
   const id = `field-${crypto.randomUUID().slice(0, 8)}`;
 </script>
 
+{#snippet inputHeading(clickable = false)}
+  <div class="flex flex-col gap-0.5">
+    <Label for={id} class={clickable ? "text-sm font-medium cursor-pointer" : "text-sm font-medium"}>
+      {meta.label}
+    </Label>
+    {#if meta.description}
+      <p class="text-xs text-muted-foreground">{meta.description}</p>
+    {/if}
+  </div>
+{/snippet}
+
 <div class="py-2.5">
   {#if meta.control.kind === "toggle"}
     <div class="flex items-center justify-between gap-4">
-      <div class="flex flex-col gap-0.5">
-        <Label for={id} class="text-sm font-medium cursor-pointer">
-          {meta.label}
-        </Label>
-        {#if meta.description}
-          <p class="text-xs text-muted-foreground">{meta.description}</p>
-        {/if}
-      </div>
+      {@render inputHeading(true)}
       <Switch
         {id}
         checked={Boolean(value)}
@@ -36,14 +40,7 @@
 
   {:else if meta.control.kind === "number"}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-      <div class="flex flex-col gap-0.5">
-        <Label for={id} class="text-sm font-medium">
-          {meta.label}
-        </Label>
-        {#if meta.description}
-          <p class="text-xs text-muted-foreground">{meta.description}</p>
-        {/if}
-      </div>
+      {@render inputHeading()}
       <div class="flex items-center gap-1.5 shrink-0">
         <Input
           {id}
@@ -66,14 +63,7 @@
 
   {:else if meta.control.kind === "text"}
     <div class="flex flex-col gap-1.5">
-      <div class="flex flex-col gap-0.5">
-        <Label for={id} class="text-sm font-medium">
-          {meta.label}
-        </Label>
-        {#if meta.description}
-          <p class="text-xs text-muted-foreground">{meta.description}</p>
-        {/if}
-      </div>
+      {@render inputHeading()}
       <Input
         {id}
         type="text"
@@ -85,14 +75,7 @@
 
   {:else if meta.control.kind === "date"}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-      <div class="flex flex-col gap-0.5">
-        <Label for={id} class="text-sm font-medium">
-          {meta.label}
-        </Label>
-        {#if meta.description}
-          <p class="text-xs text-muted-foreground">{meta.description}</p>
-        {/if}
-      </div>
+      {@render inputHeading()}
       <Input
         {id}
         type="date"
@@ -104,14 +87,7 @@
 
   {:else if meta.control.kind === "select"}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-      <div class="flex flex-col gap-0.5">
-        <Label for={id} class="text-sm font-medium">
-          {meta.label}
-        </Label>
-        {#if meta.description}
-          <p class="text-xs text-muted-foreground">{meta.description}</p>
-        {/if}
-      </div>
+      {@render inputHeading()}
       <select
         {id}
         class="h-9 w-40 rounded-md border border-input bg-background px-3 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
