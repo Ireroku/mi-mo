@@ -1,4 +1,4 @@
-import { findNextPeriodStart, type PeriodSlot } from "./clock.logic";
+import { findNextPeriodStart, type PeriodSlot } from "@/utils/periods";
 
 export interface CountdownTarget {
   id: string;
