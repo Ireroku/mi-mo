@@ -38,32 +38,39 @@
     openDays[w] = !openDays[w];
   }
 
+  interface SlotInput {
+    title: string;
+    url: string;
+  }
+
+  function normalizeSlot({ title, url }: SlotInput): TimetableSlot | null {
+    const trimmedTitle = title.trim();
+    if (trimmedTitle === "") {
+      return null;
+    }
+
+    return {
+      title: trimmedTitle,
+      url: url.trim() || undefined,
+    };
+  }
+
   function handleSlotChange(
-    w: Weekday,
-    periodIdx: number,
-    title: string,
-    urlStr: string,
+    weekday: Weekday,
+    periodIndex: number,
+    input: SlotInput,
   ) {
-    const list = [...(value[w] || [])];
+    const list = [...(value[weekday] || [])];
     // 足りない分を null で埋める
-    while (list.length <= periodIdx) {
+    while (list.length <= periodIndex) {
       list.push(null);
     }
 
-    const trimmedTitle = title.trim();
-    if (trimmedTitle === "") {
-      list[periodIdx] = null;
-    } else {
-      const trimmedUrl = urlStr.trim();
-      list[periodIdx] = {
-        title: trimmedTitle,
-        url: trimmedUrl || undefined,
-      };
-    }
+    list[periodIndex] = normalizeSlot(input);
 
     onChange({
       ...value,
-      [w]: list,
+      [weekday]: list,
     });
   }
 
@@ -103,12 +110,10 @@
                 value={slot?.title ?? ""}
                 class="flex-1 text-xs"
                 oninput={(e) =>
-                  handleSlotChange(
-                    key,
-                    idx,
-                    (e.target as HTMLInputElement).value,
-                    slot?.url ?? "",
-                  )}
+                  handleSlotChange(key, idx, {
+                    title: (e.target as HTMLInputElement).value,
+                    url: slot?.url ?? "",
+                  })}
               />
               <Input
                 type="text"
@@ -116,12 +121,10 @@
                 value={slot?.url ?? ""}
                 class="flex-1 text-xs"
                 oninput={(e) =>
-                  handleSlotChange(
-                    key,
-                    idx,
-                    slot?.title ?? "",
-                    (e.target as HTMLInputElement).value,
-                  )}
+                  handleSlotChange(key, idx, {
+                    title: slot?.title ?? "",
+                    url: (e.target as HTMLInputElement).value,
+                  })}
               />
             </div>
           {/each}
