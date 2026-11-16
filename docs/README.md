@@ -10,12 +10,29 @@ mi-mo の仕様と実装方針の正典。
 | [`impl/`](./impl/) | 実装指示書。どう作るか | 実装する人 |
 | [`moodle/`](./moodle/) | Moodle 実画面から採取したDOM構造・セレクタ | 実装する人 |
 
+| ファイル | 内容 | 読む場面 |
+|---|---|---|
+| [`known-issues.md`](./known-issues.md) | 実装済みの機能に残っている課題と、実機で未確認の項目 | 直すものを探す時。不具合を見つけた時 |
+| [`verify.md`](./verify.md) | 変更を終える前に行う確認の手順 | 作業を終える前 |
+
 AIエージェントのメモの保存先は、[AGENTS.md](../AGENTS.md) の配置ルールに従う。
 
 ## 読む順序
 
-新しく機能を作る場合は [`impl/README.md`](./impl/README.md) を先に読む。規約とテンプレートがそこにまとまっている。
+やりたいことから、読む文書を決める。
+
+| やりたいこと | 読む順 |
+|---|---|
+| 新しく機能を作る | [`impl/README.md`](./impl/README.md) の規約と「モジュール一覧と関連」→ [`features/`](./features/) の仕様書 → [`moodle/`](./moodle/) の DOM 資料 → 指示書を書いてから実装 |
+| 既にある機能を直す | [`impl/README.md`](./impl/README.md) の「モジュール一覧と関連」から指示書を引く → 指示書の「対象ファイル」に挙がったコード |
+| 設定項目を足す | [`impl/utils/settings.md`](./impl/utils/settings.md) → [`impl/settings/panel.md`](./impl/settings/panel.md) の「項目を足す時の規約」 |
+| 不具合を直す・課題を選ぶ | [`known-issues.md`](./known-issues.md) → 該当する指示書 |
+| 作業を終える | [`verify.md`](./verify.md) |
+
+指示書と実装が食い違っていた場合は、どちらが意図かを決めてから片方を直す。黙って実装だけを変えない。
 
 ## 実装状況について
 
 機能が実装済みかどうかは、リポジトリ直下の [README.md](../README.md) の機能一覧にのみ記載する。この docs 配下には書かない。二重管理を避けるため。
+
+実装済みの機能に残る課題は [`known-issues.md`](./known-issues.md) にだけ書く。機能の有無と、機能の出来とを別の場所で管理する。
