@@ -38,7 +38,7 @@ export function initExportMarkdown(config: ExportConfig): void {
     button.addEventListener("click", (e) => {
       e.stopPropagation();
 
-      const exported = readSection(section);
+      const exported = readSection(section, config.format);
       const text = formatSection(exported, config.format);
 
       const ext = config.format === "markdown" ? "md" : "txt";

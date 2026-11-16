@@ -60,7 +60,7 @@ initBulkDownload();
 2. セクションをすべて取り、それぞれの `.course-section-header` の末尾へ `<button>` を足す。クラスは `btn btn-outline-secondary btn-sm text-nowrap`
 3. `collectResourceUrls`・`collectFolderUrls`・`collectPages` がすべて空になるセクションでは、ボタンを足さない
 4. 文言は、資料・フォルダ・ページを足した件数を含めて「資料を保存（5件）」とする
-5. 押された後の流れは [`./pageSave.md`](./pageSave.md) の「bulkDownload 側の変更」に従う。ページを取得し、資料とフォルダの URL と合わせて `requestDownloads` へ渡す
+5. 押された後の流れは [`./pageSave.md`](./pageSave.md) の「bulkDownload 側の変更」に従う。ページを取得して1つの ZIP として保存し、資料とフォルダの URL を `requestDownloads` へ渡す
 6. `requestDownloads` が reject した場合、`console.error("[mi-mo] bulkDownload", error)` を出し、ボタンの文言を「保存に失敗しました」へ変える
 
 ## 決めごと
@@ -71,7 +71,7 @@ initBulkDownload();
 - **対象を資料（`modtype_resource`）・フォルダ（`modtype_folder`）・ページ（`modtype_page`）にする。** 課題や小テストは Moodle の画面で、保存しても中身が手に入らない。ページは本文を取得して Markdown にする
 - **フォルダ（`modtype_folder`）は、中身をまとめた ZIP を1件として保存する。** Moodle がフォルダのページに置いている「フォルダをダウンロードする」と同じ保存先を使う。中のファイルを1つずつ集める形は、フォルダごとにページの取得が要る。ZIP なら通信を足さずに済み、フォルダの中の階層も残る
 - **資料が1件も無いセクションにはボタンを置かない。** 押しても何も起きないボタンを並べない
-- **件数をボタンの文言に出す。** 何件保存されるかを押す前に示す。ブラウザのダウンロード欄に同時に並ぶ数でもある
+- **件数をボタンの文言に出す。** 何件の資料が保存されるかを押す前に示す。ページは何件あっても1つの ZIP になるため、ブラウザのダウンロード欄に並ぶ数は、資料とフォルダの件数に1を足した数になる
 - **確認を挟まない。** 件数が文言に出ており、保存先はブラウザの設定に従う。押す前に分かる情報で足りる
 - **ボタンを素の DOM で作り、クラスに `btn btn-outline-secondary btn-sm text-nowrap` を使う。** [`./exportMarkdown.md`](./exportMarkdown.md) と同じ理由で、セクションの数だけ Shadow DOM を作らない。クラスは Moodle 自身がコースページで最も多く使っている組み合わせに揃える
 - **設定を持たない。** 仕様書（[`../../features/course-page/bulk-download.md`](../../features/course-page/bulk-download.md)）に設定項目が無い

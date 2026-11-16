@@ -2,12 +2,13 @@
 
 ## 概要
 
-content script からファイルの保存を依頼する窓口を作る。`downloads` の API は content script から呼べないため、background へメッセージを送り、そちらで実行する。
+content script からファイルを保存する窓口を作る。URL の保存は、`downloads` の API が content script から呼べないため、background へメッセージを送ってそちらで実行する。content script の中で作ったデータは、リンクのクリックで保存する。
 
 ## 関連
 
 - 使う: [`../coursePage/bulkDownload.md`](../coursePage/bulkDownload.md) — 資料の一括保存
 - 使う: [`../coursePage/exportMarkdown.md`](../coursePage/exportMarkdown.md) — 書き出したテキストの保存
+- 使う: [`../coursePage/pageSave.md`](../coursePage/pageSave.md) — ページ資料をまとめた ZIP の保存
 - 資料: [WXT: Entrypoints](https://wxt.dev/guide/essentials/entrypoints.html) — `defineBackground` の書き方
 
 ## 対象ファイル
@@ -41,6 +42,8 @@ export interface DownloadResponse {
 export function requestDownloads(items: DownloadItem[]): Promise<void>;
 
 export function toTextDataUrl(text: string, mimeType: string): string;
+
+export function saveBlob(blob: Blob, filename: string): void;
 ```
 
 background 側:
@@ -71,6 +74,12 @@ export default defineBackground(() => {
 1. `text` を `encodeURIComponent` で符号化する
 2. `data:<mimeType>;charset=utf-8,<符号化した文字列>` を返す
 
+### saveBlob
+
+1. `URL.createObjectURL` で `blob` の URL を作る
+2. `href` にその URL、`download` に `filename` を持つ `<a hidden>` を `document.body` へ足し、`click()` を呼んで外す
+3. 60秒後に `URL.revokeObjectURL` で URL を返す
+
 ### background の受け口
 
 1. メッセージの `type` が `DOWNLOAD_MESSAGE_TYPE` でなければ何もせず、値も返さない
@@ -86,9 +95,11 @@ export default defineBackground(() => {
 - **テキストを `data:` の URL にして渡し、`blob:` を使わない。** `blob:` の URL は作った文脈に紐づくため、background 側で解決できない場合がある。書き出すテキストはセクション1つ分で、`data:` の長さの上限に収まる
 - **ファイルの保存名を `downloads` に決めさせる。** 資料のリンク（`/mod/resource/view.php?id=<id>`）はリダイレクトされ、その先の URL に元のファイル名と拡張子が入っている。API はリダイレクトを追って名前を決めるため、こちらで調べ直さずに済む
 - **保存名が期待と違った場合は、依頼する側でリダイレクト先を解決してから渡す。** 資料（[`../../moodle/course-page.md`](../../moodle/course-page.md)）が記録している通り、拡張子を知るにはファイルごとに1回の往復が要る。まず往復なしで組み、実機で名前を確かめる
-- **リンクのクリックによる保存（`<a download>`）を使わない。** content script から起こすダウンロードはブラウザによって止められる
+- **URL の保存にリンクのクリック（`<a download>`）を使わない。** ページから続けて起こす複数の保存は、ブラウザが確認を出して止める。別のオリジンへ転送される URL では `download` 属性の保存名も効かない
+- **content script の中で作った大きなデータは、`saveBlob` で保存する。** `blob:` の URL は background で解決できない場合があり、`data:` の URL は数十MBのデータに向かない。メッセージで中身を background へ送る形は、Chrome では JSON に直されるため、バイナリをそのまま渡せない。リンクのクリックなら、作った文脈の中で保存まで終わる。保存は1回の操作につき1件に限る
+- **`saveBlob` は URL を60秒後に返す。** 保存が始まる前に返すと失敗する。返さないと、ページを開いている間データがメモリに残る
 - **保存を開始できたかどうかだけを呼び出し側へ返す。** `browser.downloads.download` は保存を開始した時点で解決するため、待ち時間はファイルの大きさに左右されない。開始に失敗した場合（permission の不足、不正な URL など）は利用者が気付けないため、依頼する側がボタンの文言で知らせる
 - **保存の完了は待たず、途中の失敗も扱わない。** 開始した後の成否は、利用者がブラウザのダウンロード欄で見る
 - **応答は `sendResponse` と `return true` で返し、リスナーから `Promise` を返さない。** `Promise` を返す形は Firefox では応答になるが、Chrome では無視されて送信側へ `undefined` が届く。両方で同じに動く書き方へ揃える
 - **応答が `undefined` の場合も失敗として扱う。** background が起動していない、リスナーが登録されていないといった場合にこうなる。成功と区別できないままにしない
-- **Safari では `browser.downloads` が使えない。** Chrome・Firefox・Edge は対応するが、Safari は対応しない。リポジトリ直下の [README.md](../../../README.md) で Safari 向けの公開は未定のため今は問題にならないが、着手する時点でこの窓口の中身を別の手段へ差し替えることになる。差し替えの影響を [`../coursePage/exportMarkdown.md`](../coursePage/exportMarkdown.md) と [`../coursePage/bulkDownload.md`](../coursePage/bulkDownload.md) へ及ばせないため、保存の経路をこのモジュールへ集めてある
+- **Safari では `browser.downloads` が使えない。** `saveBlob` はこの API を使わない。 Chrome・Firefox・Edge は対応するが、Safari は対応しない。リポジトリ直下の [README.md](../../../README.md) で Safari 向けの公開は未定のため今は問題にならないが、着手する時点でこの窓口の中身を別の手段へ差し替えることになる。差し替えの影響を [`../coursePage/exportMarkdown.md`](../coursePage/exportMarkdown.md) と [`../coursePage/bulkDownload.md`](../coursePage/bulkDownload.md) へ及ばせないため、保存の経路をこのモジュールへ集めてある

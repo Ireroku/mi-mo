@@ -98,7 +98,7 @@ WXT と Svelte の API（`defineContentScript`・`createShadowRootUi`・`storage
 - **名前が `.logic.ts` でないモジュールも、引数だけで結果が決まれば対象にする。** `src/features/timetable/ics.ts` の `buildIcs` がその例になる
 - **現在時刻を読む関数は、`vi.useFakeTimers()` と `vi.setSystemTime()` で時刻を固定する。** `buildIcs` の `DTSTAMP` のように、出力へ現在時刻が入るため
 - **Moodle の HTML は、[Moodle 資料](../moodle/README.md) の採取例と同じクラス名で手書きする。** 実機から採った HTML をそのまま置かない。氏名や成績が入るため
-- **`innerText` の改行はテストで確かめない。** happy-dom の `innerText` は `<br>` を改行にせず、ブラウザと結果が違う。改行に依る処理は実機で確かめる
+- **`innerText` に依る処理はテストで確かめない。** happy-dom の `innerText` は `<br>` を改行にせず、ブラウザと結果が違う。HTML を文字列にする処理は [`utils/markdown.md`](./utils/markdown.md) を使い、`innerText` を避ける
 - **日付は `new Date(年, 月, 日)` で作り、ローカル時刻で比べる。** 時間割の日付は実行環境のローカル年月日で扱っている。ISO 文字列で作ると、実行する場所のタイムゾーンで結果が変わる
 
 ## アーキテクチャ方針
@@ -315,8 +315,8 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`coursePage/autoattendStats.md`](./coursePage/autoattendStats.md) | `src/features/coursePage/autoattendStats.*` | 使う: moodle/page ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/indexToggle.md`](./coursePage/indexToggle.md) | `src/features/coursePage/indexToggle.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
 | [`coursePage/gradeInline.md`](./coursePage/gradeInline.md) | `src/features/coursePage/gradeInline.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/grade.md`](../moodle/grade.md) |
-| [`coursePage/exportMarkdown.md`](./coursePage/exportMarkdown.md) | `src/features/coursePage/exportMarkdown.*` | 使う: moodle/page ／ [moodle/courseSections](./moodle/courseSections.md) ／ utils/download |
-| [`coursePage/pageSave.md`](./coursePage/pageSave.md) | `src/features/coursePage/pageSave.*` | 使う: coursePage/bulkDownload ／ utils/download ／ utils/filename ／ 資料: [`../moodle/mod-page.md`](../moodle/mod-page.md) |
+| [`coursePage/exportMarkdown.md`](./coursePage/exportMarkdown.md) | `src/features/coursePage/exportMarkdown.*` | 使う: moodle/page ／ [moodle/courseSections](./moodle/courseSections.md) ／ utils/download ／ utils/markdown |
+| [`coursePage/pageSave.md`](./coursePage/pageSave.md) | `src/features/coursePage/pageSave.*` | 使う: coursePage/bulkDownload ／ utils/download ／ utils/filename ／ utils/markdown ／ 資料: [`../moodle/mod-page.md`](../moodle/mod-page.md) |
 | [`coursePage/bulkDownload.md`](./coursePage/bulkDownload.md) | `src/features/coursePage/bulkDownload.ts` | 使う: moodle/page ／ [moodle/courseSections](./moodle/courseSections.md) ／ utils/download |
 | [moodle/courseSections](./moodle/courseSections.md) | `src/moodle/courseSections.ts` | コースセクションとヘッダーの共有探索 |
 | [`myCourses/clickableCard.md`](./myCourses/clickableCard.md) | `src/features/myCourses/clickableCard.ts` | 使う: styleSheet ／ 資料: [`../moodle/my-courses.md`](../moodle/my-courses.md) |
@@ -333,6 +333,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`utils/styleSheet.md`](./utils/styleSheet.md) | `src/utils/styleSheet.ts` | 参考: [`home/hideElements.md`](./home/hideElements.md) |
 | [`utils/theme.md`](./utils/theme.md) | `src/utils/theme.ts` | 資料: [`../../src/assets/global.css`](../../src/assets/global.css) |
 | [`utils/filename.md`](./utils/filename.md) | `src/utils/filename.ts` | 参考: coursePage/exportMarkdown ／ coursePage/pageSave |
+| [`utils/markdown.md`](./utils/markdown.md) | `src/utils/markdown.ts` | 参考: coursePage/exportMarkdown ／ coursePage/pageSave |
 | [`utils/download.md`](./utils/download.md) | `src/utils/download.ts` ／ `src/entrypoints/background.ts` | 使う: coursePage の書き出しと一括保存 |
 | [`utils/runFeature.md`](./utils/runFeature.md) | `src/utils/runFeature.ts` | 使う: content script の entrypoint 2本 |
 | [`moodle/page.md`](./moodle/page.md) | `src/moodle/page.ts` | 資料: [`../moodle/`](../moodle/) の各ページ |

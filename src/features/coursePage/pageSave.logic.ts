@@ -1,39 +1,22 @@
-// 取得したページ資料（mod_page）の文書から、Markdown と保存するファイルの一覧を作る。
+// 取得したページ資料（mod_page）の文書から、本文の Markdown と、埋め込まれたファイルの一覧を作る。
 
-import TurndownService from "turndown";
-import { toTextDataUrl, type DownloadItem } from "@/utils/download";
 import { sanitizeFilename } from "@/utils/filename";
+import { htmlToMarkdown } from "@/utils/markdown";
 
 export interface PageSource {
   name: string; // ページ名。フォルダ名とファイル名に使う
   url: string; // /mod/page/view.php?id=<id>
 }
 
+export interface PageFiles {
+  folder: string; // ZIP の中でこのページを入れるフォルダ名
+  markdown: string; // 本文。<folder>/<folder>.md として保存する
+  embedded: { url: string; name: string }[]; // 本文に埋め込まれたファイルと、フォルダの中での保存名
+}
+
 const CONTENT_SELECTOR = "#region-main .generalbox > .no-overflow";
 const EMBEDDED_SELECTOR =
   "img[src], source[src], audio[src], video[src], a[href]";
-
-const turndown = new TurndownService({
-  headingStyle: "atx",
-  codeBlockStyle: "fenced",
-  bulletListMarker: "-",
-});
-
-// 音声と動画は Markdown に対応する記法が無いため、ファイルへのリンクにする。
-turndown.addRule("media", {
-  filter: ["audio", "video"],
-  replacement: (_content, node) => {
-    const media = node as Element;
-    const src =
-      media.getAttribute("src") ??
-      media.querySelector("source[src]")?.getAttribute("src");
-    if (!src) {
-      return "";
-    }
-
-    return `[${decodeURI(src)}](${src})`;
-  },
-});
 
 function lastSegment(url: URL): string {
   const segment = url.pathname.split("/").pop() ?? "";
@@ -45,17 +28,16 @@ function lastSegment(url: URL): string {
 }
 
 /**
- * 取得したページの文書から、保存するファイルの一覧を作る。
- * 先頭が本文の Markdown、残りが埋め込まれたファイル。
- * 本文が見つからない場合は空の配列を返す。
+ * 取得したページの文書から、本文の Markdown と、埋め込まれたファイルの一覧を作る。
+ * 本文が見つからない場合は null を返す。
  */
-export function buildPageDownloads(
+export function buildPageFiles(
   doc: Document,
   source: PageSource,
-): DownloadItem[] {
+): PageFiles | null {
   const content = doc.querySelector(CONTENT_SELECTOR);
   if (!content) {
-    return [];
+    return null;
   }
 
   const clone = content.cloneNode(true) as Element;
@@ -93,17 +75,9 @@ export function buildPageDownloads(
     el.setAttribute(attr, encodeURI(savedName));
   }
 
-  const folder = sanitizeFilename(source.name);
-  const markdown = `# ${source.name}\n\n${source.url}\n\n${turndown.turndown(clone as HTMLElement)}\n`;
-
-  return [
-    {
-      url: toTextDataUrl(markdown, "text/markdown"),
-      filename: `${folder}/${folder}.md`,
-    },
-    ...Array.from(savedNames, ([url, savedName]) => ({
-      url,
-      filename: `${folder}/${savedName}`,
-    })),
-  ];
+  return {
+    folder: sanitizeFilename(source.name),
+    markdown: `# ${source.name}\n\n${source.url}\n\n${htmlToMarkdown(clone)}\n`,
+    embedded: Array.from(savedNames, ([url, name]) => ({ url, name })),
+  };
 }

@@ -2,8 +2,9 @@
 
 import { isCoursePage } from "@/moodle/page";
 import { findCourseSectionHeaders } from "@/moodle/courseSections";
-import { requestDownloads } from "@/utils/download";
-import { collectPages, fetchPageDownloads } from "./pageSave";
+import { requestDownloads, saveBlob } from "@/utils/download";
+import { sanitizeFilename } from "@/utils/filename";
+import { collectPages, fetchPagesZip } from "./pageSave";
 
 /**
  * セクション内の資料（modtype_resource）の URL を重複なく収集する。
@@ -82,15 +83,19 @@ export function initBulkDownload(): void {
     const save = async () => {
       button.disabled = true;
       try {
-        const { items, failed } = await fetchPageDownloads(
-          pages,
-          (done, total) => {
-            button.textContent = `ページを取得中（${done}/${total}）`;
-          },
-        );
-        await requestDownloads([...urls.map((url) => ({ url })), ...items]);
+        const { zip, failed } = await fetchPagesZip(pages, (done, total) => {
+          button.textContent = `ページを取得中（${done}/${total}）`;
+        });
+        if (zip) {
+          const title =
+            section.querySelector(".sectionname")?.textContent?.trim() ||
+            "ページ資料";
+          saveBlob(zip, `${sanitizeFilename(title)}.zip`);
+        }
+
+        await requestDownloads(urls.map((url) => ({ url })));
         button.textContent =
-          failed > 0 ? `${failed}件のページを保存できませんでした` : label;
+          failed > 0 ? `${failed}件のページに保存できない内容がありました` : label;
       } catch (error) {
         console.error("[mi-mo] bulkDownload", error);
         button.textContent = "保存に失敗しました";

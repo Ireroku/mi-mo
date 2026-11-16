@@ -1,5 +1,7 @@
 // コースセクションのアクティビティを読み取り、Markdown またはプレーンテキストに整形する。
 
+import { htmlToMarkdown, htmlToPlainText } from "@/utils/markdown";
+
 export type ExportFormat = "markdown" | "text";
 
 export interface ExportedActivity {
@@ -37,33 +39,30 @@ function resolveKindLabel(kind: string): string | null {
 }
 
 /**
- * 要素の文章を、画面に見えている改行を保って読み取る。
- * 行末の空白を落とし、連続する空行を1つにまとめる。
+ * 要素の文章を、段落とリストの区切りを保って読み取る。
  */
-function readText(el: HTMLElement | null): string | undefined {
+function readText(el: Element | null, format: ExportFormat): string | undefined {
   if (!el) {
     return undefined;
   }
 
-  const text = el.innerText
-    .split(/\r?\n/)
-    .map((line) => line.trimEnd())
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-
-  return text || undefined;
+  const text = format === "markdown" ? htmlToMarkdown(el) : htmlToPlainText(el);
+  return text.trim() || undefined;
 }
 
 /**
  * セクション要素からタイトルと説明文、アクティビティ一覧を読み取る。
+ * 説明文とラベルの本文は、format の形式の文字列にする。
  */
-export function readSection(section: Element): ExportedSection {
+export function readSection(
+  section: Element,
+  format: ExportFormat,
+): ExportedSection {
   const titleEl = section.querySelector(".sectionname");
   const title = titleEl?.textContent?.trim() || "セクション";
 
   const summaryEl = section.querySelector<HTMLElement>(".summarytext");
-  const summary = readText(summaryEl);
+  const summary = readText(summaryEl, format);
 
   const activityEls = section.querySelectorAll<HTMLElement>("li.activity");
   const activities: ExportedActivity[] = [];
@@ -114,7 +113,8 @@ export function readSection(section: Element): ExportedSection {
     }
 
     const body = readText(
-      actEl.querySelector<HTMLElement>(".activity-altcontent"),
+      actEl.querySelector(".activity-altcontent"),
+      format,
     );
 
     activities.push({

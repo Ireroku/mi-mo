@@ -82,7 +82,7 @@ const LABEL = `<li class="activity activity-wrapper label modtype_label hasinfo"
 
 describe("readSection", () => {
   it("見出しと、活動の名前・種別・URL を読む", () => {
-    const section = readSection(parseSection(`<ul>${RESOURCE}</ul>`));
+    const section = readSection(parseSection(`<ul>${RESOURCE}</ul>`), "markdown");
     expect(section).toEqual({
       title: "第1回",
       summary: undefined,
@@ -99,7 +99,7 @@ describe("readSection", () => {
   });
 
   it("課題の開始と期限を、行ごとに読む", () => {
-    const [assign] = readSection(parseSection(`<ul>${ASSIGN}</ul>`)).activities;
+    const [assign] = readSection(parseSection(`<ul>${ASSIGN}</ul>`), "markdown").activities;
     expect(assign?.dates).toEqual([
       "開始: 2026年 04月 10日(金曜日) 00:00",
       "期限: 2026年 04月 17日(金曜日) 23:59",
@@ -107,7 +107,7 @@ describe("readSection", () => {
   });
 
   it("ラベルは本文を読み、URL を持たない", () => {
-    const [label] = readSection(parseSection(`<ul>${LABEL}</ul>`)).activities;
+    const [label] = readSection(parseSection(`<ul>${LABEL}</ul>`), "markdown").activities;
     expect(label).toMatchObject({ kind: "label", body: "教科書を持参してください" });
     expect(label?.url).toBeUndefined();
   });
@@ -118,19 +118,32 @@ describe("readSection", () => {
         `<div class="my-3"><div class="summarytext">今回の範囲<ul><li class="activity">貼り付けられた行</li></ul></div></div>
         <ul>${RESOURCE}</ul>`,
       ),
+      "markdown",
     );
     expect(section.summary).toContain("今回の範囲");
     expect(section.activities.map((act) => act.name)).toEqual(["講義資料"]);
   });
 
+  it("説明文とラベルの段落・改行・リンクを、形式に合わせて残す", () => {
+    const el = parseSection(
+      `<div class="my-3"><div class="summarytext"><p>一段落<br>改行</p><p><a href="https://example.test/a">資料</a></p></div></div>`,
+    );
+    expect(readSection(el, "markdown").summary).toBe(
+      "一段落  \n改行\n\n[資料](https://example.test/a)",
+    );
+    expect(readSection(el, "text").summary).toBe(
+      "一段落\n改行\n\n資料 (https://example.test/a)",
+    );
+  });
+
   it("名前の属性が無い活動は、リンクの文字列を名前にする", () => {
     const html = RESOURCE.replace(' data-activityname="講義資料"', "");
-    const [activity] = readSection(parseSection(`<ul>${html}</ul>`)).activities;
+    const [activity] = readSection(parseSection(`<ul>${html}</ul>`), "markdown").activities;
     expect(activity?.name).toBe("講義資料\u00a0ファイル");
   });
 
   it("見出しが無いセクションは「セクション」とする", () => {
     document.body.innerHTML = `<ul><li class="section"></li></ul>`;
-    expect(readSection(document.querySelector("li.section")!).title).toBe("セクション");
+    expect(readSection(document.querySelector("li.section")!, "markdown").title).toBe("セクション");
   });
 });

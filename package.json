@@ -44,6 +44,7 @@
     "wxt": "^0.21.3"
   },
   "dependencies": {
+    "fflate": "^0.8.3",
     "turndown": "^7.2.5"
   }
 }

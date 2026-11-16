@@ -10,6 +10,7 @@
 - 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索
 - 使う: [`../utils/download.md`](../utils/download.md) — 書き出したテキストの保存
 - 使う: [`../utils/filename.md`](../utils/filename.md) — ファイル名に使えない文字の置き換え
+- 使う: [`../utils/markdown.md`](../utils/markdown.md) — 説明文とラベルの本文の変換
 - 使う: [`../utils/settings.md`](../utils/settings.md) — ストレージ項目を足す手順
 - 資料: [`../../moodle/course-page.md`](../../moodle/course-page.md) — 活動の共通構造、種別ごとのクラス、課題の日時、ラベルの本文
 - 参考: [`./autoattendButton.md`](./autoattendButton.md) — 同じコースページで活動を探す機能
@@ -34,16 +35,19 @@ export interface ExportedActivity {
   kind: string; // modtype_ に続く種別
   url?: string;
   dates?: string[];
-  body?: string; // ラベルの本文
+  body?: string; // ラベルの本文。読み取った時の形式の文字列
 }
 
 export interface ExportedSection {
   title: string;
-  summary?: string; // セクションの説明文
+  summary?: string; // セクションの説明文。読み取った時の形式の文字列
   activities: ExportedActivity[];
 }
 
-export function readSection(section: Element): ExportedSection;
+export function readSection(
+  section: Element,
+  format: ExportFormat,
+): ExportedSection;
 
 export function formatSection(
   section: ExportedSection,
@@ -91,7 +95,7 @@ if (config.enabled) {
 1. `isCoursePage()` が false なら何もせず戻る
 2. `#region-main div.course-content > div > ul[data-for="course_sectionlist"] > li.section` をすべて取る
 3. 各セクションの `.course-section-header` の末尾へ `<button>` を1つ足す。クラスは `btn btn-outline-secondary btn-sm text-nowrap`、文言は「書き出す」
-4. 押されたら、そのセクションについて `readSection` と `formatSection` を呼び、`requestDownloads` へ渡す
+4. 押されたら、そのセクションについて `readSection` と `formatSection` を設定の出力形式で呼び、`requestDownloads` へ渡す
 5. `requestDownloads` が reject した場合、`console.error("[mi-mo] exportMarkdown", error)` を出し、ボタンの文言を「保存に失敗しました」へ変える
 
 保存名は `<セクション名>.md`（`text` の場合は `.txt`）にする。ファイル名に使えない文字は `sanitizeFilename` で置き換える。
@@ -111,7 +115,7 @@ if (config.enabled) {
 | `dates` | `[data-region="activity-dates"]` の各行のテキスト |
 | `body` | `.activity-altcontent` の文章（ラベルの場合） |
 
-`summary` と `body` の文章は `innerText` で読む。行末の空白を落とし、連続する空行を1つにまとめる。
+`summary` と `body` の文章は、`format` が `markdown` なら `htmlToMarkdown`、`text` なら `htmlToPlainText` で文字列にする。前後の空白を落とし、空になった場合は `undefined` にする。
 
 ### formatSection
 
@@ -159,7 +163,7 @@ URL を持たない活動は `[<活動名>]` の括弧を外し、名前だけ�
 <ラベルの本文>
 ```
 
-含める項目は2つの形式で揃える。違うのは記号の有無だけにする。
+含める項目は2つの形式で揃える。違うのは記号の有無だけにする。説明文とラベルの本文に含まれるリストは、`text` でも `-` と番号の形で残る（[`../utils/markdown.md`](../utils/markdown.md)）。
 
 ## 決めごと
 
@@ -169,10 +173,10 @@ URL を持たない活動は `[<活動名>]` の括弧を外し、名前だけ�
 - **種別を日本語へ直して出す。** 判定には `modtype_` のクラスを使いますが、そのまま書き出すと `resource` や `assign` といった内部の識別子がメモに混ざる
 - **セクション単位で書き出し、コース全体をまとめる操作は置かない。** 仕様書が「セクション単位で一括して行える」としている。全体が欲しい場合はセクションの数だけ押す
 - **セクションの説明文を書き出しに含める。** 「書き出す」はコースページに見えている内容を残すためのもので、課題の条件や注意事項は活動ではなく説明文に書かれる場合が多い。活動だけを書き出すと、リンクと日時しか残らない
-- **文章を `textContent` でなく `innerText` で読む。** `textContent` は段落の区切りを落とし、複数の段落が1行に繋がる。`innerText` は画面に見えている改行を保つ。折りたたまれたセクションは描画されていないため、改行が落ちる（[`../../known-issues.md`](../../known-issues.md)）
+- **説明文とラベルの本文を [`../utils/markdown.md`](../utils/markdown.md) で変換する。** `textContent` は段落の区切りを落とし、複数の段落が1行に繋がる。`innerText` は描画されている要素でしか改行を保たず、折りたたまれたセクションで同じことが起きる。Turndown はタグの種類だけを見るため、どちらの場合も段落・リスト・リンクが残る
+- **`readSection` が出力形式を受け取る。** 説明文とラベルの本文は、HTML から文字列にする時点で形式が決まる。`formatSection` は文字列を並べるだけにする
 - **活動の一覧から、説明文の中にある要素を外す。** 説明文には教員が貼り付けた HTML が入り、Moodle の活動に似た要素が紛れる場合がある（資料の「注意」）
 - **ラベルは本文をそのまま段落として出す。** リンクを持たない活動で、名前より中身に意味がある
-- **HTML を Markdown へ変換しない。** ラベルの本文には書式付きの HTML が入る場合があるが、変換の規則を決め始めると際限がない。テキストとして取り出す
 - **種別は `modtype_` のクラスから読む。** 表示名（「ファイル」「課題」）はリンクのテキストに紛れており、言語設定でも変わる
 - **保存を [`../utils/download.md`](../utils/download.md) へ任せる。** content script から起こすダウンロードはブラウザに止められる場合がある
 - **出力形式は設定で選び、押すたびに聞かない。** 書き出しは繰り返す操作で、そのたびに選ばせると手数が増える
