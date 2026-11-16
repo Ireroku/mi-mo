@@ -27,7 +27,8 @@ export function applyFont(config: FontConfig): void {
     return;
   }
 
-  const selector = config.scope === "main" ? "#region-main" : "body";
+  // "all" 以外はすべて本文扱いにする。過去の設定画面が保存した未知の値を、影響の小さい側へ倒す。
+  const selector = config.scope === "all" ? "body" : "#region-main";
   const css = `
 ${selector} {
   font-family: "${cleanFamily}", system-ui, sans-serif !important;

@@ -52,7 +52,10 @@ export function initExportMarkdown(config: ExportConfig): void {
       const filename = `${safeTitle}.${ext}`;
 
       const dataUrl = toTextDataUrl(text, mimeType);
-      requestDownloads([{ url: dataUrl, filename }]);
+      requestDownloads([{ url: dataUrl, filename }]).catch((error: unknown) => {
+        console.error("[mi-mo] exportMarkdown", error);
+        button.textContent = "保存に失敗しました";
+      });
     });
 
     header.appendChild(button);

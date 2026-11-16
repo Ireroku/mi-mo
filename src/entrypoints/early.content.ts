@@ -20,6 +20,7 @@ import { applySectionTitleLink } from "@/features/coursePage/sectionTitleLink";
 import { applySectionToggleDesign } from "@/features/coursePage/sectionToggleDesign";
 import { applyClickableCard } from "@/features/myCourses/clickableCard";
 import { applyBreadcrumb } from "@/features/ui/breadcrumb";
+import { runFeature } from "@/utils/runFeature";
 
 export default defineContentScript({
   matches: ["*://lms-m41.mie-u.ac.jp/*"],
@@ -45,25 +46,36 @@ export default defineContentScript({
       uiLandingPendingFlag.getValue(),
     ]);
 
-    applyHideElements(homeHideElements);
-    applyMenuLogo(menuLogo);
-    applyFloatingHint(uiFloatingHint);
-    applyFont(uiFont);
-    applyReverseSections(coursePageReverseSections);
-    applyQuickDrawerVisibility(quickDrawerConfig);
+    // 機能は互いに独立している。1つが失敗しても残りを動かす。
+    await runFeature("hideElements", () => applyHideElements(homeHideElements));
+    await runFeature("menuLogo", () => applyMenuLogo(menuLogo));
+    await runFeature("floatingHint", () => applyFloatingHint(uiFloatingHint));
+    await runFeature("font", () => applyFont(uiFont));
+    await runFeature("reverseSections", () =>
+      applyReverseSections(coursePageReverseSections),
+    );
+    await runFeature("quickDrawer", () =>
+      applyQuickDrawerVisibility(quickDrawerConfig),
+    );
 
-    const decision = decideLanding(landingConfig, landingPending, window.location);
-    if (decision.pending !== landingPending) {
-      await uiLandingPendingFlag.setValue(decision.pending);
-    }
-    if (decision.redirectTo) {
-      window.location.replace(decision.redirectTo);
+    let redirected = false;
+    await runFeature("landingPage", async () => {
+      const decision = decideLanding(landingConfig, landingPending, window.location);
+      if (decision.pending !== landingPending) {
+        await uiLandingPendingFlag.setValue(decision.pending);
+      }
+      if (decision.redirectTo) {
+        window.location.replace(decision.redirectTo);
+        redirected = true;
+      }
+    });
+    if (redirected) {
       return;
     }
 
-    applySectionTitleLink();
-    applySectionToggleDesign();
-    applyClickableCard();
-    applyBreadcrumb();
+    await runFeature("sectionTitleLink", () => applySectionTitleLink());
+    await runFeature("sectionToggleDesign", () => applySectionToggleDesign());
+    await runFeature("clickableCard", () => applyClickableCard());
+    await runFeature("breadcrumb", () => applyBreadcrumb());
   },
 });

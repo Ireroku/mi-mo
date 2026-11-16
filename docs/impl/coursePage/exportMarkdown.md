@@ -90,6 +90,7 @@ if (config.enabled) {
 2. `#region-main div.course-content > div > ul[data-for="course_sectionlist"] > li.section` をすべて取る
 3. 各セクションの `.course-section-header` の末尾へ `<button>` を1つ足す。クラスは `btn btn-outline-secondary btn-sm text-nowrap`、文言は「書き出す」
 4. 押されたら、そのセクションについて `readSection` と `formatSection` を呼び、`requestDownloads` へ渡す
+5. `requestDownloads` が reject した場合、`console.error("[mi-mo] exportMarkdown", error)` を出し、ボタンの文言を「保存に失敗しました」へ変える
 
 保存名は `<セクション名>.md`（`text` の場合は `.txt`）にする。ファイル名に使えない文字（`/` `\` `:` `*` `?` `"` `<` `>` `|`）は `-` へ置き換える。
 

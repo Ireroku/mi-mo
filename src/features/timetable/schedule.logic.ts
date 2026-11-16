@@ -37,12 +37,14 @@ export function weekdayOf(date: Date): Weekday | undefined {
   }
 }
 
-function parseStartDate(dateStr: string): Date {
-  const parts = dateStr.split("-").map((p) => parseInt(p, 10));
-  const year = parts[0] ?? 2026;
-  const month = parts[1] ?? 4;
-  const day = parts[2] ?? 1;
-  return new Date(year, month - 1, day, 0, 0, 0, 0);
+// "YYYY-MM-DD" をローカルの0時として読む。形式が合わなければ undefined を返す。
+function parseStartDate(dateStr: string): Date | undefined {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+  if (!match) {
+    return undefined;
+  }
+
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
 }
 
 /**
@@ -65,7 +67,8 @@ export function buildSchedule(
     }
   }
 
-  if (activeSlots.length === 0) {
+  const currentDate = parseStartDate(config.startDate);
+  if (activeSlots.length === 0 || !currentDate) {
     return [];
   }
 
@@ -85,7 +88,6 @@ export function buildSchedule(
     });
   };
 
-  const currentDate = parseStartDate(config.startDate);
   for (let dayOffset = 0; dayOffset < 365; dayOffset++) {
     if (isCompleted()) {
       break;

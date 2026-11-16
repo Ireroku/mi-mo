@@ -89,13 +89,14 @@ export function isSameDay(first: Date, second: Date): boolean;
 
 ### buildSchedule
 
-1. `config.startDate` の日から1日ずつ進める
-2. その日が `holidays` に含まれる場合、何も行わずに次の日へ進む
-3. その日が `substitutes` に含まれる場合、行う授業の曜日をその指定に差し替える。含まれない場合は `weekdayOf` で求めた曜日を使う
-4. 曜日が `undefined`（土曜・日曜）の場合、何も行わずに次の日へ進む
-5. その曜日の `grid` を時限の順に見て、`null` でないコマそれぞれについて `LessonOccurrence` を作る。`count` はそのコマ（曜日と時限の組）にとって何回目かを数えた値
-6. すべてのコマが `config.lessonCount` 回に達した時点で終わる
-7. 開始日から 365 日を超えた時点でも終わる
+1. `config.startDate` が `YYYY-MM-DD` の形でない場合は、空の配列を返す
+2. `config.startDate` の日から1日ずつ進める
+3. その日が `holidays` に含まれる場合、何も行わずに次の日へ進む
+4. その日が `substitutes` に含まれる場合、行う授業の曜日をその指定に差し替える。含まれない場合は `weekdayOf` で求めた曜日を使う
+5. 曜日が `undefined`（土曜・日曜）の場合、何も行わずに次の日へ進む
+6. その曜日の `grid` を時限の順に見て、`null` でないコマそれぞれについて `LessonOccurrence` を作る。`count` はそのコマ（曜日と時限の組）にとって何回目かを数えた値
+7. すべてのコマが `config.lessonCount` 回に達した時点で終わる
+8. 開始日から 365 日を超えた時点でも終わる
 
 ### lessonsOn
 

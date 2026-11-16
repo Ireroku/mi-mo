@@ -30,6 +30,7 @@ import {
   timetableSetting,
   myCoursesTodayOrderSetting,
 } from "@/utils/settings";
+import { runFeature } from "@/utils/runFeature";
 
 export default defineContentScript({
   matches: ["*://lms-m41.mie-u.ac.jp/*"],
@@ -65,59 +66,75 @@ export default defineContentScript({
       myCoursesTodayOrderSetting.getValue(),
     ]);
 
-    initMenu(menuConfig);
-    await initMenuBadges(ctx, badgesConfig);
-
-    initLoginComponent();
+    // 機能は互いに独立している。1つが失敗しても残りを動かす。
+    await runFeature("menu", () => initMenu(menuConfig));
+    await runFeature("menuBadges", () =>
+      initMenuBadges(ctx, badgesConfig, periodTableConfig.periods),
+    );
+    await runFeature("loginComponent", () => initLoginComponent());
 
     if (greetingConfig.enabled) {
-      await initGreeting(ctx, greetingConfig);
+      await runFeature("greeting", () => initGreeting(ctx, greetingConfig));
     }
 
-    await initLastAccess(ctx, lastAccessRecord);
-    await homeLastAccessRecord.setValue(
-      advanceRecord(lastAccessRecord, new Date()),
-    );
+    await runFeature("lastAccess", async () => {
+      await initLastAccess(ctx, lastAccessRecord);
+      await homeLastAccessRecord.setValue(
+        advanceRecord(lastAccessRecord, new Date()),
+      );
+    });
 
     if (!quickDrawerConfig.hidden && quickDrawerConfig.pinned.length > 0) {
-      await initPinnedCourses(ctx, quickDrawerConfig);
+      await runFeature("pinnedCourses", () =>
+        initPinnedCourses(ctx, quickDrawerConfig),
+      );
     }
 
-    const courses = readCourseList();
-    if (courses.length > 0) {
-      await courseListCacheSetting.setValue({
-        courses,
-        updatedAt: new Date().toISOString(),
-      });
-    }
+    await runFeature("courseListCache", async () => {
+      const courses = readCourseList();
+      if (courses.length > 0) {
+        await courseListCacheSetting.setValue({
+          courses,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    });
 
-    await initIndexToggle(ctx);
-    initIncrementalSearch();
+    await runFeature("indexToggle", () => initIndexToggle(ctx));
+    await runFeature("incrementalSearch", () => initIncrementalSearch());
 
     if (autoattendButtonConfig.enabled) {
-      await initAutoattendButton(ctx, autoattendButtonConfig);
+      await runFeature("autoattendButton", () =>
+        initAutoattendButton(ctx, autoattendButtonConfig),
+      );
     }
 
     if (autoattendStatsConfig.enabled) {
-      await initAutoattendStats(ctx, autoattendStatsConfig);
+      await runFeature("autoattendStats", () =>
+        initAutoattendStats(ctx, autoattendStatsConfig),
+      );
     }
 
     if (gradeInlineConfig.enabled) {
-      await initGradeInline(gradeInlineConfig);
+      await runFeature("gradeInline", () => initGradeInline(gradeInlineConfig));
     }
 
     if (exportConfig.enabled) {
-      initExportMarkdown(exportConfig);
+      await runFeature("exportMarkdown", () => initExportMarkdown(exportConfig));
     }
 
-    initBulkDownload();
+    await runFeature("bulkDownload", () => initBulkDownload());
 
     if (timetableConfig.enabled) {
-      await initTimetable(ctx, timetableConfig, periodTableConfig.periods);
+      await runFeature("timetable", () =>
+        initTimetable(ctx, timetableConfig, periodTableConfig.periods),
+      );
     }
 
     if (todayOrderConfig.enabled) {
-      initTodayOrder(todayOrderConfig, timetableConfig, periodTableConfig.periods);
+      await runFeature("todayOrder", () =>
+        initTodayOrder(todayOrderConfig, timetableConfig, periodTableConfig.periods),
+      );
     }
   },
 });

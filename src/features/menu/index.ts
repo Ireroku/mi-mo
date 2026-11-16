@@ -12,7 +12,6 @@ import { buildCountdownTargets, type CountdownConfig } from "./countdownBadge.lo
 
 export interface MenuBadgesConfig {
   clock: ClockConfig;
-  periods: PeriodSlot[];
   countdowns: CountdownConfig[];
 }
 
@@ -54,12 +53,17 @@ async function mountBadge<Props extends Record<string, unknown>>(
 export async function initMenuBadges(
   ctx: ContentScriptContext,
   config: MenuBadgesConfig,
+  periods: PeriodSlot[],
 ): Promise<void> {
-  const periodTable = sortPeriodsByStart(config.periods);
+  const periodTable = sortPeriodsByStart(periods);
   const countdownTargets = buildCountdownTargets(config.countdowns, periodTable);
 
   await Promise.all([
     mountBadge(ctx, "mimo-clock-badge", ClockBadge, { config: config.clock, periodTable }),
     mountBadge(ctx, "mimo-countdown-badge", CountdownBadge, { targets: countdownTargets }),
   ]);
+
+  // Moodle はメニューに収まる項目数を resize の時にだけ計算する。
+  // バッジで幅が減った分を反映させないと、項目が2段に折り返す。
+  requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
 }

@@ -134,4 +134,5 @@ await initMenuBadges(ctx, badgesConfig, periodTable.periods);
 - **ルート要素へ `font-sans` を明示する。** `createShadowRootUi` が `:host{all:initial}` でリセットするため、指定しないとブラウザ既定のフォントに落ちる
 - **設定は entrypoint が読み、`initMenuBadges` が引数で受け取る。** このモジュールは設定の保存場所も形式も参照しない
 - **`initMenuBadges` は受け取った `periods` を1度だけ `sortPeriodsByStart` に通し、以降はソート済みのものを渡す。** 設定から来る時限表は順序が保証されず、`findNextPeriodStart` は1秒ごとに呼ばれるため内部でソートしない
+- **バッジを差し込んだ後、次の描画フレームで `window` へ `resize` を1度送る。** Moodle は上部メニューに収まる項目数を `resize` の時にだけ計算する。バッジで幅が減った分を反映させないと、項目が2段に折り返す。実機で確認済み
 - **時限表を `MenuBadgesConfig` に含めず、別の引数で受け取る。** 時間割も同じ表を使うため、バッジの設定の一部にすると時間割がバッジの設定を読むことになる

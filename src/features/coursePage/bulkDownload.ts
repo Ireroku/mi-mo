@@ -51,7 +51,10 @@ export function initBulkDownload(): void {
       e.stopPropagation();
 
       const items = urls.map((url) => ({ url }));
-      requestDownloads(items);
+      requestDownloads(items).catch((error: unknown) => {
+        console.error("[mi-mo] bulkDownload", error);
+        button.textContent = "保存に失敗しました";
+      });
     });
 
     header.appendChild(button);

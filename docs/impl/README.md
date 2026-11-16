@@ -71,7 +71,7 @@ python3 scripts/checkdocs.py docs/impl  # 一部だけ
 
 ### パスエイリアス
 
-`$lib` が `src/lib`、`@` が `src` を指す。`vite.config.js` は存在せず、Vite の設定は `wxt.config.ts` の `vite` オプションに書く。
+`$lib` が `src/lib`、`@` が `src` を指す。`vite.config.js` は置かない。WXT が読まないため、Vite の設定は `wxt.config.ts` の `vite` オプションに書く。
 
 エイリアスを増やす場合は2箇所へ書く。`tsconfig.json` の `paths` は svelte-check が見るもので、バンドル時の解決には効かない。`wxt.config.ts` の `vite.resolve.alias` が無いと、型チェックを通過したままビルドで `failed to resolve import` になる。`@` は WXT が既定で解決するため書く必要がない。
 
@@ -91,6 +91,16 @@ WXT と Svelte の API（`defineContentScript`・`createShadowRootUi`・`storage
 ### entrypoint は薄く保つ
 
 UIロジックを entrypoint 本体に書かない。`src/features/<機能名>/` に実装し、entrypoint からは import して呼び出す。entrypoint が担当するのは設定の取得と初期化だけ。
+
+### 機能の初期化は runFeature で包む
+
+content script の entrypoint は、機能の初期化を1つずつ [`utils/runFeature.md`](./utils/runFeature.md) の `runFeature` で包んで呼ぶ。1つの機能が例外を投げても、後に続く機能を止めないため。
+
+```ts
+await runFeature("greeting", () => initGreeting(ctx, greetingConfig));
+```
+
+各指示書の「インターフェース」に載る呼び出し例は、この包みを省いて書く。entrypoint へ足す時に包む。
 
 ### entrypoint は run_at で分ける
 
@@ -307,6 +317,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`utils/styleSheet.md`](./utils/styleSheet.md) | `src/utils/styleSheet.ts` | 参考: [`home/hideElements.md`](./home/hideElements.md) |
 | [`utils/theme.md`](./utils/theme.md) | `src/utils/theme.ts` | 資料: [`../../src/assets/global.css`](../../src/assets/global.css) |
 | [`utils/download.md`](./utils/download.md) | `src/utils/download.ts` ／ `src/entrypoints/background.ts` | 使う: coursePage の書き出しと一括保存 |
+| [`utils/runFeature.md`](./utils/runFeature.md) | `src/utils/runFeature.ts` | 使う: content script の entrypoint 2本 |
 | [`moodle/page.md`](./moodle/page.md) | `src/moodle/page.ts` | 資料: [`../moodle/`](../moodle/) の各ページ |
 | [`moodle/courseList.md`](./moodle/courseList.md) | `src/moodle/courseList.ts` | 資料: [`../moodle/drawer.md`](../moodle/drawer.md) ／ 使う: utils/settings |
 | [`moodle/user.md`](./moodle/user.md) | `src/moodle/user.ts` | 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |

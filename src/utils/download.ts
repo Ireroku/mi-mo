@@ -13,21 +13,31 @@ export interface DownloadMessage {
   items: DownloadItem[];
 }
 
+export interface DownloadResponse {
+  failed: number; // 保存を開始できなかった件数
+}
+
 /**
  * ファイルの保存を background へ依頼する。
- * items が空なら何もせず戻る。送信が済んだ時点で解決し、保存の完了は待たない。
+ * items が空なら何もせず戻る。background が保存を開始した時点で解決し、保存の完了は待たない。
+ * 開始に失敗した項目があれば reject する。
  */
-export function requestDownloads(items: DownloadItem[]): Promise<void> {
+export async function requestDownloads(items: DownloadItem[]): Promise<void> {
   if (items.length === 0) {
-    return Promise.resolve();
+    return;
   }
 
   const message: DownloadMessage = {
     type: DOWNLOAD_MESSAGE_TYPE,
     items,
   };
-  browser.runtime.sendMessage(message);
-  return Promise.resolve();
+  const response: DownloadResponse | undefined =
+    await browser.runtime.sendMessage(message);
+  if (!response || response.failed > 0) {
+    throw new Error(
+      `保存を開始できませんでした（${response?.failed ?? items.length}/${items.length} 件）`,
+    );
+  }
 }
 
 /**

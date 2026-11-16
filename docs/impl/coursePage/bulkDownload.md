@@ -52,6 +52,7 @@ initBulkDownload();
 3. `collectResourceUrls` が空になるセクションでは、ボタンを足さない
 4. 文言は件数を含めて「資料を保存（5件）」とする
 5. 押されたら、集めた URL を `requestDownloads` へ渡す
+6. `requestDownloads` が reject した場合、`console.error("[mi-mo] bulkDownload", error)` を出し、ボタンの文言を「保存に失敗しました」へ変える
 
 ## 決めごと
 

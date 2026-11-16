@@ -10,6 +10,8 @@ import {
 
 export const ICS_FILENAME = "timetable.ics";
 
+const JST_OFFSET_HOURS = 9;
+
 const WEEKDAY_BYDAY: Record<Weekday, string> = {
   mon: "MO",
   tue: "TU",
@@ -62,14 +64,15 @@ function foldLine(line: string): string {
  */
 function toUtcString(date: Date, timeStr: string): string {
   const [h, m] = timeStr.split(":").map((v) => parseInt(v, 10));
-  // 日本時間（UTC+9）のローカル日時を作成
+  // 授業の時刻は日本時間（UTC+9）で決まる。実行環境のタイムゾーンに依らず同じ結果にする。
   const localDate = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-    h ?? 0,
-    m ?? 0,
-    0,
+    Date.UTC(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      (h ?? 0) - JST_OFFSET_HOURS,
+      m ?? 0,
+    ),
   );
 
   const pad = (n: number) => String(n).padStart(2, "0");
