@@ -59,12 +59,6 @@
 - 場所: `*.logic.ts` の全般。特に `src/features/timetable/schedule.logic.ts`、`src/features/timetable/ics.ts`、`src/features/coursePage/export.logic.ts`
 - 直す方向: Vitest を入れ、`*.logic.ts` の隣に `*.logic.test.ts` を置く。DOM に触れる部分は対象にしない
 
-### navbar のマネージャーが style 要素を自前で作っている
-
-- 起きること: style 要素の生成と差し替えの手順が `src/utils/styleSheet.ts` と重なる
-- 場所: `src/features/menu/navbar/menu.manager.ts`
-- 直す方向: `applyStyleSheet` へ委譲する。[`impl/utils/styleSheet.md`](./impl/utils/styleSheet.md) が共通の手順を持つ
-
 ### カウントダウンの粒度を切り替える閾値を設定できない
 
 - 起きること: 秒刻み・分刻み・日数表示へ切り替わる残り時間（15分・24時間・7日）が固定値になっている

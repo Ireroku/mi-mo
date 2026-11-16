@@ -279,7 +279,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 
 | 指示書 | 対象 | 主な関連 |
 |---|---|---|
-| [`menu/navbar.md`](./menu/navbar.md) | `src/features/menu/navbar/` | 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
+| [`menu/navbar.md`](./menu/navbar.md) | `src/features/menu/navbar/` | 使う: styleSheet ／ 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
 | [`menu/clock.md`](./menu/clock.md) | `src/features/menu/clock.*` | 参考: navbar / countdownBadge |
 | [`menu/countdownBadge.md`](./menu/countdownBadge.md) | `src/features/menu/countdownBadge.*` | 使う: clock の `startClockTicker` |
 | [`menu/logo.md`](./menu/logo.md) | `src/features/menu/logo.ts` | 使う: styleSheet ／ 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |

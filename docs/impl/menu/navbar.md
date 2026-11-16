@@ -82,7 +82,6 @@ export class MenuManager {
   // 既定値は [new NavbarAdapter(), new DrawerAdapter()]
   constructor(adapters?: MenuAdapter[]);
 
-  ensureStyle(): void;
   applyConfig(config: MenuConfig): void;
   hideItem(target: string): boolean;
   insertItem(item: NewMenuItem): boolean;
@@ -142,16 +141,10 @@ initMenu(menuConfig);
 
 ### MenuManager.applyConfig
 
-1. `ensureStyle()` を呼ぶ
+1. `applyStyleSheet("mimo-menu-style", "[data-mimo-hidden] { display: none !important; }")` を呼ぶ
 2. `config.hidden` の各文字列について `hideItem()` を呼ぶ
 3. `config.items` の各要素について `insertItem()` を呼ぶ
 4. アダプターのいずれかが未 ready で、かつ `document.readyState === "loading"` の場合、`DOMContentLoaded` で 2〜3 を1度だけ再実行する
-
-### MenuManager.ensureStyle
-
-1. `document.getElementById("mimo-menu-style")` が存在すれば何もしない
-2. `<style id="mimo-menu-style">` を作り、`[data-mimo-hidden] { display: none !important; }` を入れる
-3. `document.head`（無ければ `document.documentElement`）へ追加する
 
 ### アダプター共通
 
@@ -218,7 +211,7 @@ initMenu(menuConfig);
 ## 決めごと
 
 - **非表示は DOM から削除せず、`data-mimo-hidden="true"` 属性と CSS で行う。** Moodle 内部のスクリプト（Bootstrap / YUI）が要素の存在を前提にしているため、物理削除すると壊れる
-- **非表示用のスタイルは `MenuManager.ensureStyle()` が動的に挿入する。** `src/assets/global.css` には置かない
+- **非表示用のスタイルは [`applyStyleSheet`](../utils/styleSheet.md) で動的に挿入する。** `src/assets/global.css` には置かない
 - **`href` と `textContent` の照合は部分一致にする。** 完全一致にすると表記ゆれで漏れるため。代償として意図しない項目にヒットし得るので、`hidden` へ渡す文字列は十分に具体的なものを選ぶ
 - **入れ子を持つ親要素の照合に、サブ項目のテキストを含めない。** 含めるとサブ項目の名前を指定した時に親ごと消える
 - **操作対象は主ナビゲーションに限る。** 通知・メッセージ・ユーザープロフィールなどのユーザーナビゲーションは対象外

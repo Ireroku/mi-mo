@@ -1,6 +1,7 @@
 import type { MenuAdapter, MenuConfig, NewMenuItem } from "./types";
 import { NavbarAdapter } from "./primaryNav.dom";
 import { DrawerAdapter } from "./drawer.dom";
+import { applyStyleSheet } from "@/utils/styleSheet";
 
 export class MenuManager {
   private adapters: MenuAdapter[];
@@ -12,28 +13,13 @@ export class MenuManager {
   }
 
   /**
-   * Ensures the hidden style tag is present in the document.
-   */
-  ensureStyle(): void {
-    if (document.getElementById("mimo-menu-style")) {
-      return;
-    }
-
-    const style = document.createElement("style");
-    style.id = "mimo-menu-style";
-    style.textContent = "[data-mimo-hidden] { display: none !important; }";
-
-    const target = document.head || document.documentElement;
-    if (target) {
-      target.appendChild(style);
-    }
-  }
-
-  /**
    * Applies the menu configuration to all adapters.
    */
   applyConfig(config: MenuConfig): void {
-    this.ensureStyle();
+    applyStyleSheet(
+      "mimo-menu-style",
+      "[data-mimo-hidden] { display: none !important; }",
+    );
 
     const apply = () => {
       if (config.hidden) {
