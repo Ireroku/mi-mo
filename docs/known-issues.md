@@ -53,11 +53,11 @@
 
 ## 保守性
 
-### 自動テストが無い
+### 単体テストが DOM を読む処理を覆っていない
 
-- 起きること: 日程計算や書き出しの整形のような純粋な計算を、変更のたびに手で確かめることになる
-- 場所: `*.logic.ts` の全般。特に `src/features/timetable/schedule.logic.ts`、`src/features/timetable/ics.ts`、`src/features/coursePage/export.logic.ts`
-- 直す方向: Vitest を入れ、`*.logic.ts` の隣に `*.logic.test.ts` を置く。DOM に触れる部分は対象にしない
+- 起きること: `readSection`（書き出しの読み取り）や `parseGradeReport`、`buildIcs` にはテストが無く、変更のたびに実機で確かめることになる
+- 場所: `src/features/coursePage/export.logic.ts`、`src/features/coursePage/grade.logic.ts`、`src/features/timetable/ics.ts`
+- 直す方向: 実機から採った HTML の断片を入力にして、`*.logic.test.ts` を足す。`readSection` は `innerText` を使うため、テスト環境（happy-dom）が改行を再現するかを先に確かめる
 
 ### カウントダウンの粒度を切り替える閾値を設定できない
 

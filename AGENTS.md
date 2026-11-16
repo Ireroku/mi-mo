@@ -46,11 +46,12 @@ pnpm build:firefox    # Firefox 向けのビルド
 pnpm zip              # Chrome 向けのパッケージ作成
 pnpm zip:firefox      # Firefox 向けのパッケージ作成
 pnpm check            # svelte-check による型と構文の検査
+pnpm test             # Vitest による単体テスト
 
 python3 scripts/checkdocs.py   # docs の文体規約とリンク切れの検査
 ```
 
-単体テストのスクリプトは用意していない。作業を終える前の確認は [docs/verify.md](./docs/verify.md) に従う。
+単体テストの対象は純粋な計算（`*.logic.ts` と `src/utils/`）に限る。置き方は [実装規約](./docs/impl/README.md#単体テスト) にある。作業を終える前の確認は [docs/verify.md](./docs/verify.md) に従う。
 
 # RULES
 

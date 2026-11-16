@@ -68,12 +68,13 @@ python3 scripts/checkdocs.py docs/impl  # 一部だけ
 | `*.dom.ts` | Moodle の特定DOM構造を操作するアダプター |
 | `*.manager.ts` | 複数のアダプターへ操作をブロードキャストするマネージャー |
 | `*.content.ts` | `src/entrypoints/` 直下に置く content script |
+| `*.test.ts` | 単体テスト。対象のファイルの隣に置く |
 
 ### パスエイリアス
 
 `$lib` が `src/lib`、`@` が `src` を指す。`vite.config.js` は置かない。WXT が読まないため、Vite の設定は `wxt.config.ts` の `vite` オプションに書く。
 
-エイリアスを増やす場合は2箇所へ書く。`tsconfig.json` の `paths` は svelte-check が見るもので、バンドル時の解決には効かない。`wxt.config.ts` の `vite.resolve.alias` が無いと、型チェックを通過したままビルドで `failed to resolve import` になる。`@` は WXT が既定で解決するため書く必要がない。
+エイリアスを増やす場合は2箇所へ書く。テストから使う場合は `vitest.config.ts` にも書く。`tsconfig.json` の `paths` は svelte-check が見るもので、バンドル時の解決には効かない。`wxt.config.ts` の `vite.resolve.alias` が無いと、型チェックを通過したままビルドで `failed to resolve import` になる。`@` は WXT が既定で解決するため書く必要がない。
 
 ### import の書き方
 
@@ -85,6 +86,16 @@ WXT と Svelte の API（`defineContentScript`・`createShadowRootUi`・`storage
 
 - `if`・`else` の本体は、文が1つでも必ず波括弧で囲み、複数行で書く。`else if` は連鎖した形で書く。
 - 同じ目的を持つ一連の処理は連続して配置し、目的が切り替わる箇所に空行を1行置く。変数の宣言と直後の利用、値の検証とそのガードなど、密接に関連する処理の間は詰める。
+
+## 単体テスト
+
+[Vitest](https://vitest.dev/) を使う。`pnpm test` で全件を1回実行する。
+
+- **対象は純粋な計算に限る。** `*.logic.ts` と `src/utils/` のうち、引数だけで結果が決まる関数を対象にする。Moodle の画面への差し込みや Shadow DOM の描画は対象にせず、[検証の手順](../verify.md) の実機確認で確かめる
+- **テストは対象の隣に `<対象の名前>.test.ts` として置く。** `schedule.logic.ts` のテストは `schedule.logic.test.ts` になる
+- **DOM を引数に取る関数は、ファイルの先頭に `// @vitest-environment happy-dom` を書く。** 既定の環境は Node で、`DOMParser` が無い。必要なファイルだけが DOM の環境を使う
+- **WXT のテスト用プラグイン（`WxtVitest`）は使わない。** 起動時に空きポートを探すため、ポートを開けない環境でテストが起動しない。代わりに `vitest.config.ts` へ `@` のエイリアスだけを書く。このため、テストの対象は WXT の auto-import（`browser`・`storage` など）を読み込み時に使わないモジュールに限る
+- **日付は `new Date(年, 月, 日)` で作り、ローカル時刻で比べる。** 時間割の日付は実行環境のローカル年月日で扱っている。ISO 文字列で作ると、実行する場所のタイムゾーンで結果が変わる
 
 ## アーキテクチャ方針
 

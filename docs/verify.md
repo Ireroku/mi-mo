@@ -4,10 +4,11 @@
 
 ## 1. 機械的な検査
 
-コードか文書を1行でも変えたら必ず行う。4つすべてが通る状態を保つ。
+コードか文書を1行でも変えたら必ず行う。5つすべてが通る状態を保つ。
 
 ```sh
 pnpm check                     # svelte-check による型と構文の検査
+pnpm test                      # Vitest による単体テスト
 pnpm build                     # Chrome 向けのビルド
 pnpm build:firefox             # Firefox 向けのビルド
 python3 scripts/checkdocs.py   # docs の文体とリンク切れ
