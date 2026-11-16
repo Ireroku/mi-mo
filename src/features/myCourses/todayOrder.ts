@@ -1,5 +1,6 @@
 // マイコース一覧を、時間割設定に基づく「今日の授業順」で並べ替える。
 
+import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { isMyCourses } from "@/moodle/page";
 import type { PeriodSlot } from "@/utils/periods";
 import type { TimetableConfig } from "@/features/timetable/types";
@@ -54,6 +55,7 @@ function orderCourseItems(items: CourseItem[], todayCourseIds: string[]): HTMLEl
  * マイコース一覧の並べ替えを初期化する。
  */
 export function initTodayOrder(
+  ctx: ContentScriptContext,
   config: TodayOrderConfig,
   timetable: TimetableConfig,
   periods: PeriodSlot[],
@@ -115,5 +117,6 @@ export function initTodayOrder(
       childList: true,
       subtree: true,
     });
+    ctx.onInvalidated(() => observer.disconnect());
   }
 }

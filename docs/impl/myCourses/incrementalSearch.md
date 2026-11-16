@@ -22,7 +22,7 @@
 
 ```ts
 // src/features/myCourses/incrementalSearch.ts
-export function initIncrementalSearch(): void;
+export function initIncrementalSearch(ctx: ContentScriptContext): void;
 ```
 
 entrypoint からの呼び出し。`main()` の中でこのモジュールが担当するのは次の1行だけで、他の機能の行は触りません。
@@ -31,7 +31,7 @@ entrypoint からの呼び出し。`main()` の中でこのモジュールが担
 // src/entrypoints/shared.content.ts
 import { initIncrementalSearch } from "@/features/myCourses/incrementalSearch";
 
-initIncrementalSearch();
+initIncrementalSearch(ctx);
 ```
 
 ## 処理の流れ
@@ -40,8 +40,8 @@ initIncrementalSearch();
 
 1. [`../moodle/page.md`](../moodle/page.md) の `isMyCourses()` が false なら何もせず戻る
 2. 隠すための CSS を `applyStyleSheet` へ渡す。id は `mimo-my-courses-incremental-search`
-3. `document` へ `keyup` のリスナーを**キャプチャフェーズで**登録する
-4. 一覧の描き直しを監視する `MutationObserver` を登録する
+3. `document` へ `keyup` のリスナーを**キャプチャフェーズで**登録する。登録は `ctx.addEventListener` で行い、content script の失効時に外れるようにする
+4. 一覧の描き直しを監視する `MutationObserver` を登録する。`ctx.onInvalidated` で `disconnect` する
 
 ### 注入する CSS
 

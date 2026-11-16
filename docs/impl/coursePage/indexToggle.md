@@ -75,7 +75,7 @@ await initIndexToggle(ctx);
 2. `#courseindexdrawercontrolsmenubutton` を探す。無ければ何もせず戻る
 3. 標準のドロップダウンを隠す CSS を `applyStyleSheet` へ渡す。id は `mimo-course-page-index-toggle`
 4. `createShadowRootUi` で `IndexToggle.svelte` をマウントする
-5. `#course-index` の `aria-expanded` の変化を `MutationObserver` で監視し、変わるたびに `readIndexState()` を読み直してボタンへ渡す
+5. `#course-index` の `aria-expanded` の変化を `MutationObserver` で監視し、変わるたびに `readIndexState()` を読み直してボタンへ渡す。`ctx.onInvalidated` で `disconnect` する
 
 | 設定 | 値 |
 |---|---|
@@ -94,7 +94,7 @@ body.pagelayout-course #courseindexdrawercontrolsmenubutton {
 
 ### IndexToggle.svelte
 
-`state` が `allCollapsed` なら「すべて開く」、それ以外なら「すべて閉じる」と出す。初期値は `allExpanded` とし、`setState` は同じ表示用の値を更新する。押されたら `onToggle` を呼び、呼び出し側がその時点の DOM を読み直す。セクションが無ければ開閉を実行しない。
+`state` が `allCollapsed` なら「すべて開く」、それ以外なら「すべて閉じる」と出す。初期値は `allExpanded` とし、`setState` は同じ表示用の値を更新する。ボタンは shadcn-svelte の `Button` を `variant="outline"` `size="sm"` で描く。押されたら `onToggle` を呼び、呼び出し側がその時点の DOM を読み直す。セクションが無ければ開閉を実行しない。
 
 ## 決めごと
 
@@ -106,5 +106,6 @@ body.pagelayout-course #courseindexdrawercontrolsmenubutton {
 - **`MutationObserver` で `aria-expanded` の変化を追い、ラベルを合わせる。** 個別に開閉した直後でも、ボタンの表示が次に何をするかを正しく示す。自分ではこの属性を書き換えないため、監視が自分の変更に反応することはない
 - **標準のドロップダウンボタンを隠す。** 中身は展開と折りたたみの2つだけで、トグルに置き換えれば役目が残らない。ボタンを消しても Moodle 側のリンクは DOM に残るため、`click()` で呼べる
 - **リンクの `click()` を呼び、開閉そのものは Moodle に任せる。** 各セクションの `aria-expanded` を自分で書き換えると、Moodle が持つ表示状態の記録と食い違う
+- **ボタンを shadcn-svelte の `Button` で描き、Bootstrap のクラスを使わない。** Shadow DOM の中には Moodle の Bootstrap が届かない。`btn btn-secondary btn-sm` を付けても装飾が当たらず、文字だけが表示される
 - **設定を持たない。** 仕様書（[`../../features/course-page/index-toggle.md`](../../features/course-page/index-toggle.md)）に設定項目が無い
 - **format-weeks 以外のフォーマットは未確認。** 採取したコースが週フォーマットのみで、セクションの構造が同じかどうかは確かめられていない

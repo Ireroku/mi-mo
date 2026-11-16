@@ -1,6 +1,7 @@
 // マイコースの検索欄を手元で即座に絞り込む形に置き換える。
 // Moodle 標準のキー入力をキャプチャフェーズで止め、打鍵ごとに要素を隠す。
 
+import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { isMyCourses } from "@/moodle/page";
 import { applyStyleSheet } from "@/utils/styleSheet";
 
@@ -64,14 +65,15 @@ function filterCourses(searchTerm: string): void {
 /**
  * マイコースのインクリメンタル検索を初期化する。
  */
-export function initIncrementalSearch(): void {
+export function initIncrementalSearch(ctx: ContentScriptContext): void {
   if (!isMyCourses()) {
     return;
   }
 
   applyStyleSheet(STYLE_ID, CSS);
 
-  document.addEventListener(
+  ctx.addEventListener(
+    document,
     "keyup",
     (event) => {
       const target = event.target as HTMLElement | null;
@@ -102,5 +104,6 @@ export function initIncrementalSearch(): void {
     });
 
     observer.observe(block, { childList: true, subtree: true });
+    ctx.onInvalidated(() => observer.disconnect());
   }
 }

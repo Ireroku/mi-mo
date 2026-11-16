@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { IndexState } from "./indexToggle";
+  import { Button } from "$lib/components/ui/button";
 
   interface Props {
     state?: IndexState;
@@ -17,10 +18,6 @@
   );
 </script>
 
-<button
-  type="button"
-  class="btn btn-secondary btn-sm"
-  onclick={onToggle}
->
+<Button variant="outline" size="sm" class="font-sans" onclick={onToggle}>
   {label}
-</button>
+</Button>

@@ -19,12 +19,6 @@
 
 ## 表示
 
-### コースインデックスのトグルボタンに装飾が当たらない
-
-- 起きること: ドロワー上部の「すべて閉じる」「すべて開く」が、枠も背景も無い 16px の文字だけで表示される。ボタンに見えず、隣の閉じるボタン（×）より大きい
-- 場所: `src/features/coursePage/IndexToggle.svelte`。ボタンのクラスが Bootstrap の `btn btn-secondary btn-sm` になっている。Shadow DOM の中には Moodle の Bootstrap が届かず、Tailwind のリセットだけが効く。実機で採った値は、背景が透明、`padding` が 0、枠が 0
-- 直す方向: 同じ Shadow DOM の中で描く `AutoattendStats.svelte` と同じく、Tailwind のクラスか shadcn-svelte の `Button`（`variant="outline"` `size="sm"`）で描く。[`impl/coursePage/indexToggle.md`](./impl/coursePage/indexToggle.md) へ見た目の決めごとを足す
-
 ### 折りたたんだセクションの書き出しで段落が繋がる
 
 - 起きること: セクションを折りたたんだまま「書き出す」を押すと、説明文とラベルの段落の区切りが落ち、文章が1行に繋がる
@@ -32,12 +26,6 @@
 - 直す方向: [ページ資料の保存](./impl/coursePage/pageSave.md) で Turndown を入れた後、説明文とラベルの変換も Turndown へ寄せる。描画の有無に左右されなくなる
 
 ## 信頼性
-
-### MutationObserver を解除していない
-
-- 起きること: 拡張機能の更新や無効化で content script が失効した後も、監視のコールバックが残る
-- 場所: `src/features/myCourses/todayOrder.ts`、`src/features/myCourses/incrementalSearch.ts`、`src/features/coursePage/indexToggle.ts`
-- 直す方向: 各 `init` 関数が `ContentScriptContext` を受け取り、`ctx.onInvalidated` で `disconnect` する。Svelte をマウントする機能は `onRemove` で既に片付けている
 
 ### 設定画面を2つ同時に開くと後から保存した側が勝つ
 

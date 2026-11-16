@@ -103,5 +103,6 @@ export async function initIndexToggle(ctx: ContentScriptContext): Promise<void> 
       attributeFilter: ["aria-expanded"],
       subtree: true,
     });
+    ctx.onInvalidated(() => observer.disconnect());
   }
 }

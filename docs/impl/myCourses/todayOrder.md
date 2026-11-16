@@ -29,6 +29,7 @@ export interface TodayOrderConfig {
 }
 
 export function initTodayOrder(
+  ctx: ContentScriptContext,
   config: TodayOrderConfig,
   timetable: TimetableConfig,
   periods: PeriodSlot[],
@@ -63,7 +64,7 @@ const [config, timetable, periodTable] = await Promise.all([
 ]);
 
 if (config.enabled) {
-  initTodayOrder(config, timetable, periodTable.periods);
+  initTodayOrder(ctx, config, timetable, periodTable.periods);
 }
 ```
 
@@ -76,7 +77,7 @@ if (config.enabled) {
 3. 各コマの `slot.url` からコースIDを読む。`/course/view.php?id=<id>` のクエリを使う
 4. コースIDの並びを、今日の授業順として持つ
 5. 一覧を並べ替える
-6. `.block-myoverview` へ `MutationObserver` を `{ childList: true, subtree: true }` で張り、変化があれば並べ替え直す
+6. `.block-myoverview` へ `MutationObserver` を `{ childList: true, subtree: true }` で張り、変化があれば並べ替え直す。`ctx.onInvalidated` で `disconnect` する
 
 ### 並べ替え
 

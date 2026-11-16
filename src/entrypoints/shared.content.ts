@@ -101,7 +101,7 @@ export default defineContentScript({
     });
 
     await runFeature("indexToggle", () => initIndexToggle(ctx));
-    await runFeature("incrementalSearch", () => initIncrementalSearch());
+    await runFeature("incrementalSearch", () => initIncrementalSearch(ctx));
 
     if (autoattendButtonConfig.enabled) {
       await runFeature("autoattendButton", () =>
@@ -133,7 +133,7 @@ export default defineContentScript({
 
     if (todayOrderConfig.enabled) {
       await runFeature("todayOrder", () =>
-        initTodayOrder(todayOrderConfig, timetableConfig, periodTableConfig.periods),
+        initTodayOrder(ctx, todayOrderConfig, timetableConfig, periodTableConfig.periods),
       );
     }
   },
