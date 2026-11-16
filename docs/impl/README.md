@@ -301,6 +301,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`coursePage/indexToggle.md`](./coursePage/indexToggle.md) | `src/features/coursePage/indexToggle.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
 | [`coursePage/gradeInline.md`](./coursePage/gradeInline.md) | `src/features/coursePage/gradeInline.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/grade.md`](../moodle/grade.md) |
 | [`coursePage/exportMarkdown.md`](./coursePage/exportMarkdown.md) | `src/features/coursePage/exportMarkdown.*` | 使う: moodle/page ／ [moodle/courseSections](./moodle/courseSections.md) ／ utils/download |
+| [`coursePage/pageSave.md`](./coursePage/pageSave.md) | `src/features/coursePage/pageSave.*` | 使う: coursePage/bulkDownload ／ utils/download ／ 資料: [`../moodle/mod-page.md`](../moodle/mod-page.md) |
 | [`coursePage/bulkDownload.md`](./coursePage/bulkDownload.md) | `src/features/coursePage/bulkDownload.ts` | 使う: moodle/page ／ [moodle/courseSections](./moodle/courseSections.md) ／ utils/download |
 | [moodle/courseSections](./moodle/courseSections.md) | `src/moodle/courseSections.ts` | コースセクションとヘッダーの共有探索 |
 | [`myCourses/clickableCard.md`](./myCourses/clickableCard.md) | `src/features/myCourses/clickableCard.ts` | 使う: styleSheet ／ 資料: [`../moodle/my-courses.md`](../moodle/my-courses.md) |

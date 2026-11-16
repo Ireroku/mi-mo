@@ -116,6 +116,7 @@ pnpm dev:firefox
   - [x] [autoattend の出席数と現在の出席率を常時表示](./docs/features/course-page/autoattend-stats.md)
   - [x] [コースセクションの要素を Markdown / テキストでダウンロード（一括ダウンロード）](./docs/features/course-page/export-markdown.md)
   - [x] [コースセクションの PDF 等のファイルを一括ダウンロード](./docs/features/course-page/bulk-download.md)
+  - [ ] [ページ資料の本文と画像を保存](./docs/features/course-page/page-save.md)
   - [x] [コースセクションの順序を逆転して表示](./docs/features/course-page/reverse-sections.md)
 
 - 配布・ストア公開
