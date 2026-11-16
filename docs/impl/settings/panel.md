@@ -37,8 +37,8 @@ import type { WxtStorageItem } from "wxt/utils/storage";
 
 export type SettingsCategory = "ui" | "home" | "myCourses" | "coursePage";
 
-export interface SelectOption {
-  value: string;
+export interface SelectOption<V extends string = string> {
+  value: V;
   label: string;
 }
 
@@ -52,7 +52,11 @@ export type FieldControl<V> =
   | { kind: "number"; min: number; max: number; step?: number; unit?: string }
   | { kind: "text"; placeholder?: string }
   | { kind: "date" }
-  | { kind: "select"; options: readonly SelectOption[] }
+  | {
+      kind: "select";
+      // 値が文字列のユニオンなら、選択肢の value もそのユニオンに限る
+      options: readonly SelectOption<[V] extends [string] ? V : string>[];
+    }
   | { kind: "nested"; fields: FieldsOf<V> }
   | { kind: "custom"; component: Component<CustomFieldProps<V>> };
 
@@ -159,7 +163,7 @@ export default app;
 ### 事前に入れる shadcn のコンポーネント
 
 ```sh
-pnpm dlx shadcn-svelte@latest add tabs switch input select label separator
+pnpm dlx shadcn-svelte@latest add tabs switch input label button
 ```
 
 `src/lib/components/ui/` は CLI が生成する。手で書かない。
@@ -183,11 +187,33 @@ const read = () => setting.getValue() as Promise<Record<string, unknown>>;
 
 ### SettingsPanel
 
-1. `settingsGroups` を読み、`CATEGORY_LABELS` のキー順にタブを作る
-2. 各タブへ、そのカテゴリに属するグループを `fields.ts` に並べた順で置く
-3. グループごとに `title` の見出しを出し、`fields` の各エントリを `FieldRow` で描く。`footer` を持つグループは、項目の下にそれを置く
-4. 表示前に各グループの `read()` を呼び、`id` をキーとして値を保持する。`title` は見出し表示に使う
-5. `FieldRow` から変更が届いたら、そのグループの `write(key, value)` を呼び、手元の値も更新する
+1. 全グループの `read()` を `Promise.all` で呼び、`id` をキーとして値を保持する。待つ間は「設定を読み込み中...」を出す
+2. 読み込みに失敗した場合は、メッセージと「再試行」ボタンを `role="alert"` の中に出す。ボタンは手順1をやり直す
+3. `CATEGORY_LABELS` のキー順にタブを作る
+4. 各タブへ、そのカテゴリに属するグループを `fields.ts` に並べた順で置く。置き方は下の「グループの置き方」に従う
+5. `FieldRow` から変更が届いたら、下の「保存」に従って書き込む
+
+#### グループの置き方
+
+グループの形から、次の2通りを選ぶ。選ぶのは `SettingsPanel` で、`fields.ts` は形を指定しない。
+
+| グループの形 | 置き方 |
+|---|---|
+| 項目がトグル1つだけで、`footer` を持たない | 隣り合う同じ形のグループと1枚のカードへまとめ、1行ずつ並べる。行の文言は項目の `label`。グループの `title` は出さない |
+| それ以外 | グループごとに1枚のカードにする。見出しは `title` |
+
+カードにするグループが `enabled` という名前のトグルを持つ場合、それをマスタースイッチとして扱う。
+
+1. `enabled` の項目は行として描かず、スイッチをカードの見出しの右へ置く。見出しの下に項目の `label` を小さく添える
+2. `enabled` が false の間は、残りの項目と `footer` を描かない。カードの背景を `bg-muted/40` へ落とす
+3. スイッチの `aria-label` は「`<title>`: `<label>`」にする
+
+#### 保存
+
+1. 変更前の値を控え、手元の値を先に新しい値へ更新する
+2. 書き込みを1本の `Promise` の鎖（`saveQueue`）の末尾へ足す。前の書き込みが終わってから `group.write(key, value)` を呼ぶ
+3. 書き込みが失敗した場合、`console.error("[mi-mo] settings", error)` を出し、手元の値を控えた値へ戻す。タブの上に「`<title>`」を保存できなかった旨を `role="alert"` で出す
+4. 次に何かを操作した時点で、そのメッセージを消す
 
 ### FieldRow
 
@@ -196,12 +222,12 @@ const read = () => setting.getValue() as Promise<Record<string, unknown>>;
 | kind | 使うコンポーネント |
 |---|---|
 | `toggle` | shadcn の Switch |
-| `number` | shadcn の Input（`type="number"`、`min`・`max`・`step` を渡す。`unit` は入力欄の右に添える） |
+| `number` | shadcn の Input（`type="number"`、`min`・`max`・`step` を渡す。`unit` は入力欄の右に添える）。確定（`change`）の時点で `min` と `max` の間へ丸めてから保存する。数として読めない入力は元の値へ戻す |
 | `text` | shadcn の Input |
 | `date` | shadcn の Input（`type="date"`。値は `YYYY-MM-DD` の文字列） |
-| `select` | shadcn の Select |
-| `nested` | `FieldRow` 自身を各キーに対して呼ぶ（下記） |
-| `custom` | `meta.control.component` を `value` と `onChange` を渡して描く |
+| `select` | ネイティブの `<select>` |
+| `nested` | `FieldRow` 自身を各キーに対して呼ぶ（下記）。子の行は `pl-3` で字下げする |
+| `custom` | `<details>` の中へ、`meta.control.component` を `value` と `onChange` を渡して描く。閉じた状態を既定にする。`<summary>` には `label`・`description` と、値が配列の場合はその件数（「6件」）を出す |
 
 `nested` の場合、`value` を `Record<string, unknown>` として扱い、`meta.control.fields` の各キー `k` について次を渡す。
 
@@ -215,7 +241,26 @@ const read = () => setting.getValue() as Promise<Record<string, unknown>>;
 
 ### レスポンシブ
 
-`SettingsPanel` のルート要素へ `mx-auto w-full min-w-96 max-w-3xl p-4` を当てる。ポップアップでは最小幅の 384px で開き、設定ページでは最大 768px の中央寄せになる。項目は幅にかかわらず1列に並べる。
+`SettingsPanel` のルート要素へ `mx-auto w-full max-w-3xl p-4` を当てる。設定ページでは最大 768px の中央寄せになる。項目は幅にかかわらず1列に並べる。
+
+ポップアップの幅は `src/entrypoints/popup/index.html` の `body` へ当てるスタイルで 500px に固定する。ポップアップは中身の幅に合わせて伸び縮みするため、固定しないとタブを切り替えるたびに幅が変わる。
+
+### 行の形
+
+`text` 以外の項目は、左に `label` と `description`、右にコントロールを置く1行にする（`flex items-center justify-between gap-4`）。`text` だけは入力欄が長いため、`label` の下へ全幅で置く。
+
+## 項目を足す時の規約
+
+`fields.ts` へ項目を足す時は、次に従う。画面の密度と優先度を保つための規約で、型では縛れない。
+
+- **機能全体を入り切りするトグルのキーは `enabled` にする。** マスタースイッチとして見出しへ上がり、無効の間は詳細が畳まれる。別の名前にすると、無効な機能の詳細が並び続ける
+- **入り切りしかない機能は、トグル1つだけのグループにし、同じ形のグループと隣り合わせに並べる。** 1枚のカードへまとまり、見出しだけのカードが縦に並ぶのを避けられる
+- **`label` は名詞か短い体言止めにし、15字前後に収める。** 右にコントロールが載るため、長いと折り返す。補足は `description` へ回す
+- **`description` は、ラベルだけでは結果が想像できない項目にだけ書く。** すべての項目へ書くと、読むべき説明が埋もれる
+- **一覧や表を編集する項目は `custom` にする。** 閉じた状態で件数だけが見え、開いた人だけが中身を読む
+- **1つのグループの項目は7つ前後までにする。** 超える場合は、`nested` でまとめるか、グループを分ける
+- **よく変える項目を上、一度決めたら触らない項目を下に置く。** `fields.ts` に並べた順がそのまま表示順になる
+- **選択肢が2つで「する・しない」と読める場合は `toggle`、それ以外は `select` にする。** ラジオボタンは使わない
 
 ## 決めごと
 
@@ -232,5 +277,9 @@ const read = () => setting.getValue() as Promise<Record<string, unknown>>;
 - **カテゴリはリポジトリ直下の [README.md](../../../README.md) の機能一覧と同じ4分類にする。** 探す時の地図を README と揃える
 - **`kind: "custom"` は、配列やオブジェクトのように汎用のコントロールで表せない項目のために置く。** 時限表・カウントダウン・隠すメニュー項目がこれにあたり、専用エディタは [`./menuFields.md`](./menuFields.md) が持つ
 - **`footer` は、値の編集にあたらない操作を置くために持つ。** `.ics` の書き出しボタン（[`./timetableFields.md`](./timetableFields.md)）のような、設定のキーに対応しない要素が入る。`fields` はキーと1対1で対応させ、そこへ操作を混ぜない
+- **`select` はネイティブの `<select>` で描く。** shadcn の Select は選択肢を別の層へ描くため、高さの限られたポップアップでは切れる場合がある。ネイティブの部品は OS が描くため切れず、キーボード操作も OS の標準に従う
+- **保存を直列にする。** `write` は読む・差し替える・書くの3手で、同じグループの2項目を続けて変えると、並行した書き込みの後勝ちで先の変更が消える
+- **失敗した保存は手元の値を巻き戻す。** 画面が保存されていない値を出し続けると、利用者は保存されたと受け取る
+- **無効な機能の詳細を描かない。** 効かない項目を並べると、読む量だけが増える。有効にした時点で現れるため、探す手間は増えない
 - **設定の検索、インポートとエクスポート、プロファイルの切り替えは作らない。** 仕様書に無い
 - **画面自体の設定（テーマの手動切り替えなど）は持たない。** 仕様書が「この画面自体の設定はない」と定めている

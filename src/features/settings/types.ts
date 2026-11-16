@@ -5,8 +5,8 @@ import type { WxtStorageItem } from "wxt/utils/storage";
 
 export type SettingsCategory = "ui" | "home" | "myCourses" | "coursePage";
 
-export interface SelectOption {
-  value: string;
+export interface SelectOption<V extends string = string> {
+  value: V;
   label: string;
 }
 
@@ -20,7 +20,10 @@ export type FieldControl<V> =
   | { kind: "number"; min: number; max: number; step?: number; unit?: string }
   | { kind: "text"; placeholder?: string }
   | { kind: "date" }
-  | { kind: "select"; options: readonly SelectOption[] }
+  | {
+      kind: "select";
+      options: readonly SelectOption<[V] extends [string] ? V : string>[];
+    }
   | { kind: "nested"; fields: FieldsOf<V> }
   | { kind: "custom"; component: Component<CustomFieldProps<V>> };
 

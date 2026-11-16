@@ -4,6 +4,7 @@
   import { Switch } from "$lib/components/ui/switch";
   import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label";
+  import { ChevronRight } from "@lucide/svelte";
 
   interface Props {
     meta: FieldMeta;
@@ -39,7 +40,7 @@
     </div>
 
   {:else if meta.control.kind === "number"}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div class="flex items-center justify-between gap-4">
       {@render inputHeading()}
       <div class="flex items-center gap-1.5 shrink-0">
         <Input
@@ -50,9 +51,20 @@
           step={meta.control.step}
           value={typeof value === "number" ? value : 0}
           class="w-24 text-right"
-          oninput={(e) => {
-            const num = parseFloat((e.target as HTMLInputElement).value);
-            onChange(isNaN(num) ? 0 : num);
+          onchange={(e) => {
+            const input = e.target as HTMLInputElement;
+            const num = parseFloat(input.value);
+            if (isNaN(num) || meta.control.kind !== "number") {
+              input.value = String(value);
+              return;
+            }
+
+            const clamped = Math.min(
+              meta.control.max,
+              Math.max(meta.control.min, num),
+            );
+            input.value = String(clamped);
+            onChange(clamped);
           }}
         />
         {#if meta.control.unit}
@@ -74,7 +86,7 @@
     </div>
 
   {:else if meta.control.kind === "date"}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div class="flex items-center justify-between gap-4">
       {@render inputHeading()}
       <Input
         {id}
@@ -86,7 +98,7 @@
     </div>
 
   {:else if meta.control.kind === "select"}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div class="flex items-center justify-between gap-4">
       {@render inputHeading()}
       <select
         {id}
@@ -102,14 +114,14 @@
 
   {:else if meta.control.kind === "nested"}
     {@const objValue = (value as Record<string, unknown>) || {}}
-    <div class="flex flex-col gap-2 rounded-lg border bg-muted/20 p-3">
+    <div class="flex flex-col">
       <div class="flex flex-col gap-0.5">
         <span class="text-sm font-medium">{meta.label}</span>
         {#if meta.description}
           <p class="text-xs text-muted-foreground">{meta.description}</p>
         {/if}
       </div>
-      <div class="flex flex-col divide-y divide-border/50">
+      <div class="flex flex-col divide-y divide-border/50 pl-3">
         {#each Object.entries(meta.control.fields) as [k, subMeta]}
           <FieldRow
             meta={subMeta as unknown as FieldMeta}
@@ -122,17 +134,28 @@
 
   {:else if meta.control.kind === "custom"}
     {@const CustomComponent = meta.control.component}
-    <div class="flex flex-col gap-2">
-      <div class="flex flex-col gap-0.5">
-        <Label class="text-sm font-medium">
-          {meta.label}
-        </Label>
-        {#if meta.description}
-          <p class="text-xs text-muted-foreground">{meta.description}</p>
-        {/if}
+    <!-- 一覧や表の編集は場所を取る。閉じた状態を既定にし、件数だけ先に見せる -->
+    <details class="group">
+      <summary
+        class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
+      >
+        <span class="flex flex-col gap-0.5">
+          <span class="text-sm font-medium">{meta.label}</span>
+          {#if meta.description}
+            <span class="text-xs text-muted-foreground">{meta.description}</span>
+          {/if}
+        </span>
+        <span class="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+          {#if Array.isArray(value)}
+            {value.length}件
+          {/if}
+          <ChevronRight class="size-4 transition-transform group-open:rotate-90" />
+        </span>
+      </summary>
+      <div class="pt-3">
+        <!-- @ts-expect-error CustomFieldProps generic mismatch handled at defineGroup -->
+        <CustomComponent {value} {onChange} />
       </div>
-      <!-- @ts-expect-error CustomFieldProps generic mismatch handled at defineGroup -->
-      <CustomComponent {value} {onChange} />
-    </div>
+    </details>
   {/if}
 </div>

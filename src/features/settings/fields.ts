@@ -62,10 +62,6 @@ export const settingsGroups: readonly SettingsGroup[] = [
         },
       },
     },
-    periods: {
-      label: "時限表（旧設定互換）",
-      control: { kind: "custom", component: PeriodTableField },
-    },
     countdowns: {
       label: "カウントダウン",
       control: { kind: "custom", component: CountdownListField },
@@ -137,7 +133,7 @@ export const settingsGroups: readonly SettingsGroup[] = [
         kind: "select",
         options: [
           { value: "all", label: "ページ全体" },
-          { value: "contentOnly", label: "コース・ホームの本文のみ" },
+          { value: "main", label: "本文のみ" },
         ],
       },
     },
@@ -222,6 +218,25 @@ export const settingsGroups: readonly SettingsGroup[] = [
 
   defineGroup(
     "coursePage",
+    "出席統計の常時表示",
+    coursePageAutoattendStatsSetting,
+    {
+      enabled: {
+        label: "出席率・出席回数をコース上部に常時表示する",
+        control: { kind: "toggle" },
+      },
+    },
+  ),
+
+  defineGroup("coursePage", "評定インライン表示", coursePageGradeInlineSetting, {
+    enabled: {
+      label: "各課題の横に得点とフィードバックを埋め込み表示する",
+      control: { kind: "toggle" },
+    },
+  }),
+
+  defineGroup(
+    "coursePage",
     "出欠確認ボタン",
     coursePageAutoattendButtonSetting,
     {
@@ -241,25 +256,6 @@ export const settingsGroups: readonly SettingsGroup[] = [
       },
     },
   ),
-
-  defineGroup(
-    "coursePage",
-    "出席統計の常時表示",
-    coursePageAutoattendStatsSetting,
-    {
-      enabled: {
-        label: "出席率・出席回数をコース上部に常時表示する",
-        control: { kind: "toggle" },
-      },
-    },
-  ),
-
-  defineGroup("coursePage", "評定インライン表示", coursePageGradeInlineSetting, {
-    enabled: {
-      label: "各課題の横に得点とフィードバックを埋め込み表示する",
-      control: { kind: "toggle" },
-    },
-  }),
 
   defineGroup("coursePage", "セクション書き出し", coursePageExportSetting, {
     enabled: {
