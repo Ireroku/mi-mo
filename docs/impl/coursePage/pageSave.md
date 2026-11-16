@@ -74,7 +74,7 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 ### collectPages
 
 1. `section` の中の `li.activity.modtype_page` をすべて取る
-2. それぞれの `.activityname a` から `href` を、`.instancename` からページ名を取る。`.instancename` の文字列は末尾に種別の語（「ページ」）を含む。これを除いてページ名にする。除き方は `export.logic.ts` が活動名を読む処理に揃える
+2. それぞれの `.activityname a` から `href` を取る。ページ名は `export.logic.ts` の `readSection` と同じく、活動の要素が持つ `data-activityname` 属性から取る。`.instancename` の文字列は末尾に種別の語（「ページ」）を含むため使わない
 3. リンクの無いもの（利用できない活動）は飛ばす
 4. 同じセクションの中でページ名が重なる場合、2件目以降の末尾へ ` (2)` ` (3)` を足す
 
