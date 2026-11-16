@@ -12,6 +12,7 @@ export interface ExportedActivity {
 
 export interface ExportedSection {
   title: string;
+  summary?: string; // セクションの説明文
   activities: ExportedActivity[];
 }
 
@@ -36,15 +37,42 @@ function resolveKindLabel(kind: string): string | null {
 }
 
 /**
- * セクション要素からタイトルとアクティビティ一覧を読み取る。
+ * 要素の文章を、画面に見えている改行を保って読み取る。
+ * 行末の空白を落とし、連続する空行を1つにまとめる。
+ */
+function readText(el: HTMLElement | null): string | undefined {
+  if (!el) {
+    return undefined;
+  }
+
+  const text = el.innerText
+    .split(/\r?\n/)
+    .map((line) => line.trimEnd())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return text || undefined;
+}
+
+/**
+ * セクション要素からタイトルと説明文、アクティビティ一覧を読み取る。
  */
 export function readSection(section: Element): ExportedSection {
   const titleEl = section.querySelector(".sectionname");
   const title = titleEl?.textContent?.trim() || "セクション";
 
+  const summaryEl = section.querySelector<HTMLElement>(".summarytext");
+  const summary = readText(summaryEl);
+
   const activityEls = section.querySelectorAll<HTMLElement>("li.activity");
   const activities: ExportedActivity[] = [];
   for (const actEl of activityEls) {
+    // 説明文には教員が貼った HTML が入り、活動に似た要素が紛れる場合がある。
+    if (summaryEl?.contains(actEl)) {
+      continue;
+    }
+
     let kind = "";
     for (const cls of actEl.classList) {
       if (cls.startsWith("modtype_")) {
@@ -85,14 +113,9 @@ export function readSection(section: Element): ExportedSection {
       }
     }
 
-    let body: string | undefined;
-    const altContentEl = actEl.querySelector(".activity-altcontent");
-    if (altContentEl) {
-      const bodyText = altContentEl.textContent?.trim();
-      if (bodyText) {
-        body = bodyText;
-      }
-    }
+    const body = readText(
+      actEl.querySelector<HTMLElement>(".activity-altcontent"),
+    );
 
     activities.push({
       name,
@@ -105,6 +128,7 @@ export function readSection(section: Element): ExportedSection {
 
   return {
     title,
+    summary,
     activities,
   };
 }
@@ -118,6 +142,9 @@ export function formatSection(
 ): string {
   if (format === "markdown") {
     const blocks: string[] = [`## ${section.title}`];
+    if (section.summary) {
+      blocks.push(section.summary);
+    }
     for (const act of section.activities) {
       if (act.kind === "label") {
         if (act.body) {
@@ -151,6 +178,9 @@ export function formatSection(
 
   // format === "text"
   const blocks: string[] = [section.title];
+  if (section.summary) {
+    blocks.push(section.summary);
+  }
   for (const act of section.activities) {
     if (act.kind === "label") {
       if (act.body) {

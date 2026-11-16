@@ -105,6 +105,19 @@ format-weeks limitedwidth  path-course path-course-view chrome dir-ltr lang-ja y
 
 `ul` のクラス名（`weeks`）はコースフォーマット依存ですが、`data-for="course_sectionlist"` はコア共通の属性なので、フォーマットが変わってもこちらの方が安定する（他フォーマットでの実機確認はできていない。上記「採取に使ったコース」の注記を参照）。
 
+セクションの説明文（概要）は、活動の一覧とは別の要素に入る。
+
+```text
+li.section
+  div.content.course-content-item-content.collapse   折りたたむ範囲。開いている時は .show が付く
+    div.my-3
+      div.summarytext                                  説明文。教員が書いた HTML がそのまま入る
+    ul[data-for="cmlist"]                              活動の一覧
+```
+
+- `.summarytext` は説明文のあるセクションにだけあり、1セクションに1件。活動（`li.activity`）の外にある
+- 中身は `div` `p` `br` `span` `em` `strong` `h5` などで、決まった形は無い（情報伝送工学で採取。5セクション中3つが説明文を持ち、82〜838字）
+
 **注意：`ul[data-for="course_sectionlist"]` は祖先を絞らないと2件ヒットすることがある。** コンパイラ(2026年度) のあるセクションの概要文（`summarytext`）内に、Moodle のセクション一覧を模した HTML の断片が教員によって貼り付けられており、同じ `data-for` 属性を持つ `<ul>` が紛れ込んでいた。`div.course-content > div > ul[...]` のように直下の子で辿ると1件に絞れる。
 
 各 `li.section.course-section` は `data-number`（0始まりの表示順）、`data-id`（セクションの内部ID）、`data-sectionname` を持つ。**DOM上の並び順と `data-number` の昇順は一致している。**
