@@ -3,6 +3,7 @@
 import { isCoursePage } from "@/moodle/page";
 import { findCourseSectionHeaders } from "@/moodle/courseSections";
 import { requestDownloads, toTextDataUrl } from "@/utils/download";
+import { sanitizeFilename } from "@/utils/filename";
 import {
   formatSection,
   readSection,
@@ -12,10 +13,6 @@ import {
 export interface ExportConfig {
   enabled: boolean;
   format: ExportFormat;
-}
-
-function sanitizeFilename(name: string): string {
-  return name.replace(/[/\\:*?"<>|]/g, "-").trim();
 }
 
 /**

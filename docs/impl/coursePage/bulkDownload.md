@@ -2,13 +2,14 @@
 
 ## 概要
 
-コースセクションに置かれた資料のファイルを、セクション単位でまとめて保存する。リンクを1つずつ開く代わりに、ボタン1つで全件を保存する。
+コースセクションに置かれた資料のファイルとページ資料を、セクション単位でまとめて保存する。リンクを1つずつ開く代わりに、ボタン1つで全件を保存する。
 
 ## 関連
 
 - 使う: [`../moodle/page.md`](../moodle/page.md) — コースページかどうかの判定
 - 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索
 - 使う: [`../utils/download.md`](../utils/download.md) — 保存の依頼
+- 使う: [`./pageSave.md`](./pageSave.md) — ページ資料の収集と取得。ボタンを押した後の流れはそちらが持つ
 - 資料: [`../../moodle/course-page.md`](../../moodle/course-page.md) — 「ファイルリンクと拡張子判定」節。ファイル名がリダイレクト先にしか無い事情
 - 参考: [`./exportMarkdown.md`](./exportMarkdown.md) — 同じくセクションごとにボタンを置く機能
 
@@ -49,9 +50,9 @@ initBulkDownload();
 
 1. `isCoursePage()` が false なら何もせず戻る
 2. セクションをすべて取り、それぞれの `.course-section-header` の末尾へ `<button>` を足す。クラスは `btn btn-outline-secondary btn-sm text-nowrap`
-3. `collectResourceUrls` が空になるセクションでは、ボタンを足さない
-4. 文言は件数を含めて「資料を保存（5件）」とする
-5. 押されたら、集めた URL を `requestDownloads` へ渡す
+3. `collectResourceUrls` と `collectPages` がどちらも空になるセクションでは、ボタンを足さない
+4. 文言は、資料とページを足した件数を含めて「資料を保存（5件）」とする
+5. 押された後の流れは [`./pageSave.md`](./pageSave.md) の「bulkDownload 側の変更」に従う。ページを取得し、資料の URL と合わせて `requestDownloads` へ渡す
 6. `requestDownloads` が reject した場合、`console.error("[mi-mo] bulkDownload", error)` を出し、ボタンの文言を「保存に失敗しました」へ変える
 
 ## 決めごと
@@ -59,7 +60,7 @@ initBulkDownload();
 - **リンクへ `redirect=1` を足してから渡す。** 資料の表示設定が「埋め込み」の場合、`/mod/resource/view.php?id=<id>` は転送せずに表示用のページを返し、そのまま渡すと HTML が保存される。`redirect=1` を付けると、表示設定にかかわらずファイル本体（`pluginfile.php`）へ転送される。実機で確認済み
 - **事前にリダイレクト先を調べない。** `/mod/resource/view.php?id=<id>` はファイル本体へリダイレクトされ、API がそれを追って保存名を決める。資料が記録している「拡張子の判定に1回の往復が要る」という制約は、ファイル名を画面に出す場合の話で、保存するだけなら通らずに済む
 - **保存名が期待と違った場合に、往復して解決する形へ切り替える。** まず往復なしで組み、実機で確かめる。想定と違えば [`../utils/download.md`](../utils/download.md) の `filename` を使う形へ変える
-- **対象を資料（`modtype_resource`）に限る。** 課題やページはファイルではなく Moodle の画面で、保存しても中身が手に入らない
+- **対象を資料（`modtype_resource`）とページ（`modtype_page`）にする。** 課題や小テストは Moodle の画面で、保存しても中身が手に入らない。ページは本文を取得して Markdown にする
 - **フォルダ（`modtype_folder`）を対象にしない。** 採取したコースに無く、中のファイルの並び方が分かっていない。見つかった時点で足す
 - **資料が1件も無いセクションにはボタンを置かない。** 押しても何も起きないボタンを並べない
 - **件数をボタンの文言に出す。** 何件保存されるかを押す前に示す。ブラウザのダウンロード欄に同時に並ぶ数でもある

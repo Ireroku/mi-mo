@@ -301,7 +301,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`coursePage/indexToggle.md`](./coursePage/indexToggle.md) | `src/features/coursePage/indexToggle.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
 | [`coursePage/gradeInline.md`](./coursePage/gradeInline.md) | `src/features/coursePage/gradeInline.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/grade.md`](../moodle/grade.md) |
 | [`coursePage/exportMarkdown.md`](./coursePage/exportMarkdown.md) | `src/features/coursePage/exportMarkdown.*` | 使う: moodle/page ／ [moodle/courseSections](./moodle/courseSections.md) ／ utils/download |
-| [`coursePage/pageSave.md`](./coursePage/pageSave.md) | `src/features/coursePage/pageSave.*` | 使う: coursePage/bulkDownload ／ utils/download ／ 資料: [`../moodle/mod-page.md`](../moodle/mod-page.md) |
+| [`coursePage/pageSave.md`](./coursePage/pageSave.md) | `src/features/coursePage/pageSave.*` | 使う: coursePage/bulkDownload ／ utils/download ／ utils/filename ／ 資料: [`../moodle/mod-page.md`](../moodle/mod-page.md) |
 | [`coursePage/bulkDownload.md`](./coursePage/bulkDownload.md) | `src/features/coursePage/bulkDownload.ts` | 使う: moodle/page ／ [moodle/courseSections](./moodle/courseSections.md) ／ utils/download |
 | [moodle/courseSections](./moodle/courseSections.md) | `src/moodle/courseSections.ts` | コースセクションとヘッダーの共有探索 |
 | [`myCourses/clickableCard.md`](./myCourses/clickableCard.md) | `src/features/myCourses/clickableCard.ts` | 使う: styleSheet ／ 資料: [`../moodle/my-courses.md`](../moodle/my-courses.md) |
@@ -317,6 +317,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`utils/periods.md`](./utils/periods.md) | `src/utils/periods.ts` | 使う: menu/clock ／ menu/countdownBadge ／ timetable |
 | [`utils/styleSheet.md`](./utils/styleSheet.md) | `src/utils/styleSheet.ts` | 参考: [`home/hideElements.md`](./home/hideElements.md) |
 | [`utils/theme.md`](./utils/theme.md) | `src/utils/theme.ts` | 資料: [`../../src/assets/global.css`](../../src/assets/global.css) |
+| [`utils/filename.md`](./utils/filename.md) | `src/utils/filename.ts` | 参考: coursePage/exportMarkdown ／ coursePage/pageSave |
 | [`utils/download.md`](./utils/download.md) | `src/utils/download.ts` ／ `src/entrypoints/background.ts` | 使う: coursePage の書き出しと一括保存 |
 | [`utils/runFeature.md`](./utils/runFeature.md) | `src/utils/runFeature.ts` | 使う: content script の entrypoint 2本 |
 | [`moodle/page.md`](./moodle/page.md) | `src/moodle/page.ts` | 資料: [`../moodle/`](../moodle/) の各ページ |

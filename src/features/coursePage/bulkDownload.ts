@@ -1,8 +1,9 @@
-// コースセクション内の資料（modtype_resource）を一括ダウンロードするボタンを追加する。
+// コースセクション内の資料（modtype_resource）とページ（modtype_page）を一括で保存するボタンを追加する。
 
 import { isCoursePage } from "@/moodle/page";
 import { findCourseSectionHeaders } from "@/moodle/courseSections";
 import { requestDownloads } from "@/utils/download";
+import { collectPages, fetchPageDownloads } from "./pageSave";
 
 /**
  * セクション内の資料（modtype_resource）の URL を重複なく収集する。
@@ -38,7 +39,8 @@ export function initBulkDownload(): void {
 
   for (const { section, header } of findCourseSectionHeaders()) {
     const urls = collectResourceUrls(section);
-    if (urls.length === 0) {
+    const pages = collectPages(section);
+    if (urls.length + pages.length === 0) {
       continue;
     }
 
@@ -51,16 +53,32 @@ export function initBulkDownload(): void {
     button.type = "button";
     button.className =
       "btn btn-outline-secondary btn-sm text-nowrap mimo-bulk-download-button ml-2";
-    button.textContent = `資料を保存（${urls.length}件）`;
+    const label = `資料を保存（${urls.length + pages.length}件）`;
+    button.textContent = label;
+
+    const save = async () => {
+      button.disabled = true;
+      try {
+        const { items, failed } = await fetchPageDownloads(
+          pages,
+          (done, total) => {
+            button.textContent = `ページを取得中（${done}/${total}）`;
+          },
+        );
+        await requestDownloads([...urls.map((url) => ({ url })), ...items]);
+        button.textContent =
+          failed > 0 ? `${failed}件のページを保存できませんでした` : label;
+      } catch (error) {
+        console.error("[mi-mo] bulkDownload", error);
+        button.textContent = "保存に失敗しました";
+      } finally {
+        button.disabled = false;
+      }
+    };
 
     button.addEventListener("click", (e) => {
       e.stopPropagation();
-
-      const items = urls.map((url) => ({ url }));
-      requestDownloads(items).catch((error: unknown) => {
-        console.error("[mi-mo] bulkDownload", error);
-        button.textContent = "保存に失敗しました";
-      });
+      void save();
     });
 
     header.appendChild(button);

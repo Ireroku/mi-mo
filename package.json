@@ -22,6 +22,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@tailwindcss/vite": "^4.3.0",
     "@tsconfig/svelte": "^5.0.8",
+    "@types/turndown": "^5.0.6",
     "@wxt-dev/module-svelte": "^2.0.4",
     "bits-ui": "^2.19.2",
     "clsx": "^2.1.1",
@@ -38,5 +39,8 @@
     "vite": "^8.1.5",
     "web-ext": "^10.5.0",
     "wxt": "^0.21.3"
+  },
+  "dependencies": {
+    "turndown": "^7.2.5"
   }
 }

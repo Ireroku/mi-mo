@@ -11,7 +11,7 @@
 - 資料: [`../../moodle/mod-page.md`](../../moodle/mod-page.md) — ページ本体の構造、埋め込まれたファイルの URL
 - 資料: [`../../features/course-page/page-save.md`](../../features/course-page/page-save.md) — 保存後のフォルダの形
 - 資料: [Turndown](https://github.com/mixmark-io/turndown) — HTML から Markdown への変換
-- 参考: [`./exportMarkdown.md`](./exportMarkdown.md) — ファイル名に使えない文字の置き換え
+- 使う: [`../utils/filename.md`](../utils/filename.md) — ファイル名に使えない文字の置き換え
 
 ## 対象ファイル
 
@@ -20,7 +20,6 @@
 | `src/features/coursePage/pageSave.logic.ts` | 取得した文書から、Markdown と保存するファイルの一覧を作る |
 | `src/features/coursePage/pageSave.ts` | ページの収集と取得 |
 | `src/features/coursePage/bulkDownload.ts` | 件数へページを足し、押された時にページの保存も依頼する |
-| `src/utils/filename.ts` | ファイル名に使えない文字の置き換え。`exportMarkdown.ts` から移す |
 | `package.json` | `turndown` と `@types/turndown` を足す |
 
 ## インターフェース
@@ -62,11 +61,6 @@ export function fetchPageDownloads(
 ): Promise<{ items: DownloadItem[]; failed: number }>;
 ```
 
-```ts
-// src/utils/filename.ts
-export function sanitizeFilename(name: string): string;
-```
-
 entrypoint からの呼び出しは足さない。`initBulkDownload` の中から使う。
 
 ## 処理の流れ
@@ -90,12 +84,12 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 
 1. `doc` から `#region-main .generalbox > .no-overflow` を取る。無ければ空の配列を返す
 2. 取った要素を `cloneNode(true)` で複製し、以降は複製を書き換える
-3. 複製の中から、`pluginfile.php` を指す `img[src]`・`source[src]`・`a[href]` を文書の順に集める。URL は `source.url` を基準に絶対 URL へ直す
+3. 複製の中から、`img[src]`・`source[src]`・`audio[src]`・`video[src]`・`a[href]` を文書の順に取り、URL を `source.url` を基準に絶対 URL へ直す。`pluginfile.php` を指すものを保存の対象にする。それ以外は、絶対 URL を属性へ書き戻して終える
 4. 集めた URL ごとに保存名を決める。同じ URL は同じ保存名にする
    - 画像（`img`）は、出現順の3桁の連番と元の拡張子にする（`001.PNG`）
-   - それ以外は、URL の末尾の元のファイル名をデコードして使う
-5. 複製の中の `src` と `href` を、決めた保存名（相対パス）へ書き換える
-6. 複製を Turndown で Markdown にする。先頭へ `# <ページ名>` と、元のページの URL を1行足す
+   - それ以外は、URL の末尾の元のファイル名をデコードし、`sanitizeFilename` を通して使う
+5. 複製の中の `src` と `href` を、決めた保存名（相対パス）へ書き換える。空白や括弧で Markdown のリンクが切れないよう、`encodeURI` を通す
+6. 複製を Turndown で Markdown にする。`audio` と `video` は、ファイルへのリンク（`[<ファイル名>](<保存名>)`）にする規則を足す。先頭へ `# <ページ名>` と、元のページの URL を1行足す
 7. フォルダ名を `sanitizeFilename(source.name)` とし、次の順で `DownloadItem` を返す
    - `{ url: toTextDataUrl(markdown, "text/markdown"), filename: "<フォルダ名>/<フォルダ名>.md" }`
    - 手順4の各ファイルについて `{ url: <絶対URL>, filename: "<フォルダ名>/<保存名>" }`
@@ -106,7 +100,7 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 2. 押されたら、ボタンを `disabled` にする
 3. ページがある場合、`fetchPageDownloads` を呼ぶ。`onProgress` でボタンの文言を「ページを取得中（2/6）」へ変える
 4. 資料の URL とページの `items` を1つの配列にまとめ、`requestDownloads` へ渡す
-5. 終わったら `disabled` を外し、文言を元へ戻す。`failed` が1以上の場合、または `requestDownloads` が reject した場合は「保存に失敗しました」にする
+5. 終わったら `disabled` を外し、文言を元へ戻す。`failed` が1以上の場合は「2件のページを保存できませんでした」、`requestDownloads` が reject した場合は「保存に失敗しました」にする
 
 ## 決めごと
 
@@ -122,12 +116,13 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 - **ページの取得は1件ずつ行う。** 並列にすると、69ページあるコースで Moodle へ一度に大量のリクエストを送る。進み具合をボタンに出すため、順に進む方が表示も素直になる
 - **取得に失敗したページを飛ばして残りを保存する。** 1件の失敗で全部を止めると、保存できたはずの資料まで手に入らない。失敗があったことは、ボタンの文言で知らせる
 - **ページを取得すると、Moodle 上でそのページが閲覧済みになる。** 利用者がリンクを開いた場合と同じ扱いで、避ける方法は無い。資料（`modtype_resource`）の保存でも同じことが起きている
-- **`sanitizeFilename` を `src/utils/filename.ts` へ移す。** `exportMarkdown.ts` とこのモジュールの2箇所が同じ置き換えを使う
+- **本文の外を指すリンクを絶対 URL にする。** 保存した Markdown は Moodle の外で開く。相対のままだと、他のページや外部サイトへのリンクが切れる
+- **取得できなかったページの件数を文言に出す。** 残りは保存されているため、「保存に失敗しました」だけでは全部が失敗したように読める
 - **フォルダ（`modtype_folder`）は扱わない。** 保存の口が別にあり（中身をまとめた ZIP）、ページとは取得の手順が違う。足す場合は bulkDownload 側の対象として書く
 
-## 実装の前に実機で確かめること
+## 実機で確かめること
 
-次の3点は、採取では確かめていない。結果によって上の決めごとを直す。
+次の3点は、実装の時点では確かめていない。結果によって上の決めごとを直す。確かめた項目は [`../../known-issues.md`](../../known-issues.md) の表と合わせて消す。
 
 | 確かめること | 違っていた場合 |
 |---|---|
