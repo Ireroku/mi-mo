@@ -95,6 +95,10 @@ WXT と Svelte の API（`defineContentScript`・`createShadowRootUi`・`storage
 - **テストは対象の隣に `<対象の名前>.test.ts` として置く。** `schedule.logic.ts` のテストは `schedule.logic.test.ts` になる
 - **DOM を引数に取る関数は、ファイルの先頭に `// @vitest-environment happy-dom` を書く。** 既定の環境は Node で、`DOMParser` が無い。必要なファイルだけが DOM の環境を使う
 - **WXT のテスト用プラグイン（`WxtVitest`）は使わない。** 起動時に空きポートを探すため、ポートを開けない環境でテストが起動しない。代わりに `vitest.config.ts` へ `@` のエイリアスだけを書く。このため、テストの対象は WXT の auto-import（`browser`・`storage` など）を読み込み時に使わないモジュールに限る
+- **名前が `.logic.ts` でないモジュールも、引数だけで結果が決まれば対象にする。** `src/features/timetable/ics.ts` の `buildIcs` がその例になる
+- **現在時刻を読む関数は、`vi.useFakeTimers()` と `vi.setSystemTime()` で時刻を固定する。** `buildIcs` の `DTSTAMP` のように、出力へ現在時刻が入るため
+- **Moodle の HTML は、[Moodle 資料](../moodle/README.md) の採取例と同じクラス名で手書きする。** 実機から採った HTML をそのまま置かない。氏名や成績が入るため
+- **`innerText` の改行はテストで確かめない。** happy-dom の `innerText` は `<br>` を改行にせず、ブラウザと結果が違う。改行に依る処理は実機で確かめる
 - **日付は `new Date(年, 月, 日)` で作り、ローカル時刻で比べる。** 時間割の日付は実行環境のローカル年月日で扱っている。ISO 文字列で作ると、実行する場所のタイムゾーンで結果が変わる
 
 ## アーキテクチャ方針
