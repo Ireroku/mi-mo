@@ -39,7 +39,7 @@
           checked={item.newTab ?? false}
           onCheckedChange={(checked) => update({ ...item, newTab: checked })}
         />
-        <span class="text-xs text-muted-foreground whitespace-nowrap">別タブ</span>
+        <span class="text-note text-muted-foreground whitespace-nowrap">別タブ</span>
       </div>
     </div>
   {/snippet}

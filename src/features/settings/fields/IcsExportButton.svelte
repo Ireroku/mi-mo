@@ -31,7 +31,7 @@
     type="button"
     variant="outline"
     size="sm"
-    class="gap-1.5 text-xs"
+    class="gap-1.5"
     onclick={handleExport}
   >
     <Download class="size-4" />

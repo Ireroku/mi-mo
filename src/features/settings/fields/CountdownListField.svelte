@@ -36,7 +36,7 @@
 
       <div class="flex items-center gap-2 shrink-0">
         <select
-          class="h-9 rounded-md border border-input bg-background px-2 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          class="h-9 rounded-md border border-input bg-background px-2 text-base shadow-xs md:text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           value={item.source.kind}
           onchange={(e) => {
             const kind = (e.target as HTMLSelectElement).value;
@@ -58,7 +58,7 @@
           <Input
             type="datetime-local"
             value={item.source.at}
-            class="w-48 text-xs"
+            class="w-48"
             oninput={(e) => {
               if (item.source.kind === "fixedDate") {
                 update({

@@ -18,17 +18,17 @@
 </script>
 
 {#snippet inputHeading(clickable = false)}
-  <div class="flex flex-col gap-0.5">
-    <Label for={id} class={clickable ? "text-sm font-medium cursor-pointer" : "text-sm font-medium"}>
+  <div class="flex min-w-0 flex-col gap-0.5">
+    <Label for={id} class={["text-row font-normal", clickable && "cursor-pointer"]}>
       {meta.label}
     </Label>
     {#if meta.description}
-      <p class="text-xs text-muted-foreground">{meta.description}</p>
+      <p class="text-note text-muted-foreground">{meta.description}</p>
     {/if}
   </div>
 {/snippet}
 
-<div class="py-2.5">
+<div class="flex min-h-12 flex-col justify-center py-3 pr-4">
   {#if meta.control.kind === "toggle"}
     <div class="flex items-center justify-between gap-4">
       {@render inputHeading(true)}
@@ -68,7 +68,7 @@
           }}
         />
         {#if meta.control.unit}
-          <span class="text-xs text-muted-foreground">{meta.control.unit}</span>
+          <span class="text-note text-muted-foreground">{meta.control.unit}</span>
         {/if}
       </div>
     </div>
@@ -102,7 +102,7 @@
       {@render inputHeading()}
       <select
         {id}
-        class="h-9 w-40 rounded-md border border-input bg-background px-3 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        class="h-9 max-w-48 shrink-0 rounded-md border border-input bg-background px-3 text-base shadow-xs md:text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         value={String(value ?? "")}
         onchange={(e) => onChange((e.target as HTMLSelectElement).value)}
       >
@@ -114,22 +114,21 @@
 
   {:else if meta.control.kind === "nested"}
     {@const objValue = (value as Record<string, unknown>) || {}}
-    <div class="flex flex-col">
-      <div class="flex flex-col gap-0.5">
-        <span class="text-sm font-medium">{meta.label}</span>
+    <!-- 子の行は字下げせず、小さな見出しの下へ同じ形で並べる -->
+    <div class="-my-3 -mr-4 flex flex-col divide-y divide-border">
+      <div class="flex flex-col gap-0.5 pt-3 pr-4 pb-2">
+        <span class="text-note font-medium text-muted-foreground">{meta.label}</span>
         {#if meta.description}
-          <p class="text-xs text-muted-foreground">{meta.description}</p>
+          <p class="text-note text-muted-foreground">{meta.description}</p>
         {/if}
       </div>
-      <div class="flex flex-col divide-y divide-border/50 pl-3">
-        {#each Object.entries(meta.control.fields) as [k, subMeta]}
-          <FieldRow
-            meta={subMeta as unknown as FieldMeta}
-            value={objValue[k]}
-            onChange={(subVal) => onChange({ ...objValue, [k]: subVal })}
-          />
-        {/each}
-      </div>
+      {#each Object.entries(meta.control.fields) as [k, subMeta]}
+        <FieldRow
+          meta={subMeta as unknown as FieldMeta}
+          value={objValue[k]}
+          onChange={(subVal) => onChange({ ...objValue, [k]: subVal })}
+        />
+      {/each}
     </div>
 
   {:else if meta.control.kind === "custom"}
@@ -137,22 +136,22 @@
     <!-- 一覧や表の編集は場所を取る。閉じた状態を既定にし、件数だけ先に見せる -->
     <details class="group">
       <summary
-        class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
+        class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
       >
         <span class="flex flex-col gap-0.5">
-          <span class="text-sm font-medium">{meta.label}</span>
+          <span class="text-row">{meta.label}</span>
           {#if meta.description}
-            <span class="text-xs text-muted-foreground">{meta.description}</span>
+            <span class="text-note text-muted-foreground">{meta.description}</span>
           {/if}
         </span>
-        <span class="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+        <span class="flex shrink-0 items-center gap-1 text-note text-muted-foreground">
           {#if Array.isArray(value)}
             {value.length}件
           {/if}
           <ChevronRight class="size-4 transition-transform group-open:rotate-90" />
         </span>
       </summary>
-      <div class="pt-3">
+      <div class="pt-4 pb-1">
         <!-- @ts-expect-error CustomFieldProps generic mismatch handled at defineGroup -->
         <CustomComponent {value} {onChange} />
       </div>

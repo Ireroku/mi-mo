@@ -94,7 +94,7 @@ body.pagelayout-course #courseindexdrawercontrolsmenubutton {
 
 ### IndexToggle.svelte
 
-`state` が `allCollapsed` なら「すべて開く」、それ以外なら「すべて閉じる」と出す。初期値は `allExpanded` とし、`setState` は同じ表示用の値を更新する。ボタンは shadcn-svelte の `Button` を `variant="outline"` `size="sm"` で描く。押されたら `onToggle` を呼び、呼び出し側がその時点の DOM を読み直す。セクションが無ければ開閉を実行しない。
+`state` が `allCollapsed` なら「すべて開く」、それ以外なら「すべて閉じる」と出す。初期値は `allExpanded` とし、`setState` は同じ表示用の値を更新する。ボタンは shadcn-svelte の `Button` を `variant="ghost"` `size="sm"` で描き、文言の左へ開閉を表すアイコン（lucide の `ChevronsUpDown`・`ChevronsDownUp`）を置く。隣の閉じるボタン（×）が枠の無いアイコンのため、枠と影を付けない。押されたら `onToggle` を呼び、呼び出し側がその時点の DOM を読み直す。セクションが無ければ開閉を実行しない。
 
 ## 決めごと
 

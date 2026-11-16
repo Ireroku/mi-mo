@@ -53,7 +53,7 @@
 `fields.ts` へ足す2グループ:
 
 ```ts
-defineGroup("ui", "メニュー項目", menuSetting, {
+defineGroup("general", "上部メニュー", menuSetting, {
   hidden: {
     label: "隠す項目",
     description: "上部メニューから消す項目の名前",
@@ -64,7 +64,7 @@ defineGroup("ui", "メニュー項目", menuSetting, {
     control: { kind: "custom", component: NewMenuItemsField },
   },
 }),
-defineGroup("ui", "時計とカウントダウン", menuBadgesSetting, {
+defineGroup("general", "時計とカウントダウン", menuBadgesSetting, {
   clock: {
     label: "時計の表示",
     control: {
@@ -82,7 +82,7 @@ defineGroup("ui", "時計とカウントダウン", menuBadgesSetting, {
     control: { kind: "custom", component: CountdownListField },
   },
 }),
-defineGroup("ui", "時限表", periodTableSetting, {
+defineGroup("general", "時限表", periodTableSetting, {
   periods: {
     label: "各時限の時刻",
     description: "時計の時限表示と時間割の両方が使う",

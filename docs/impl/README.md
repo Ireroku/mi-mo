@@ -175,7 +175,7 @@ Tailwind CSS v4 と shadcn-svelte を使う。**UIは自作せず、shadcn の�
 | 場所 | 中身 |
 |---|---|
 | `wxt.config.ts` | `@tailwindcss/vite` を Vite プラグインとして登録する |
-| `src/assets/global.css` | Tailwind 本体と shadcn のテーマ変数。shadcn の CLI が生成する |
+| `src/assets/global.css` | Tailwind 本体と shadcn のテーマ変数。shadcn の CLI が生成する。主色（`--primary`）は Moodle のリンク色に合わせて書き換えてある。文字の大きさ `text-row`（15px）と `text-note`（13px）もここに置く |
 | `src/lib/components/ui/` | shadcn のコンポーネント。CLI が生成するので手で書かない |
 | `components.json` | shadcn の設定。style=nova, baseColor=taupe, iconLibrary=lucide |
 

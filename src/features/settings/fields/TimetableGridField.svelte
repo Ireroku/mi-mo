@@ -84,7 +84,7 @@
     <div class="rounded-lg border bg-card text-card-foreground shadow-2xs overflow-hidden">
       <button
         type="button"
-        class="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold hover:bg-accent/50 transition-colors"
+        class="flex w-full items-center justify-between px-3 py-2 text-note font-semibold hover:bg-accent/50 transition-colors"
         onclick={() => toggleDay(key)}
       >
         <span>{label}</span>
@@ -101,14 +101,14 @@
             {@const slot = slots[idx]}
             {@const periodSlot = periods.find((p) => p.period === idx + 1)}
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-              <span class="w-16 shrink-0 text-xs font-mono font-medium text-muted-foreground">
+              <span class="w-16 shrink-0 text-note font-mono font-medium text-muted-foreground">
                 {idx + 1}限{#if periodSlot} ({periodSlot.start}){/if}
               </span>
               <Input
                 type="text"
                 placeholder="科目名"
                 value={slot?.title ?? ""}
-                class="flex-1 text-xs"
+                class="flex-1"
                 oninput={(e) =>
                   handleSlotChange(key, idx, {
                     title: (e.target as HTMLInputElement).value,
@@ -119,7 +119,7 @@
                 type="text"
                 placeholder="リンク先URL（任意）"
                 value={slot?.url ?? ""}
-                class="flex-1 text-xs"
+                class="flex-1"
                 oninput={(e) =>
                   handleSlotChange(key, idx, {
                     title: slot?.title ?? "",

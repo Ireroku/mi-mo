@@ -27,7 +27,7 @@
 </script>
 
 {#if formatted}
-  <div class="mb-4 text-xs text-muted-foreground">
+  <div class="mb-4 text-sm text-muted-foreground">
     前回のアクセス: {formatted}
   </div>
 {/if}

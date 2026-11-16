@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { IndexState } from "./indexToggle";
   import { Button } from "$lib/components/ui/button";
+  import { ChevronsDownUp, ChevronsUpDown } from "@lucide/svelte";
 
   interface Props {
     state?: IndexState;
@@ -18,6 +19,16 @@
   );
 </script>
 
-<Button variant="outline" size="sm" class="font-sans" onclick={onToggle}>
+<Button
+  variant="ghost"
+  size="sm"
+  class="font-sans text-muted-foreground"
+  onclick={onToggle}
+>
+  {#if state === "allCollapsed"}
+    <ChevronsUpDown />
+  {:else}
+    <ChevronsDownUp />
+  {/if}
   {label}
 </Button>

@@ -33,7 +33,7 @@
           update({ ...item, date: (e.target as HTMLInputElement).value })}
       />
       <select
-        class="h-9 flex-1 rounded-md border border-input bg-background px-3 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        class="h-9 flex-1 rounded-md border border-input bg-background px-3 text-base shadow-xs md:text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         value={item.weekday}
         onchange={(e) =>
           update({

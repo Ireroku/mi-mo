@@ -3,7 +3,7 @@
 import type { Component } from "svelte";
 import type { WxtStorageItem } from "wxt/utils/storage";
 
-export type SettingsCategory = "ui" | "home" | "myCourses" | "coursePage";
+export type SettingsCategory = "home" | "course" | "general";
 
 export interface SelectOption<V extends string = string> {
   value: V;
@@ -75,8 +75,7 @@ export function defineGroup<C extends object>(
 }
 
 export const CATEGORY_LABELS: Record<SettingsCategory, string> = {
-  ui: "UI",
   home: "ホーム",
-  myCourses: "マイコース",
-  coursePage: "コースページ",
+  course: "コース",
+  general: "全体",
 };

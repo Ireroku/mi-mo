@@ -57,7 +57,7 @@
       type="button"
       variant="outline"
       size="sm"
-      class="gap-1 text-xs"
+      class="gap-1"
       onclick={handleAdd}
     >
       <Plus class="size-3.5" />

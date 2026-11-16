@@ -33,7 +33,7 @@
 
 <div class="flex flex-col gap-2 w-full">
   {#if availableCourses.length === 0}
-    <p class="text-xs text-muted-foreground">
+    <p class="text-note text-muted-foreground">
       一度マイコースまたはホームを開くと、履修中のコースがここに表示されます。
     </p>
   {:else}
@@ -42,7 +42,7 @@
     >
       {#each availableCourses as course}
         <div class="flex items-center justify-between gap-2 py-1">
-          <span class="text-xs truncate max-w-64">
+          <span class="text-note truncate max-w-64">
             {course.title}
           </span>
           <Switch

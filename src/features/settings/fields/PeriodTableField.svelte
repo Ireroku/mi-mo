@@ -39,7 +39,7 @@
               period: parseInt((e.target as HTMLInputElement).value, 10) || 1,
             })}
         />
-        <span class="text-xs text-muted-foreground">限</span>
+        <span class="text-note text-muted-foreground">限</span>
       </div>
       <Input
         type="time"
@@ -48,7 +48,7 @@
         oninput={(e) =>
           update({ ...item, start: (e.target as HTMLInputElement).value })}
       />
-      <span class="text-xs text-muted-foreground">〜</span>
+      <span class="text-note text-muted-foreground">〜</span>
       <Input
         type="time"
         value={item.end}

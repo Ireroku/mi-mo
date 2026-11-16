@@ -11,8 +11,8 @@
 </script>
 
 {#if placement === "floating"}
-  <div class="fixed bottom-20 right-6 z-50 shadow-lg">
-    <Button {href} size="lg" class="shadow-md">
+  <div class="fixed bottom-20 right-6 z-50">
+    <Button {href} size="lg" class="shadow-lg">
       出欠確認
     </Button>
   </div>
