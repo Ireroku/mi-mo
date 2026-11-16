@@ -11,6 +11,7 @@
 | 対象 | 確かめること |
 |---|---|
 | 資料の一括保存・セクションの書き出し | Chrome では保存がエラーなく始まることを確認済み。残りは次の3点。書き出したファイルにセクションの説明文が段落の区切りを保って入ること。保存を開始できない場合にボタンの文言が「保存に失敗しました」へ変わること。Firefox でも動くこと |
+| フォルダの保存 | ZIP が返ることは `fetch` で確認済み。残りは、「資料を保存」から ZIP が保存され、件数に数えられること |
 | ページ資料の保存 | 型検査とビルドだけを通している。確かめることは [`impl/coursePage/pageSave.md`](./impl/coursePage/pageSave.md) の「実機で確かめること」の3点と、保存した Markdown から画像が相対パスで開けること |
 | 時計の時限表示 | 設定画面の「時限表」を変えると、時計・カウントダウン・時間割のすべてに反映されること |
 | カスタムフォント | 「本文のみ」で `#region-main` にだけ効き、上部メニューには効かないこと |
@@ -59,14 +60,6 @@
 - 起きること: 秒刻み・分刻み・日数表示へ切り替わる残り時間（15分・24時間・7日）が固定値になっている
 - 場所: `src/features/menu/countdownBadge.logic.ts` の `formatRemaining`
 - 直す方向: `CountdownConfig` へ閾値を足し、[`impl/settings/menuFields.md`](./impl/settings/menuFields.md) のカウントダウン編集へ入力欄を足す
-
-## 機能の不足
-
-### フォルダの中身が一括保存の対象に入らない
-
-- 起きること: 「資料を保存」が集めるのは資料（`modtype_resource`）だけで、フォルダ（`modtype_folder`）に置かれたファイルは保存されない
-- 場所: `src/features/coursePage/bulkDownload.ts` の `collectResourceUrls`
-- 直す方向: フォルダのページには、中身をまとめて ZIP で保存するボタンがある。その保存先（`/mod/folder/download_folder.php`）を一括保存の対象へ足す。URL モジュール（`modtype_url`）は外部の Web ページへのリンクで、ファイルではないため対象にしない
 
 ## 対応しない環境
 

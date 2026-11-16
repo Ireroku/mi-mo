@@ -1,4 +1,4 @@
-// コースセクション内の資料（modtype_resource）とページ（modtype_page）を一括で保存するボタンを追加する。
+// コースセクション内の資料（modtype_resource）・フォルダ（modtype_folder）・ページ（modtype_page）を一括で保存するボタンを追加する。
 
 import { isCoursePage } from "@/moodle/page";
 import { findCourseSectionHeaders } from "@/moodle/courseSections";
@@ -30,6 +30,26 @@ export function collectResourceUrls(section: Element): string[] {
 }
 
 /**
+ * セクション内のフォルダ（modtype_folder）について、中身をまとめた ZIP の URL を収集する。
+ */
+export function collectFolderUrls(section: Element): string[] {
+  const urls: string[] = [];
+  for (const el of section.querySelectorAll("li.activity.modtype_folder")) {
+    const anchor = el.querySelector<HTMLAnchorElement>(".activityname a");
+    const id = anchor?.href && new URL(anchor.href).searchParams.get("id");
+    if (!id) {
+      continue;
+    }
+
+    const url = new URL("/mod/folder/download_folder.php", anchor.href);
+    url.searchParams.set("id", id);
+    urls.push(url.href);
+  }
+
+  return Array.from(new Set(urls));
+}
+
+/**
  * コースページの各セクションヘッダーに資料一括保存ボタンを配置する。
  */
 export function initBulkDownload(): void {
@@ -38,7 +58,10 @@ export function initBulkDownload(): void {
   }
 
   for (const { section, header } of findCourseSectionHeaders()) {
-    const urls = collectResourceUrls(section);
+    const urls = [
+      ...collectResourceUrls(section),
+      ...collectFolderUrls(section),
+    ];
     const pages = collectPages(section);
     if (urls.length + pages.length === 0) {
       continue;

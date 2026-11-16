@@ -197,7 +197,19 @@ div.course-section-header.d-flex
 | 小テスト | `modtype_quiz` | 未詳細採取 | 一覧に存在するのみ確認 |
 | autoattend（出欠） | `modtype_autoattendmod` | `/mod/autoattendmod/view.php?id=<id>` | 「autoattend を含むコースについて」節を参照 |
 
-**フォルダ（`modtype_folder`）は今回のコースでは見つからなかった。** 複数ファイルをまとめた資料がある場合に使われる形式ですが、採取したコースには無かったため未確認。
+### フォルダ（`modtype_folder`）
+
+受講中の33コースのうち、少なくとも7コースが使っている（1コースに2〜14件）。
+
+```text
+li.activity.modtype_folder[data-id="<cmid>"]
+  .activityname a[href="/mod/folder/view.php?id=<cmid>"]   フォルダのページへのリンク
+```
+
+- 採取したフォルダは、どれもリンクの形。中のファイルをコースページへ直接並べる設定のものは見つかっていない
+- フォルダのページ（`/mod/folder/view.php?id=<cmid>`）には、中のファイルへのリンク（`/pluginfile.php/<contextid>/mod_folder/content/0/<ファイル名>?forcedownload=1`）と、「フォルダをダウンロードする」のフォームがある
+- フォームは `method="get"`、送信先は `/mod/folder/download_folder.php`、入力は `id` だけ。`sesskey` は要らない
+- `/mod/folder/download_folder.php?id=<cmid>` を GET すると、`Content-Type: application/x-zip` と `Content-Disposition: attachment` で ZIP が返る。実機で確認済み
 
 ### リンクを持つ活動の共通構造（資料の例）
 
