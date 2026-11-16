@@ -58,10 +58,9 @@ export async function initMenuBadges(
   const periodTable = sortPeriodsByStart(periods);
   const countdownTargets = buildCountdownTargets(config.countdowns, periodTable);
 
-  await Promise.all([
-    mountBadge(ctx, "mimo-clock-badge", ClockBadge, { config: config.clock, periodTable }),
-    mountBadge(ctx, "mimo-countdown-badge", CountdownBadge, { targets: countdownTargets }),
-  ]);
+  // 同じアンカーの前へ差し込むため、並列に作ると先に済んだ方が左になり、並びが読み込みのたびに変わる。
+  await mountBadge(ctx, "mimo-clock-badge", ClockBadge, { config: config.clock, periodTable });
+  await mountBadge(ctx, "mimo-countdown-badge", CountdownBadge, { targets: countdownTargets });
 
   // Moodle はメニューに収まる項目数を resize の時にだけ計算する。
   // バッジで幅が減った分を反映させないと、項目が2段に折り返す。

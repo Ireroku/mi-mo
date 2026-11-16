@@ -14,9 +14,15 @@ export function collectResourceUrls(section: Element): string[] {
   const urls: string[] = [];
   for (const el of resourceEls) {
     const anchor = el.querySelector<HTMLAnchorElement>(".activityname a");
-    if (anchor?.href) {
-      urls.push(anchor.href);
+    if (!anchor?.href) {
+      continue;
     }
+
+    // 埋め込み表示に設定された資料は、そのままだと表示用のページが返る。
+    // redirect=1 を付けると、表示設定にかかわらずファイル本体へ転送される。
+    const url = new URL(anchor.href);
+    url.searchParams.set("redirect", "1");
+    urls.push(url.href);
   }
 
   return Array.from(new Set(urls));

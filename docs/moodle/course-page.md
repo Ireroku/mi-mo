@@ -270,6 +270,8 @@ div.course-section-header.d-flex
 | 第1回講義資料(PowerPoint) | `Compiler2026_01.pptx` |
 | 講義スライド | `2-2026年度暗号と情報セキュリティ-ファイヤーウォールv1.pdf`（URLエンコードされた状態で入る） |
 
+**表示設定が「埋め込み」の資料はリダイレクトしない。** 画像などをページに埋め込んで見せる設定の資料は、`/mod/resource/view.php?id=<id>` が表示用の HTML（`#region-main` の中に `pluginfile.php` を指す `img` などを持つ）をそのまま返す。URL へ `redirect=1` を足すと、表示設定にかかわらず `pluginfile.php` へリダイレクトされる。確認できた配信の形は、PDF・ZIP が `Content-Disposition: attachment`、Office 文書・CSV・テキストが `inline` で、どちらも `pluginfile.php` の URL に元のファイル名が入る。
+
 **決めごとが必要な点：** 拡張子の判定にはファイルごとに1回のHTTPリクエスト（リダイレクト追跡）が要る。ファイル数が多いコースでは一括ダウンロード前にこの往復が発生する。DOM だけで完結する軽量な判定方法は無い。
 
 ## セクションの並び順
