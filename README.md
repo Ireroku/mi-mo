@@ -47,7 +47,7 @@ pnpm zip
 pnpm zip:firefox
 ```
 
-開発中に実験的に実行するには次のようにします。  
+開発中に実験的に実行するには次のようにします。ブラウザは立ち上がらないため、`.output/chrome-mv3-dev` を自分の Chrome へ一度読み込みます（手順は [docs/verify.md](./docs/verify.md#自分の-chrome-で確かめる)）。  
 ```sh
 # Chrome
 pnpm dev

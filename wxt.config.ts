@@ -15,6 +15,10 @@ export default defineConfig({
       },
     },
   }),
+  // pnpm dev でブラウザを立ち上げない。.output/chrome-mv3-dev を自分の Chrome へ一度読み込めば、
+  // dev サーバーが動いている間は保存するたびに読み直される。手順は docs/verify.md にある。
+  // WXT 0.21 は web-ext.config.ts の disabled を見ないため、ここに書く
+  webExt: { disabled: true },
   manifest: {
     // wxt/utils/storage が browser.storage.local を使う。WXT は自動検出しない
     // downloads API は background で使用

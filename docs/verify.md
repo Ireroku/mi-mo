@@ -18,11 +18,21 @@ python3 scripts/checkdocs.py   # docs の文体とリンク切れ
 
 permission を足した場合は、生成物の `.output/chrome-mv3/manifest.json` に宣言が入ったことを見る。
 
+### 自分の Chrome で確かめる
+
+`wxt.config.ts` の `webExt.disabled` により、`pnpm dev` はブラウザを立ち上げない。拡張機能は自分の Chrome へ読み込む。
+
+1. `pnpm dev` を実行する
+2. Chrome の `chrome://extensions` でデベロッパーモードを入れ、「パッケージ化されていない拡張機能を読み込む」から `.output/chrome-mv3-dev` を一度だけ読み込む
+3. 以後は、dev サーバーが動いている間、ファイルを保存するたびに拡張機能が読み直される。content script を変えると、対象のタブも読み直される
+
+dev ビルドは、localhost への接続と `tabs`・`scripting` の権限を持つ。開発用の Chrome プロファイルへ読み込み、普段のプロファイルには残さない。
+
 ## 2. 設定画面だけを確かめる
 
 設定画面（`src/features/settings/`）は Moodle を必要としないため、拡張機能のページとして単体で開いて確かめる。
 
-1. `pnpm dev` を実行する。拡張機能を読み込んだブラウザが立ち上がる
+1. `pnpm dev` を実行し、「自分の Chrome で確かめる」の手順で読み込んだ Chrome を使う
 2. ツールバーのアイコンからポップアップを開く。広い画面での見え方は、拡張機能の管理画面から「拡張機能のオプション」を開いて確かめる
 3. 次を確かめる
 
@@ -40,7 +50,7 @@ permission を足した場合は、生成物の `.output/chrome-mv3/manifest.jso
 
 Moodle のページへ手を入れる機能は、実機でしか確かめられない。[三重大学 Moodle](https://lms-m41.mie-u.ac.jp/) へのログインが要る。ログインは利用者本人が行う。
 
-1. `pnpm dev`（Firefox は `pnpm dev:firefox`）を実行し、立ち上がったブラウザで Moodle へログインする
+1. `pnpm dev`（Firefox は `pnpm dev:firefox`）を実行し、拡張機能を読み込んだブラウザで Moodle へログインする
 2. 変更した機能が対象にするページを開く。ページの種類と URL の対応は [`moodle/README.md`](./moodle/README.md) にある
 3. 設定を変えた場合は、ページを読み込み直してから見る。設定は読み込み時にだけ反映される
 4. 次を確かめる
