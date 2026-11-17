@@ -9,6 +9,7 @@ import {
   readSection,
   type ExportFormat,
 } from "./export.logic";
+import { addSectionAction } from "./sectionActions";
 
 export interface ExportConfig {
   enabled: boolean;
@@ -24,16 +25,10 @@ export function initExportMarkdown(config: ExportConfig): void {
   }
 
   for (const { section, header } of findCourseSectionHeaders()) {
-    // 既にボタンが存在する場合は追加しない
-    if (header.querySelector(".mimo-export-button")) {
+    const button = addSectionAction(header, "mimo-export-button", "書き出す");
+    if (!button) {
       continue;
     }
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className =
-      "btn btn-outline-secondary btn-sm text-nowrap mimo-export-button ml-2";
-    button.textContent = "書き出す";
 
     button.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -54,7 +49,5 @@ export function initExportMarkdown(config: ExportConfig): void {
         button.textContent = "保存に失敗しました";
       });
     });
-
-    header.appendChild(button);
   }
 }

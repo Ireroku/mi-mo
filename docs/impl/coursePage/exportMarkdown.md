@@ -8,6 +8,7 @@
 
 - 使う: [`../moodle/page.md`](../moodle/page.md) — コースページかどうかの判定
 - 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索
+- 使う: [`./sectionActions.md`](./sectionActions.md) — ヘッダーの右端へのボタンの追加と、その見た目
 - 使う: [`../utils/download.md`](../utils/download.md) — 書き出したテキストの保存
 - 使う: [`../utils/filename.md`](../utils/filename.md) — ファイル名に使えない文字の置き換え
 - 使う: [`../utils/markdown.md`](../utils/markdown.md) — 説明文とラベルの本文の変換
@@ -94,7 +95,7 @@ if (config.enabled) {
 
 1. `isCoursePage()` が false なら何もせず戻る
 2. `#region-main div.course-content > div > ul[data-for="course_sectionlist"] > li.section` をすべて取る
-3. 各セクションの `.course-section-header` の末尾へ `<button>` を1つ足す。クラスは `btn btn-outline-secondary btn-sm text-nowrap`、文言は「書き出す」
+3. 各セクションのヘッダーへ、`addSectionAction(header, "mimo-export-button", "書き出す")` でボタンを足す。`undefined` が返ったセクションは飛ばす
 4. 押されたら、そのセクションについて `readSection` と `formatSection` を設定の出力形式で呼び、`requestDownloads` へ渡す
 5. `requestDownloads` が reject した場合、`console.error("[mi-mo] exportMarkdown", error)` を出し、ボタンの文言を「保存に失敗しました」へ変える
 
@@ -169,7 +170,7 @@ URL を持たない活動は `[<活動名>]` の括弧を外し、名前だけ�
 
 - **活動名を `data-activityname` から読み、リンクのテキストを使わない。** リンクのテキストには種別のラベル（「ファイル」「フォーラム」など）が読み上げ用に付いており、そのまま使うと名前が汚れる
 - **ボタンを素の DOM で作り、Shadow DOM を使わない。** セクションの数だけ UI を作ることになり、`createShadowRootUi` を回数分呼ぶと重い
-- **ボタンのクラスに `btn btn-outline-secondary btn-sm text-nowrap` を使う。** Moodle 自身がコースページで最も多く使っている組み合わせで、これに揃えると見た目が浮かない
+- **ボタンの置き場所と見た目を [`./sectionActions.md`](./sectionActions.md) に任せる。** 一括保存のボタンと同じ行に並べ、Moodle の「すべてを折りたたむ」と同じ見た目に揃える
 - **種別を日本語へ直して出す。** 判定には `modtype_` のクラスを使いますが、そのまま書き出すと `resource` や `assign` といった内部の識別子がメモに混ざる
 - **セクション単位で書き出し、コース全体をまとめる操作は置かない。** 仕様書が「セクション単位で一括して行える」としている。全体が欲しい場合はセクションの数だけ押す
 - **セクションの説明文を書き出しに含める。** 「書き出す」はコースページに見えている内容を残すためのもので、課題の条件や注意事項は活動ではなく説明文に書かれる場合が多い。活動だけを書き出すと、リンクと日時しか残らない

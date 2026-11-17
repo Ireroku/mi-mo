@@ -2,7 +2,7 @@
 
 ## 概要
 
-コース内容の右上にある「すべてを展開する / すべてを折りたたむ」のリンクを、押せると分かる見た目へ整える。要素は差し替えず、CSS だけを当てる。
+コース内容の右上にある「すべてを展開する / すべてを折りたたむ」のリンクを、押せると分かる見た目へ整える。要素は差し替えず、CSS だけを当てる。セクションヘッダーに mi-mo が足すボタン（[`./sectionActions.md`](./sectionActions.md)）も同じクラスを持ち、同じ見た目になる。
 
 ## 関連
 
@@ -39,7 +39,7 @@ applySectionToggleDesign();
 2. id に `mimo-course-page-section-toggle` を指定して `applyStyleSheet` へ渡す
 
 ```css
-body.pagelayout-course #collapsesections {
+body.pagelayout-course :is(.section-collapsemenu, .mimo-section-action) {
   display: inline-flex;
   align-items: center;
   padding: 0.375rem 0.75rem;
@@ -51,14 +51,14 @@ body.pagelayout-course #collapsesections {
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-body.pagelayout-course #collapsesections:hover {
+body.pagelayout-course :is(.section-collapsemenu, .mimo-section-action):hover {
   background-color: rgba(15, 108, 191, 0.08);
   background-color: color-mix(in srgb, var(--primary, #0f6cbf) 8%, transparent);
   border-color: var(--primary, #0f6cbf);
   text-decoration: none;
 }
 
-body.pagelayout-course #collapsesections:focus-visible {
+body.pagelayout-course :is(.section-collapsemenu, .mimo-section-action):focus-visible {
   outline: 2px solid var(--primary, #0f6cbf);
   outline-offset: 2px;
 }
@@ -66,6 +66,7 @@ body.pagelayout-course #collapsesections:focus-visible {
 
 ## 決めごと
 
+- **ID（`#collapsesections`）ではなくクラス（`.section-collapsemenu`）へ当て、[`./sectionActions.md`](./sectionActions.md) のボタンのクラス（`SECTION_ACTION_CLASS`）と `:is()` でまとめる。** 1つの規則で両方の見た目が揃う。`#collapsesections` 以外の Moodle の要素がこのクラスを持つかは、実機で確かめていない
 - **要素を差し替えず CSS だけを当てる。** このリンクは `data-toggle="toggleall"` で Moodle の JS が制御しており、`aria-controls` に全セクションの内部 ID を持つ。差し替えると一括開閉そのものが動かなくなる
 - **shadcn の Button を使わない。** Moodle の DOM へ Svelte を差し込む形になり、既存の開閉動作を引き継げない。見た目だけを CSS で寄せる
 - **配色は Moodle の CSS 変数を使い、フォールバックに実測値を添える。** `--primary` と `--secondary` は Boost が `:root` へ出力しており、テーマの色が変わっても追随する

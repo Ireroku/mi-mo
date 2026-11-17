@@ -5,6 +5,7 @@ import { findCourseSectionHeaders } from "@/moodle/courseSections";
 import { requestDownloads, saveBlob } from "@/utils/download";
 import { sanitizeFilename } from "@/utils/filename";
 import { collectPages, fetchPagesZip } from "./pageSave";
+import { addSectionAction } from "./sectionActions";
 
 /**
  * セクション内の資料（modtype_resource）の URL を重複なく収集する。
@@ -68,17 +69,11 @@ export function initBulkDownload(): void {
       continue;
     }
 
-    // 既にボタンが存在する場合は追加しない
-    if (header.querySelector(".mimo-bulk-download-button")) {
+    const label = `資料を保存（${urls.length + pages.length}件）`;
+    const button = addSectionAction(header, "mimo-bulk-download-button", label);
+    if (!button) {
       continue;
     }
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className =
-      "btn btn-outline-secondary btn-sm text-nowrap mimo-bulk-download-button ml-2";
-    const label = `資料を保存（${urls.length + pages.length}件）`;
-    button.textContent = label;
 
     const save = async () => {
       button.disabled = true;
@@ -108,7 +103,5 @@ export function initBulkDownload(): void {
       e.stopPropagation();
       void save();
     });
-
-    header.appendChild(button);
   }
 }

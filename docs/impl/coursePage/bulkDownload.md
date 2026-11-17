@@ -8,6 +8,7 @@
 
 - 使う: [`../moodle/page.md`](../moodle/page.md) — コースページかどうかの判定
 - 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索
+- 使う: [`./sectionActions.md`](./sectionActions.md) — ヘッダーの右端へのボタンの追加と、その見た目
 - 使う: [`../utils/download.md`](../utils/download.md) — 保存の依頼
 - 使う: [`./pageSave.md`](./pageSave.md) — ページ資料の収集と取得。ボタンを押した後の流れはそちらが持つ
 - 資料: [`../../moodle/course-page.md`](../../moodle/course-page.md) — 「ファイルリンクと拡張子判定」節。ファイル名がリダイレクト先にしか無い事情。フォルダの ZIP の保存先
@@ -57,9 +58,9 @@ initBulkDownload();
 ### initBulkDownload
 
 1. `isCoursePage()` が false なら何もせず戻る
-2. セクションをすべて取り、それぞれの `.course-section-header` の末尾へ `<button>` を足す。クラスは `btn btn-outline-secondary btn-sm text-nowrap`
-3. `collectResourceUrls`・`collectFolderUrls`・`collectPages` がすべて空になるセクションでは、ボタンを足さない
-4. 文言は、資料・フォルダ・ページを足した件数を含めて「資料を保存（5件）」とする
+2. セクションをすべて取る。`collectResourceUrls`・`collectFolderUrls`・`collectPages` がすべて空になるセクションでは、ボタンを足さない
+3. 文言は、資料・フォルダ・ページを足した件数を含めて「資料を保存（5件）」とする
+4. `addSectionAction(header, "mimo-bulk-download-button", 文言)` でヘッダーへボタンを足す。`undefined` が返ったセクションは飛ばす
 5. 押された後の流れは [`./pageSave.md`](./pageSave.md) の「bulkDownload 側の変更」に従う。ページを取得して1つの ZIP として保存し、資料とフォルダの URL を `requestDownloads` へ渡す
 6. `requestDownloads` が reject した場合、`console.error("[mi-mo] bulkDownload", error)` を出し、ボタンの文言を「保存に失敗しました」へ変える
 
@@ -73,5 +74,5 @@ initBulkDownload();
 - **資料が1件も無いセクションにはボタンを置かない。** 押しても何も起きないボタンを並べない
 - **件数をボタンの文言に出す。** 何件の資料が保存されるかを押す前に示す。ページは何件あっても1つの ZIP になるため、ブラウザのダウンロード欄に並ぶ数は、資料とフォルダの件数に1を足した数になる
 - **確認を挟まない。** 件数が文言に出ており、保存先はブラウザの設定に従う。押す前に分かる情報で足りる
-- **ボタンを素の DOM で作り、クラスに `btn btn-outline-secondary btn-sm text-nowrap` を使う。** [`./exportMarkdown.md`](./exportMarkdown.md) と同じ理由で、セクションの数だけ Shadow DOM を作らない。クラスは Moodle 自身がコースページで最も多く使っている組み合わせに揃える
+- **ボタンを素の DOM で作る。** [`./exportMarkdown.md`](./exportMarkdown.md) と同じ理由で、セクションの数だけ Shadow DOM を作らない。置き場所と見た目は [`./sectionActions.md`](./sectionActions.md) に任せる
 - **設定を持たない。** 仕様書（[`../../features/course-page/bulk-download.md`](../../features/course-page/bulk-download.md)）に設定項目が無い
