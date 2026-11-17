@@ -339,6 +339,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`utils/runFeature.md`](./utils/runFeature.md) | `src/utils/runFeature.ts` | 使う: content script の entrypoint 2本 |
 | [`moodle/page.md`](./moodle/page.md) | `src/moodle/page.ts` | 資料: [`../moodle/`](../moodle/) の各ページ |
 | [`moodle/courseList.md`](./moodle/courseList.md) | `src/moodle/courseList.ts` | 資料: [`../moodle/drawer.md`](../moodle/drawer.md) ／ 使う: utils/settings |
+| [`moodle/menuItems.md`](./moodle/menuItems.md) | `src/moodle/menuItems.ts` | 資料: [`../moodle/navbar.md`](../moodle/navbar.md) ／ 使う: utils/settings |
 | [`moodle/user.md`](./moodle/user.md) | `src/moodle/user.ts` | 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
 
 一覧はテーブルのまま保つ。ここを開く目的が「既にあるものを探す」ことなので、名前の探しやすさを優先する。依存関係が言葉で追えなくなった時点で、テーブルへ mermaid の関連図を併記する。

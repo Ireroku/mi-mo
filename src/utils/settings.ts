@@ -82,6 +82,16 @@ export const courseListCacheSetting = storage.defineItem<CourseListCache>(
   { fallback: { courses: [], updatedAt: "" } },
 );
 
+export interface MenuItemsCache {
+  names: string[];
+  updatedAt: string; // ISO の日時
+}
+
+export const menuItemsCacheSetting = storage.defineItem<MenuItemsCache>(
+  "local:moodle.menuItems",
+  { fallback: { names: [], updatedAt: "" } },
+);
+
 export const menuLogoSetting = storage.defineItem<MenuLogoConfig>(
   "local:menu.logo",
   { fallback: { hidden: false } },

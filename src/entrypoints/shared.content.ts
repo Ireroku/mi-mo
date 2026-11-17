@@ -2,6 +2,7 @@
 import "@/assets/global.css";
 import { initMenu, initMenuBadges } from "@/features/menu";
 import { readCourseList } from "@/moodle/courseList";
+import { readMenuItemNames } from "@/moodle/menuItems";
 import { initIndexToggle } from "@/features/coursePage/indexToggle";
 import { initAutoattendButton } from "@/features/coursePage/autoattendButton";
 import { initAutoattendStats } from "@/features/coursePage/autoattendStats";
@@ -20,6 +21,7 @@ import {
   menuSetting,
   menuBadgesSetting,
   courseListCacheSetting,
+  menuItemsCacheSetting,
   homeGreetingSetting,
   homeGreetingLastMessage,
   uiQuickDrawerSetting,
@@ -70,11 +72,26 @@ export default defineContentScript({
       myCoursesTodayOrderSetting.getValue(),
     ]);
 
-    // 機能は互いに独立している。1つが失敗しても残りを動かす。
-    await runFeature("menu", () => initMenu(menuConfig));
     // 未ログインの間は、挨拶と時間割を出さない
     const loggedIn = isLoggedIn();
 
+    // 機能は互いに独立している。1つが失敗しても残りを動かす。
+    // 隠す前の項目名を控える。隠した後や、足した項目の入った後では、元の名前がそろわない。
+    // 未ログインのメニューは項目が少ないため控えない。名前が前と同じなら書き込まない
+    await runFeature("menuItemsCache", async () => {
+      if (!loggedIn) {
+        return;
+      }
+      const names = readMenuItemNames();
+      const cached = await menuItemsCacheSetting.getValue();
+      if (names.length > 0 && names.join("\n") !== cached.names.join("\n")) {
+        await menuItemsCacheSetting.setValue({
+          names,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    });
+    await runFeature("menu", () => initMenu(menuConfig));
     await runFeature("menuBadges", () =>
       initMenuBadges(ctx, badgesConfig, periodTableConfig.periods),
     );
