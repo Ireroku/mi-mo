@@ -11,6 +11,7 @@
 - 使う: [`./menuFields.md`](./menuFields.md) — 時限表・カウントダウン・メニュー項目の専用エディタ
 - 使う: [`./timetableFields.md`](./timetableFields.md) — 時間割の専用エディタと、`footer` に置くファイルの出し入れと `.ics` の書き出しボタン
 - 使う: [`../utils/download.md`](../utils/download.md) — バックアップのファイルを保存する `saveBlob`
+- 使う: [`./controls.md`](./controls.md) — `date` の `DatePicker` と、読み込みの前の `ConfirmDialog`
 - 資料: [`../../features/ui/settings.md`](../../features/ui/settings.md) — 画面の目的と、ポップアップで兼ねる方針
 - 参考: [`../README.md`](../README.md) — スタイリングの節。shadcn のコンポーネントを入れて組み合わせる
 
@@ -23,7 +24,7 @@
 | `src/features/settings/SettingsPanel.svelte` | 全体のスイッチ、タブ、カード、別画面の描画 |
 | `src/features/settings/FieldRow.svelte` | 項目1件の描画 |
 | `src/features/settings/backup.logic.ts` | バックアップの組み立てと読み取り |
-| `src/features/settings/BackupButtons.svelte` | バックアップの書き出しと読み込みのボタン |
+| `src/features/settings/BackupButtons.svelte` | バックアップの書き出しと読み込みのボタン。読み込みの前に上書きを尋ねる |
 | `src/utils/settings.ts` | 全体のスイッチ `extensionSetting` を定義する |
 | `src/entrypoints/shared.content.ts` | 全体のスイッチが切れている間は何もせず戻る |
 | `src/entrypoints/early.content.ts` | 同上 |
@@ -65,16 +66,23 @@ export type FieldControl<V> =
       options: readonly SelectOption<[V] extends [string] ? V : string>[];
     }
   | { kind: "nested"; fields: FieldsOf<V> }
-  | { kind: "custom"; component: Component<CustomFieldProps<V>> };
+  | {
+      kind: "custom";
+      component: Component<CustomFieldProps<V>>;
+      prune?: (value: V) => V; // 別の画面を閉じる時に値を整える
+      fill?: boolean; // 別の画面の残りの高さに収め、はみ出す分は部品の中でスクロールさせる
+    };
 
-export interface FieldMeta<V = unknown> {
+export interface FieldMeta<V = unknown, C = unknown> {
   label: string;
   description?: string;
   section?: string; // この行を置くカードの見出し。省くとグループの title になる
   control: FieldControl<V>;
+  // グループの今の値を受け取り、false の間は行を出さない。省くと常に出す
+  when?(config: C): boolean;
 }
 
-export type FieldsOf<C> = { [K in keyof C]-?: FieldMeta<C[K]> };
+export type FieldsOf<C> = { [K in keyof C]-?: FieldMeta<C[K], C> };
 
 export interface SettingsGroup {
   readonly id: string;
@@ -94,9 +102,11 @@ export interface FooterProps {
   onRestore: (values: Record<string, Record<string, unknown>>) => Promise<void>;
 }
 
-export interface GroupOptions {
+export interface GroupOptions<C = Record<string, unknown>> {
   footer?: Component<FooterProps>;
   after?: string;
+  // replace で書く前に値を整える。古いバックアップの値を今の形へ直すのに使う
+  normalize?: (value: C) => C;
 }
 
 // 行の id。`<グループの id>.<キー>` の形になる
@@ -107,7 +117,7 @@ export function defineGroup<C extends object>(
   title: string,
   setting: WxtStorageItem<C, Record<string, unknown>>,
   fields: FieldsOf<C>,
-  options?: GroupOptions,
+  options?: GroupOptions<C>,
 ): SettingsGroup;
 
 export const CATEGORY_LABELS: Record<SettingsCategory, string>;
@@ -154,11 +164,8 @@ export function buildBackup(values: Values): BackupFile;
 // current は今の値。ファイルにあるグループだけを、取り込んだ後の値にして返す
 export function parseBackup(text: string, current: Values): Values;
 
-// 1つのグループの一部のキーだけを出し入れする範囲
-export interface BackupScope {
-  groupId: string;
-  keys: readonly string[];
-}
+// 出し入れする範囲。グループの保存キーと、そのグループの中で対象にするキーの組。複数のグループを持てる
+export type BackupScope = Readonly<Record<string, readonly string[]>>;
 
 // 範囲に入るグループとキーだけを残して返す
 export function narrowValues(values: Values, scope: BackupScope): Values;
@@ -265,10 +272,12 @@ export default app;
 ### 事前に入れる shadcn のコンポーネント
 
 ```sh
-pnpm dlx shadcn-svelte@latest add tabs switch input label button
+pnpm dlx shadcn-svelte@latest add tabs switch input label button select popover calendar alert-dialog accordion input-group
 ```
 
-`src/lib/components/ui/` は CLI が生成する。手で書かない。
+`src/lib/components/ui/` は CLI が生成する。手で書かない。ただし `button` は、`alert-dialog` と `input-group` が使う大きさ（`xs`・`icon-xs`・`icon-sm`・`icon-lg`）を足した。CLI で `button` を上書きすると既存の見た目が変わるため、この4つだけを手で足している。
+
+開閉の動きの長さと、動きを減らす設定での停止は、部品のファイルではなく `src/assets/global.css` が `data-slot` を指して決める。部品を CLI で作り直しても消えない。
 
 ### defineGroup
 
@@ -277,7 +286,7 @@ pnpm dlx shadcn-svelte@latest add tabs switch input label button
 1. 渡された `fields` を `Record<string, FieldMeta>` として保持する。ここで型引数 `C` を落とす。**代入にはキャストが要る**
 2. `read` は `setting.fallback` の上へ `setting.getValue()` の結果を重ねて返す。重ねるのは最上位のキーだけ。**ここにもキャストが要る**
 3. `write(key, value)` は `setting.getValue()` で現在値を読み、`key` だけを差し替えた値を `setting.setValue()` で書く。ここはキャスト不要
-4. `replace(value)` は、渡された値でグループ全体を `setting.setValue()` へ書く。バックアップの読み込みが使う
+4. `replace(value)` は、渡された値を `options.normalize` で整えてから、グループ全体を `setting.setValue()` へ書く。`normalize` を省くと値をそのまま書く。バックアップと時間割のファイルの読み込みが使う
 5. `options` の `footer` と `after` は、そのまま `SettingsGroup` へ載せる
 
 型を落とす2箇所は次のように書く。
@@ -327,20 +336,30 @@ const read = async () =>
 2. `enabled` が false の間は、`enabled` の行だけを描く。残りの項目と `footer` は描かない
 3. `after` で差し込まれた別のグループの行は、差し込み先のグループの `enabled` に従わない。差し込む側のグループの `enabled` にだけ従う
 
+#### 条件つきの行
+
+`when` を持つ行は、そのグループの今の値を `when` へ渡し、false の間は描かない。`enabled` が false で畳まれている間は、`when` を見る前に畳む。時間割の「カウントダウンを時間割に合わせる」は、時間割に授業がある間だけ出す（[`./timetableFields.md`](./timetableFields.md)）。
+
 #### 全体のスイッチ
 
 `extensionGroup` の `enabled` を、タブの上の「有効」スイッチとして描く。保存は他の項目と同じ手順を使う。
 
 false の間も、タブとカードは操作できるまま残し、タブの中身を半透明（`opacity-50`）にする。機能を止めるのは content script の側で、設定画面は値の編集を止めない。
 
+別の画面を開いた時と閉じた時は、140ms の間スイッチを `disabled` にする。「戻る」はスイッチと同じ位置にあり、連打した2回目が、戻った先のスイッチに当たるのを防ぐ。OS が動きを減らす設定の間（`MediaQuery("prefers-reduced-motion: reduce")`）は、画面がすぐ入れ替わるため止めない。タイマーは画面を破棄する時に消す。
+
 #### 別の画面
 
 `nested` と `custom` の行は、押すとその項目だけを出す画面へ進む。
 
 1. 今のスクロール位置を控え、開く行と、そこまでの道筋（タブの名前・カードの見出し・項目の `label`）を持つ
-2. タブの中身の代わりに、その項目の中身を1枚のカードで描く。`nested` は子の項目を `FieldRow` の行として並べ、`custom` は `meta.control.component` を `value` と `onChange` を渡して描く
+2. タブの中身の代わりに、その項目の中身を描く。`nested` は子の項目を `FieldRow` の行として並べ、`custom` は `meta.control.component` を `value` と `onChange` を渡して1枚のカードで描く
 3. ヘッダの「有効」スイッチとタブの代わりに、「戻る」ボタンと道筋（パンくず）を出す。道筋の最後の要素が今いる場所で、`aria-current="page"` を付ける
-4. 「戻る」が押されたら一覧へ戻し、控えたスクロール位置へ戻す
+4. 「戻る」が押されたら、`custom` が `prune` を持つ場合は今の値を `prune` へ通し、値が変わった時だけ下の「保存」の手順で書く。そのあと一覧へ戻し、控えたスクロール位置へ戻す
+
+`nested` の子は、子の `section` が変わる所でカードを分ける。続く子の `section` が同じなら1枚のカードに入れる。`section` が空文字のカードは見出しを出さず、カードの間の隙間だけで区切る。`section` を省いた子は空文字と同じに扱う。
+
+`custom` が `fill` を持つ場合は、別の画面を残りの高さ（`h-full`）に収める。部品は渡された高さまで伸び、はみ出す分を部品の中でスクロールさせる。画面全体はスクロールしない。
 
 `nested` の子の変更は、親のオブジェクトへ畳み込んでから `group.write(key, value)` へ渡す（`{ ...value, [k]: sub }`）。最上位のキーの値が丸ごと届くため、保存の手順は他の項目と変わらない。
 
@@ -356,13 +375,14 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 1. 選ばれたファイルの文字列を `parseBackup(text, current)` へ渡す
 2. `parseBackup` は、`app` が `"mi-mo"` でないファイルと、JSON として読めないファイルに例外を投げる
 3. 今あるグループとキーのうち、ファイルに値があり、種類（`typeof` と、配列かどうか）が今の値と合うものだけを取り込む。それ以外のキーは今の値を残す。ファイルに無いグループは返さない
-4. `SettingsPanel` は、進行中の保存（`saveQueue`）を待ってから、返ったグループごとに `group.replace(value)` を呼び、全グループを読み直す。読み直す間も一覧は描いたまま残す
-5. 結果を「設定を読み込みました」「このファイルは読み込めません」のどちらかで、`role="status"` の中に出す。「設定」の部分は `noun` で差し替わる
+4. 読めた場合だけ、`ConfirmDialog`（[`./controls.md`](./controls.md)）で「現在の設定が上書きされます。よろしいですか？」と尋ねる。ボタンは「キャンセル」と「読み込む」。読めなかった場合は尋ねずに手順6の失敗の文言を出す
+5. 「読み込む」が押された時だけ `onRestore` を呼ぶ。`SettingsPanel` は、進行中の保存（`saveQueue`）を待ってから、返ったグループごとに `group.replace(value)` を呼び、全グループを読み直す。読み直す間も一覧は描いたまま残す
+6. 結果を `role="status"` の中に出す。成功は「設定を読み込みました」、ファイルが読めない場合は「このファイルは読み込めません」、`onRestore` が失敗した場合は「設定を保存できませんでした」。「設定」の部分は `noun` で差し替わる
 
-`scope` を渡した場合は、範囲のグループとキーだけを出し入れする。時間割のファイル（[`./timetableFields.md`](./timetableFields.md)）が使う。
+`scope` を渡した場合は、範囲のグループとキーだけを出し入れする。範囲は複数のグループにまたがってよい。時間割のファイル（[`./timetableFields.md`](./timetableFields.md)）が使う。
 
 - 書き出し: `narrowValues(values, scope)` の結果を `buildBackup` へ渡し、`filename` で保存する
-- 読み込み: `parseScopedBackup(text, current, scope)` を使う。`narrowValues(current, scope)` を今の値として `parseBackup` を呼び、返ったグループを今のグループの値へ重ねる。ファイルに範囲のグループが無い場合は例外を投げる
+- 読み込み: `parseScopedBackup(text, current, scope)` を使う。`narrowValues(current, scope)` を今の値として `parseBackup` を呼び、返ったグループを今のグループの値へ重ねる。ファイルに範囲のグループが1つも無い場合は例外を投げる。一部のグループだけがある場合は、あるグループだけを返し、無いグループは今の値を残す
 
 #### 保存
 
@@ -380,8 +400,8 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 | `toggle` | shadcn の Switch |
 | `number` | shadcn の Input（`type="number"`、`min`・`max`・`step` を渡す。`unit` は入力欄の右に添える）。確定（`change`）の時点で `min` と `max` の間へ丸めてから保存する。数として読めない入力は元の値へ戻す |
 | `text` | shadcn の Input |
-| `date` | shadcn の Input（`type="date"`。値は `YYYY-MM-DD` の文字列） |
-| `select` | ネイティブの `<select>` |
+| `date` | `DatePicker`（[`./controls.md`](./controls.md)）。値は `YYYY-MM-DD` の文字列 |
+| `select` | shadcn の Select（`type="single"`）。トリガーには選んだ選択肢の `label` を出し、幅は `max-w-48` までにする。選択肢の層は右端へ揃える（`align="end"`） |
 | `nested`、`custom` | 行全体を1つのボタンにする。左に `label` と `description`、右に値が配列の場合の件数（「6件」）と右向きの山形を出す。押されたら `onOpen` を呼ぶ。中身は描かない |
 
 `nested` と `custom` の中身は、`SettingsPanel` が別の画面に描く。
@@ -419,7 +439,10 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 | 別の画面から戻った一覧 | 戻った直後だけ左から入る（`slide-in-from-left-4`）。タブを切り替えた時点で外す |
 | 全体のスイッチが false | タブの中身を `opacity-50` へ `transition-opacity` で移す |
 
-CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減らす設定の間は止める。
+| Select・Popover・確認のダイアログの開閉 | ライブラリの `fade` と `zoom`。長さは `global.css` で 150ms に揃える |
+| 曜日の Accordion の開閉 | ライブラリの `accordion-down`・`accordion-up`（200ms） |
+
+CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減らす設定の間は止める。ライブラリの部品は `global.css` の `prefers-reduced-motion` の指定で止める。
 
 ### 行の形
 
@@ -441,6 +464,8 @@ CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減ら�
 ## 決めごと
 
 - **表示メタは `fields.ts` が1箇所で持ち、`src/features/` の各機能は設定の型だけを持つ。** 機能側が UI の文言を持つと、ラベルの統一と並び順の調整が機能ごとに散らばる
+- **`when` はグループの値だけを受け取り、別のグループの値を見ない。** 行を出す条件をそのグループの中で閉じ、グループどうしの読み合いを作らない
+- **`when` はメソッドの記法で書く。** `FieldsOf<C>` から `Record<string, FieldMeta>` へ型を落とす時に、引数の型が `C` から `unknown` へ広がっても代入できる（メソッドの引数は双変に検査される）
 - **`FieldsOf<C>` で全キー分の `FieldMeta` を要求する。** 機能側の Config にキーを足すと `fields.ts` がコンパイルエラーになり、書き忘れが型で止まる
 - **`defineGroup` の戻り値は型引数を落とした `SettingsGroup` にする。** 型の違うグループを1つの配列へ並べるため。読み書きは `defineGroup` の中で型が閉じており、描画側は `unknown` だけを見る
 - **型を落とす2箇所はキャストで書く。安全性を手放す境界がここだと決める。** `FieldsOf<C>` から `Record<string, FieldMeta>` への代入は、`kind: "custom"` の `Component<CustomFieldProps<V>>` が `V` について不変（`value` と `onChange` の両方で `V` を使うため）で、`Component` 自体も Props に対して反変になるため、キャスト無しでは通らない。`setting.getValue()` の `Promise<C>` も、`C extends object` の制約だけでは `Promise<Record<string, unknown>>` へ代入できない。どちらも `tsc --strict` で確認済み
@@ -460,7 +485,8 @@ CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減ら�
 - **`footer` へ、全グループの値と取り込みの手段を渡す。** ファイルの出し入れのように、複数のキーをまとめて書き換える操作を `footer` に置けるようにする。取り込みを `SettingsPanel` の1箇所へ通すことで、保存の順番待ちと読み直しを `footer` ごとに書かずに済む
 - **一部だけの出し入れも、バックアップと同じ形式のファイルにする。** 範囲は読む側と書く側が絞る。形式が1つなので、バックアップと時間割のファイルを相互に読める
 - **取り込みの後の読み直しでは、一覧を「読み込み中」へ戻さない。** 戻すと一覧が描き直され、`BackupButtons` が持つ結果の文言が消える
-- **`select` はネイティブの `<select>` で描く。** shadcn の Select は選択肢を別の層へ描くため、高さの限られたポップアップでは切れる場合がある。ネイティブの部品は OS が描くため切れず、キーボード操作も OS の標準に従う
+- **`select` は shadcn の Select で描く。** 利用者が、開閉に動きのあるライブラリの部品を望んだため、ネイティブの `<select>` から移した。選択肢は別の層（portal）へ描かれ、bits-ui が画面に収まる高さ（`--bits-select-content-available-height`）へ縮めてスクロールさせる。高さの限られたポップアップで切れないかは、実機で確かめていない（[`../../known-issues.md`](../../known-issues.md)）
+- **ファイルの読み込みは、読めたことを確かめてから上書きを尋ねる。** 読めないファイルで確認を出すと、「読み込む」を押した後に失敗を知ることになる。先に読むと、確認が出た時点で上書きできることが決まっている
 - **保存を直列にする。** `write` は読む・差し替える・書くの3手で、同じグループの2項目を続けて変えると、並行した書き込みの後勝ちで先の変更が消える
 - **失敗した保存は手元の値を巻き戻す。** 画面が保存されていない値を出し続けると、利用者は保存されたと受け取る
 - **無効な機能の詳細を描かない。** 効かない項目を並べると、読む量だけが増える。有効にした時点で現れるため、探す手間は増えない
@@ -473,5 +499,9 @@ CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減ら�
 - **バックアップを持つ。** 拡張機能の入れ直しや別のブラウザへの移行で、時間割や時限表を打ち直さずに済む
 - **バックアップの読み込みは、今あるグループとキーで、値の種類が合うものだけを取り込む。** 古い版や手で書き換えたファイルを読んでも、知らないキーや形の違う値が保存先へ入らない
 - **バックアップのカードはグループの外に置く。** 保存項目を持たない操作で、`fields` のキーに対応しない
+- **値の整え方は、部品ではなく `fields.ts` の `prune` と `normalize` に書き、`SettingsPanel` が呼ぶ。** 部品が閉じる時の後始末を自分で持つと、別の画面を閉じる経路ごとに呼び忘れが起きる。整える規則は値の形を知る側に置き、呼ぶ時機は画面の入れ替えを知る側に置く
+- **`prune` は「戻る」でだけ呼ぶ。** 書きかけの行を入力の途中で消すと、追加した直後の空行も消える。画面を離れる時点なら書き終えている
+- **`normalize` は `replace` でだけ呼ぶ。** 画面の操作で書く値は部品が今の形で作る。形が古い値が入り得るのは、ファイルから取り込む時だけ
+- **一覧が長い `custom` は `fill` で画面の高さに収める。** 画面全体がスクロールすると、ヘッダの下で一覧の端が見えなくなる。一覧の中でだけスクロールさせると、パンくずと「戻る」が常に見える
 - **設定の検索とプロファイルの切り替えは作らない。** 3つのタブに収まる量で、探す手段を足すほどの項目数が無い
 - **画面自体の設定（テーマの手動切り替えなど）は持たない。** 仕様書が「この画面自体の設定はない」と定めている

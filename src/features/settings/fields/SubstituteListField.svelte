@@ -2,7 +2,9 @@
   import type { CustomFieldProps } from "../types";
   import type { TimetableSubstitute, Weekday } from "@/features/timetable/types";
   import ListField from "./ListField.svelte";
-  import { Input } from "$lib/components/ui/input";
+  import StackedInputs from "../controls/StackedInputs.svelte";
+  import DatePicker from "../controls/DatePicker.svelte";
+  import * as Select from "$lib/components/ui/select";
 
   let { value, onChange }: CustomFieldProps<TimetableSubstitute[]> = $props();
 
@@ -24,27 +26,24 @@
   addLabel="振替日を追加"
 >
   {#snippet row(item, update)}
-    <div class="flex items-center gap-2">
-      <Input
-        type="date"
-        value={item.date}
-        class="w-40 shrink-0"
-        oninput={(e) =>
-          update({ ...item, date: (e.target as HTMLInputElement).value })}
-      />
-      <select
-        class="h-9 flex-1 rounded-md border border-input bg-background px-3 text-base shadow-xs md:text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    <StackedInputs>
+      <DatePicker value={item.date} onChange={(date) => update({ ...item, date })} />
+      <Select.Root
+        type="single"
         value={item.weekday}
-        onchange={(e) =>
-          update({
-            ...item,
-            weekday: (e.target as HTMLSelectElement).value as Weekday,
-          })}
+        onValueChange={(next) => update({ ...item, weekday: next as Weekday })}
       >
-        {#each WEEKDAY_OPTIONS as opt}
-          <option value={opt.value}>{opt.label}</option>
-        {/each}
-      </select>
-    </div>
+        <Select.Trigger aria-label="振り替える授業の曜日">
+          <span data-slot="select-value">
+            {WEEKDAY_OPTIONS.find((opt) => opt.value === item.weekday)?.label ?? ""}
+          </span>
+        </Select.Trigger>
+        <Select.Content align="start">
+          {#each WEEKDAY_OPTIONS as opt (opt.value)}
+            <Select.Item value={opt.value} label={opt.label} />
+          {/each}
+        </Select.Content>
+      </Select.Root>
+    </StackedInputs>
   {/snippet}
 </ListField>

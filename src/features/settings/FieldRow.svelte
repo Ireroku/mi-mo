@@ -3,6 +3,8 @@
   import { Switch } from "$lib/components/ui/switch";
   import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label";
+  import * as Select from "$lib/components/ui/select";
+  import DatePicker from "./controls/DatePicker.svelte";
   import { ChevronRight } from "@lucide/svelte";
 
   interface Props {
@@ -88,28 +90,31 @@
   {:else if meta.control.kind === "date"}
     <div class="flex items-center justify-between gap-4">
       {@render inputHeading()}
-      <Input
+      <DatePicker
         {id}
-        type="date"
         value={typeof value === "string" ? value : ""}
-        class="w-44"
-        oninput={(e) => onChange((e.target as HTMLInputElement).value)}
+        onChange={(next) => onChange(next)}
       />
     </div>
 
   {:else if meta.control.kind === "select"}
+    {@const options = meta.control.options}
+    {@const selected = String(value ?? "")}
     <div class="flex items-center justify-between gap-4">
       {@render inputHeading()}
-      <select
-        {id}
-        class="h-9 max-w-48 shrink-0 rounded-md border border-input bg-background px-3 text-base shadow-xs md:text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        value={String(value ?? "")}
-        onchange={(e) => onChange((e.target as HTMLSelectElement).value)}
-      >
-        {#each meta.control.options as opt}
-          <option value={opt.value}>{opt.label}</option>
-        {/each}
-      </select>
+      <Select.Root type="single" value={selected} onValueChange={(next) => onChange(next)}>
+        <Select.Trigger {id} class="max-w-48 shrink-0">
+          <span data-slot="select-value">
+            {options.find((opt) => opt.value === selected)?.label ?? ""}
+          </span>
+        </Select.Trigger>
+        <!-- 選択肢の文言を省略させないよう、幅は中身に合わせる -->
+        <Select.Content align="end">
+          {#each options as opt (opt.value)}
+            <Select.Item value={opt.value} label={opt.label} />
+          {/each}
+        </Select.Content>
+      </Select.Root>
     </div>
 
   {:else}

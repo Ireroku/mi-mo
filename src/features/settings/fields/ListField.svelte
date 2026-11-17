@@ -8,7 +8,7 @@
     onChange: (next: T[]) => void;
     createItem: () => T;
     addLabel: string;
-    row: Snippet<[T, (next: T) => void]>;
+    row: Snippet<[T, (next: T) => void, number]>; // 3つ目は行の位置。行ごとに違う id を作るのに使う
   }
 
   let { items, onChange, createItem, addLabel, row }: Props = $props();
@@ -31,11 +31,12 @@
 
 <div class="flex flex-col gap-2 w-full">
   {#if items.length > 0}
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-3">
+      <!-- 削除ボタンは行の外の右上に置く。行が2段に積まれても、中の欄と重ならない -->
       {#each items as item, index}
-        <div class="flex items-center gap-2">
+        <div class="flex items-start gap-2">
           <div class="flex-1 min-w-0">
-            {@render row(item, (nextItem) => handleUpdate(index, nextItem))}
+            {@render row(item, (nextItem) => handleUpdate(index, nextItem), index)}
           </div>
           <Button
             type="button"

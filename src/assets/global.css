@@ -20,6 +20,28 @@
   display: none !important;
 }
 
+/*
+ * ライブラリの部品が開閉する動きの長さを、ui-principles の 150〜200ms へ揃える。
+ * 生成した部品は duration-100 を持つため、層の外から上書きする。部品のファイルは CLI で作り直せるよう手を入れない
+ */
+[data-slot="popover-content"],
+[data-slot="select-content"],
+[data-slot="alert-dialog-content"],
+[data-slot="alert-dialog-overlay"] {
+  --tw-duration: 150ms;
+}
+
+/* 動きを減らす設定では、開閉の動きを止める */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="popover-content"],
+  [data-slot="select-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="alert-dialog-overlay"],
+  [data-slot="accordion-content"] {
+    animation: none !important;
+  }
+}
+
 :root {
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.147 0.004 49.3);

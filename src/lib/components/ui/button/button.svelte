@@ -17,6 +17,11 @@
 				sm: "h-8 rounded-md px-3 text-xs",
 				lg: "h-10 rounded-md px-8",
 				icon: "h-9 w-9",
+				// 後から CLI で入れた部品（dialog、input-group）が使う大きさ
+				xs: "h-6 gap-1 rounded-md px-2 text-xs [&_svg]:size-3",
+				"icon-xs": "size-6 rounded-md [&_svg]:size-3",
+				"icon-sm": "size-7 rounded-md",
+				"icon-lg": "size-10",
 			},
 		},
 		defaultVariants: {

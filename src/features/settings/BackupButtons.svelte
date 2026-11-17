@@ -2,6 +2,7 @@
   import { Button } from "$lib/components/ui/button";
   import { Download, Upload } from "@lucide/svelte";
   import { saveBlob } from "@/utils/download";
+  import ConfirmDialog from "./controls/ConfirmDialog.svelte";
   import type { BackupScope } from "./backup.logic";
   import {
     BACKUP_FILENAME,
@@ -31,6 +32,9 @@
 
   let fileInput: HTMLInputElement;
   let message = $state<{ text: string; failed: boolean } | null>(null);
+  // 読み込んだファイルの値。確認で「読み込む」を押すまで反映しない
+  let pending = $state<Values | null>(null);
+  let confirming = $state(false);
 
   function handleExport() {
     const target = scope ? narrowValues(values, scope) : values;
@@ -46,16 +50,35 @@
       return;
     }
 
+    // 先にファイルを読み、読めた時だけ上書きしてよいかを尋ねる
     try {
       const text = await file.text();
-      await onRestore(
-        scope ? parseScopedBackup(text, values, scope) : parseBackup(text, values),
-      );
+      pending = scope ? parseScopedBackup(text, values, scope) : parseBackup(text, values);
+      message = null;
+      confirming = true;
+    } catch (error) {
+      fail(error);
+    }
+  }
+
+  async function restore() {
+    if (!pending) {
+      return;
+    }
+
+    const restored = pending;
+    pending = null;
+    try {
+      await onRestore(restored);
       message = { text: `${noun}を読み込みました`, failed: false };
     } catch (error) {
-      console.error("[mi-mo] settings", error);
-      message = { text: "このファイルは読み込めません", failed: true };
+      fail(error, `${noun}を保存できませんでした`);
     }
+  }
+
+  function fail(error: unknown, text = "このファイルは読み込めません") {
+    console.error("[mi-mo] settings", error);
+    message = { text, failed: true };
   }
 </script>
 
@@ -82,6 +105,12 @@
     onchange={handleFile}
   />
 </div>
+<ConfirmDialog
+  bind:open={confirming}
+  title="現在の設定が上書きされます。よろしいですか？"
+  confirmLabel="読み込む"
+  onConfirm={restore}
+/>
 {#if message}
   <p
     class={["mt-2 text-note", message.failed ? "text-destructive" : "text-muted-foreground"]}

@@ -25,16 +25,25 @@ export type FieldControl<V> =
       options: readonly SelectOption<[V] extends [string] ? V : string>[];
     }
   | { kind: "nested"; fields: FieldsOf<V> }
-  | { kind: "custom"; component: Component<CustomFieldProps<V>> };
+  | {
+      kind: "custom";
+      component: Component<CustomFieldProps<V>>;
+      // 別の画面を閉じる時に値を整える。書きかけで空のまま残った行を消すのに使う
+      prune?: (value: V) => V;
+      // 別の画面の残りの高さに収め、はみ出す分は部品の中でスクロールさせる
+      fill?: boolean;
+    };
 
-export interface FieldMeta<V = unknown> {
+export interface FieldMeta<V = unknown, C = unknown> {
   label: string;
   description?: string;
   section?: string; // この行を置くカードの見出し。省くとグループの title になる
   control: FieldControl<V>;
+  // グループの今の値を受け取り、false の間は行を出さない。省くと常に出す
+  when?(config: C): boolean;
 }
 
-export type FieldsOf<C> = { [K in keyof C]-?: FieldMeta<C[K]> };
+export type FieldsOf<C> = { [K in keyof C]-?: FieldMeta<C[K], C> };
 
 export interface SettingsGroup {
   readonly id: string;
@@ -54,9 +63,11 @@ export interface FooterProps {
   onRestore: (values: Record<string, Record<string, unknown>>) => Promise<void>;
 }
 
-export interface GroupOptions {
+export interface GroupOptions<C = Record<string, unknown>> {
   footer?: Component<FooterProps>;
   after?: string;
+  // 外から読み込んだ値（バックアップやファイル）を、保存の前に今の形へ揃える
+  normalize?: (value: C) => C;
 }
 
 export function rowId(groupId: string, key: string): string {
@@ -68,7 +79,7 @@ export function defineGroup<C extends object>(
   title: string,
   setting: WxtStorageItem<C, Record<string, unknown>>,
   fields: FieldsOf<C>,
-  options: GroupOptions = {},
+  { normalize = (value) => value, ...options }: GroupOptions<C> = {},
 ): SettingsGroup {
   const erasedFields = fields as unknown as Record<string, FieldMeta>;
   // 項目が後から増えた設定では、保存済みの値に新しいキーが無い。既定値で埋めて返す
@@ -93,7 +104,7 @@ export function defineGroup<C extends object>(
     ...options,
     read,
     write,
-    replace: (value) => setting.setValue(value as C),
+    replace: (value) => setting.setValue(normalize(value as C)),
   };
 }
 

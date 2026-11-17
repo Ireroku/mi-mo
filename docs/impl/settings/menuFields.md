@@ -36,7 +36,7 @@
     onChange: (next: T[]) => void;
     createItem: () => T;
     addLabel: string;
-    row: Snippet<[T, (next: T) => void]>;
+    row: Snippet<[T, (next: T) => void, number]>; // 3つ目は行の位置。行ごとに違う id を作るのに使う
   }
 </script>
 ```
@@ -87,7 +87,18 @@ defineGroup("general", "時計", menuBadgesSetting, {
   countdowns: {
     label: "表示する項目",
     section: "カウントダウン",
-    control: { kind: "custom", component: CountdownListField },
+    control: {
+      kind: "custom",
+      component: CountdownListField,
+      // ラベルも日時も入っていない行は、足しただけの行として閉じる時に消す。時限の対象はラベルを持たない
+      prune: (list) =>
+        list.filter(
+          (item) =>
+            item.source.kind === "nextPeriod" ||
+            item.label.trim() !== "" ||
+            item.source.at !== "",
+        ),
+    },
   },
 }),
 // after で、「ホーム」タブの時間割のカードへ、入り切りの直後に差し込む
@@ -107,16 +118,17 @@ defineGroup(
 ),
 ```
 
-`title`・`section`・`after` の働きは [`./panel.md`](./panel.md) の「カードの区切り」が持つ。
+`title`・`section`・`after` の働きは [`./panel.md`](./panel.md) の「カードの区切り」が持つ。`nested` の子の `section` と、`prune` の呼ばれ方は [`./panel.md`](./panel.md) の「別の画面」が持つ。
 
 ## 処理の流れ
 
 ### ListField
 
-1. `items` を行として並べ、各行に `row` スニペットを `(item, update)` で呼ぶ
-2. 各行の右端に削除ボタンを置き、押された行を除いた配列で `onChange` を呼ぶ
+1. `items` を行として並べ、各行に `row` スニペットを `(item, update, index)` で呼ぶ
+2. 各行の右上に、行の枠の外へ削除ボタンを置く。行が2段に積まれても、中の欄と重ならない。押された行を除いた配列で `onChange` を呼ぶ
 3. 一覧の下に `addLabel` のボタンを置き、`createItem()` を末尾へ足した配列で `onChange` を呼ぶ
 4. `update` が呼ばれたら、その行だけを差し替えた配列で `onChange` を呼ぶ
+5. 行の間は `gap-3` にする。行の下に添え物（追加するメニュー項目の「別タブで開く」）があっても、次の行の欄と詰まらない
 
 ### HiddenMenuItemsField
 
@@ -124,7 +136,9 @@ defineGroup(
 
 ### NewMenuItemsField
 
-行はテキスト入力2つ（`text`・`href`）と、新しいタブで開くかのトグル1つ。`createItem` は `{ text: "", href: "" }` を返す。
+行は、`StackedInputs` で積んだテキスト入力2つ（表示名の `text`・URL の `href`）と、その下の「別タブで開く」のトグル1つ。トグルは枠の外に置く。`createItem` は `{ text: "", href: "", newTab: false }` を返す。
+
+トグルの `id` は `$props.id()` と行の位置から作る（`<id>-newtab-<index>`）。設定ページの中で `id` が重ならず、ラベルを押すとその行のトグルが切り替わる。
 
 ### PeriodTableField
 
@@ -132,11 +146,15 @@ defineGroup(
 
 ### CountdownListField
 
-行はテキスト入力1つ（`label`）と、対象を選ぶセレクト1つ。セレクトの選択肢は「次の時限」（`{ kind: "nextPeriod" }`）と「日時を指定」（`{ kind: "fixedDate" }`）の2つ。
+行は `StackedInputs` で縦に積む。1段目が対象を選ぶセレクト。選択肢は「今の時限の残り時間」（`{ kind: "nextPeriod" }`）と「日時を指定」（`{ kind: "fixedDate" }`）の2つ。
 
-「日時を指定」を選んだ行だけ、日時入力（`type="datetime-local"`）を追加で出し、その値を `source.at` へ入れる。
+「日時を指定」を選んだ行だけ、2段目にテキスト入力（`label`、プレースホルダーは `ラベル（例: 定期試験 開始まで）`）、3段目に日時入力（`type="datetime-local"`）を出し、日時の値を `source.at` へ入れる。`StackedInputs` の下に `ラベルは空白の位置で改行します` の注記（`text-note text-muted-foreground`）を添える。
 
-`createItem` は `{ id: crypto.randomUUID(), label: "", source: { kind: "nextPeriod" } }` を返す。
+「今の時限の残り時間」の行はセレクトだけになる。ラベルは表示する側が自動で作る（[`../menu/countdownBadge.md`](../menu/countdownBadge.md)）。対象を切り替えても入力済みのラベルは残し、保存したまま使わない。
+
+`createItem` は `{ id: crypto.randomUUID(), label: "", source: { kind: "fixedDate", at: "" } }` を返す。
+
+`fields.ts` の `prune` は、「日時を指定」でラベルが空白だけで、日時も入っていない行を消す。「今の時限の残り時間」の行は消さない。「戻る」を押した時に [`./panel.md`](./panel.md) が呼ぶ。
 
 ## 決めごと
 

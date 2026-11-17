@@ -238,7 +238,18 @@ export const settingsGroups: readonly SettingsGroup[] = [
     countdowns: {
       label: "表示する項目",
       section: "カウントダウン",
-      control: { kind: "custom", component: CountdownListField },
+      control: {
+        kind: "custom",
+        component: CountdownListField,
+        // ラベルも日時も入っていない行は、足しただけの行として閉じる時に消す。時限の対象はラベルを持たない
+        prune: (list) =>
+          list.filter(
+            (item) =>
+              item.source.kind === "nextPeriod" ||
+              item.label.trim() !== "" ||
+              item.source.at !== "",
+          ),
+      },
     },
   }),
 
@@ -257,7 +268,7 @@ export const settingsGroups: readonly SettingsGroup[] = [
     pinned: {
       label: "ピン留めするコース",
       description: "ドロワーの最上部に固定して表示します",
-      control: { kind: "custom", component: PinnedCoursesField },
+      control: { kind: "custom", component: PinnedCoursesField, fill: true },
     },
   }),
 

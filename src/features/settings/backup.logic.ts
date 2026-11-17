@@ -53,29 +53,30 @@ export function parseBackup(text: string, current: Values): Values {
   return restored;
 }
 
-// 1つのグループの一部のキーだけを出し入れする範囲
-export interface BackupScope {
-  groupId: string;
-  keys: readonly string[];
-}
+// 出し入れする範囲。グループの保存キーと、そのグループの中で対象にするキーの組
+export type BackupScope = Readonly<Record<string, readonly string[]>>;
 
 /**
  * 範囲に入るグループとキーだけを残して返す。
  */
 export function narrowValues(values: Values, scope: BackupScope): Values {
-  const group = values[scope.groupId] ?? {};
-
-  return {
-    [scope.groupId]: Object.fromEntries(
-      scope.keys.filter((key) => key in group).map((key) => [key, group[key]]),
-    ),
-  };
+  return Object.fromEntries(
+    Object.entries(scope).map(([groupId, keys]) => {
+      const group = values[groupId] ?? {};
+      return [
+        groupId,
+        Object.fromEntries(
+          keys.filter((key) => key in group).map((key) => [key, group[key]]),
+        ),
+      ];
+    }),
+  );
 }
 
 /**
  * バックアップの文字列から、範囲に入る値だけを取り込む。
- * 範囲の外のキーは今の値を残し、グループ全体の値にして返す。
- * ファイルに範囲のグループが無い場合は例外を投げる。
+ * 範囲の外のキーは今の値を残し、グループ全体の値にして返す。ファイルに無いグループは返さない。
+ * ファイルに範囲のグループが1つも無い場合は例外を投げる。
  */
 export function parseScopedBackup(
   text: string,
@@ -83,10 +84,14 @@ export function parseScopedBackup(
   scope: BackupScope,
 ): Values {
   const restored = parseBackup(text, narrowValues(current, scope));
-  const group = restored[scope.groupId];
-  if (!group) {
+  if (Object.keys(restored).length === 0) {
     throw new Error("このファイルには対象の設定がありません");
   }
 
-  return { [scope.groupId]: { ...current[scope.groupId], ...group } };
+  return Object.fromEntries(
+    Object.entries(restored).map(([groupId, group]) => [
+      groupId,
+      { ...current[groupId], ...group },
+    ]),
+  );
 }

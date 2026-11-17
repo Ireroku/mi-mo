@@ -38,7 +38,8 @@ describe("parseBackup", () => {
   });
 });
 
-const scope = { groupId: "local:a", keys: ["items", "name"] };
+const scope = { "local:a": ["items", "name"] };
+const twoGroups = { "local:a": ["items"], "local:b": ["enabled"] };
 
 describe("narrowValues", () => {
   it("範囲のグループとキーだけを残す", () => {
@@ -48,9 +49,16 @@ describe("narrowValues", () => {
   });
 
   it("グループに無いキーは足さない", () => {
-    expect(
-      narrowValues(current, { groupId: "local:b", keys: ["enabled", "none"] }),
-    ).toEqual({ "local:b": { enabled: false } });
+    expect(narrowValues(current, { "local:b": ["enabled", "none"] })).toEqual({
+      "local:b": { enabled: false },
+    });
+  });
+
+  it("複数のグループを残す", () => {
+    expect(narrowValues(current, twoGroups)).toEqual({
+      "local:a": { items: ["x"] },
+      "local:b": { enabled: false },
+    });
   });
 });
 
@@ -81,5 +89,22 @@ describe("parseScopedBackup", () => {
     const text = JSON.stringify(buildBackup({ "local:b": { enabled: true } }));
 
     expect(() => parseScopedBackup(text, current, scope)).toThrow();
+  });
+
+  it("複数のグループの範囲では、ファイルにあるグループだけを返す", () => {
+    // 範囲が広がる前に書き出した、片方のグループしか無いファイル
+    const text = JSON.stringify(
+      buildBackup({ "local:a": { enabled: false, items: ["y"] } }),
+    );
+
+    expect(parseScopedBackup(text, current, twoGroups)).toEqual({
+      "local:a": { enabled: true, items: ["y"], name: "now" },
+    });
+  });
+
+  it("複数のグループの範囲で、どのグループも無ければ例外を投げる", () => {
+    const text = JSON.stringify(buildBackup({ "local:c": { enabled: true } }));
+
+    expect(() => parseScopedBackup(text, current, twoGroups)).toThrow();
   });
 });
