@@ -9,6 +9,8 @@
 - 使う: [`../utils/settings.md`](../utils/settings.md) — 編集対象のストレージ項目。ここが export する `<機能><設定名>Setting` を読み書きする
 - 使う: [`../utils/theme.md`](../utils/theme.md) — OS のカラースキームに合わせた `dark` クラスの付け外し
 - 使う: [`./menuFields.md`](./menuFields.md) — 時限表・カウントダウン・メニュー項目の専用エディタ
+- 使う: [`./timetableFields.md`](./timetableFields.md) — 時間割の専用エディタと `.ics` の書き出しボタン
+- 使う: [`../utils/download.md`](../utils/download.md) — バックアップのファイルを保存する `saveBlob`
 - 資料: [`../../features/ui/settings.md`](../../features/ui/settings.md) — 画面の目的と、ポップアップで兼ねる方針
 - 参考: [`../README.md`](../README.md) — スタイリングの節。shadcn のコンポーネントを入れて組み合わせる
 
@@ -18,8 +20,13 @@
 |---|---|
 | `src/features/settings/types.ts` | 表示メタの型と `defineGroup` |
 | `src/features/settings/fields.ts` | 全設定項目の表示メタを集約する |
-| `src/features/settings/SettingsPanel.svelte` | タブとグループの描画 |
+| `src/features/settings/SettingsPanel.svelte` | 全体のスイッチ、タブ、カード、別画面の描画 |
 | `src/features/settings/FieldRow.svelte` | 項目1件の描画 |
+| `src/features/settings/backup.logic.ts` | バックアップの組み立てと読み取り |
+| `src/features/settings/BackupButtons.svelte` | バックアップの書き出しと読み込みのボタン |
+| `src/utils/settings.ts` | 全体のスイッチ `extensionSetting` を定義する |
+| `src/entrypoints/shared.content.ts` | 全体のスイッチが切れている間は何もせず戻る |
+| `src/entrypoints/early.content.ts` | 同上 |
 | `src/entrypoints/popup/index.html` | ポップアップの入れ物 |
 | `src/entrypoints/popup/main.ts` | ポップアップの起動 |
 | `src/entrypoints/popup/App.svelte` | `SettingsPanel` を置く |
@@ -63,6 +70,7 @@ export type FieldControl<V> =
 export interface FieldMeta<V = unknown> {
   label: string;
   description?: string;
+  section?: string; // この行を置くカードの見出し。省くとグループの title になる
   control: FieldControl<V>;
 }
 
@@ -74,19 +82,81 @@ export interface SettingsGroup {
   title: string;
   fields: Record<string, FieldMeta>;
   footer?: Component;
+  after?: string; // 行の id。その行の直後へ、このグループの行を差し込む
   read: () => Promise<Record<string, unknown>>;
   write: (key: string, value: unknown) => Promise<void>;
+  replace: (value: Record<string, unknown>) => Promise<void>;
 }
+
+export interface GroupOptions {
+  footer?: Component;
+  after?: string;
+}
+
+// 行の id。`<グループの id>.<キー>` の形になる
+export function rowId(groupId: string, key: string): string;
 
 export function defineGroup<C extends object>(
   category: SettingsCategory,
   title: string,
   setting: WxtStorageItem<C, Record<string, unknown>>,
   fields: FieldsOf<C>,
-  footer?: Component,
+  options?: GroupOptions,
 ): SettingsGroup;
 
 export const CATEGORY_LABELS: Record<SettingsCategory, string>;
+```
+
+全体のスイッチ:
+
+```ts
+// src/utils/settings.ts
+export interface ExtensionConfig {
+  enabled: boolean; // false の間は、設定を残したまま全機能を止める
+}
+
+export const extensionSetting = storage.defineItem<ExtensionConfig>(
+  "local:extension",
+  { fallback: { enabled: true } },
+);
+```
+
+```ts
+// src/entrypoints/shared.content.ts と early.content.ts の main() の先頭
+if (!(await extensionSetting.getValue()).enabled) {
+  return;
+}
+```
+
+バックアップ:
+
+```ts
+// src/features/settings/backup.logic.ts
+// グループの id → そのグループの値
+type Values = Record<string, Record<string, unknown>>;
+
+export const BACKUP_FILENAME = "mi-mo-settings.json";
+
+export interface BackupFile {
+  app: "mi-mo";
+  version: number;
+  settings: Values;
+}
+
+export function buildBackup(values: Values): BackupFile;
+
+// current は今の値。ファイルにあるグループだけを、取り込んだ後の値にして返す
+export function parseBackup(text: string, current: Values): Values;
+```
+
+```svelte
+<!-- src/features/settings/BackupButtons.svelte -->
+<script lang="ts">
+  interface Props {
+    values: Values;
+    onRestore: (values: Values) => Promise<void>;
+  }
+</script>
 ```
 
 画面を描くコンポーネント:
@@ -103,6 +173,7 @@ export const CATEGORY_LABELS: Record<SettingsCategory, string>;
     meta: FieldMeta;
     value: unknown;
     onChange: (next: unknown) => void;
+    onOpen?: () => void; // 別の画面で開く種類の行が押された時
   }
 </script>
 ```
@@ -113,20 +184,31 @@ export const CATEGORY_LABELS: Record<SettingsCategory, string>;
 
 ```ts
 // src/features/settings/fields.ts
+// 全機能の入り切り。タブの中ではなく、画面の最上部に置く
+export const extensionGroup = defineGroup("general", "有効", extensionSetting, {
+  enabled: { label: "有効", control: { kind: "toggle" } },
+});
+
 export const settingsGroups: readonly SettingsGroup[] = [
-  defineGroup("home", "ホームから隠すもの", homeHideElementsSetting, {
+  defineGroup("home", "非表示にする項目", homeHideElementsSetting, {
     announcements: { label: "お知らせ", control: { kind: "toggle" } },
     categories: { label: "コースカテゴリ", control: { kind: "toggle" } },
     search: { label: "コース検索", control: { kind: "toggle" } },
   }),
-  defineGroup("course", "セクションの並び順", coursePageReverseSectionsSetting, {
+  // title が同じで隣り合うグループは、1枚のカードにまとまる
+  defineGroup("course", "コースページ", coursePageReverseSectionsSetting, {
     enabled: {
-      label: "最新の回を一番上に並べる",
+      label: "セクション（授業回）を逆順に並べる",
       control: { kind: "toggle" },
     },
   }),
+  defineGroup("course", "コースページ", coursePageGradeInlineSetting, {
+    enabled: { label: "課題の横に得点を表示する", control: { kind: "toggle" } },
+  }),
 ];
 ```
+
+`settingsGroups` は全グループの一部を例として載せている。並びと文言の全体は `fields.ts` が持つ。
 
 描画する側:
 
@@ -170,6 +252,8 @@ pnpm dlx shadcn-svelte@latest add tabs switch input label button
 1. 渡された `fields` を `Record<string, FieldMeta>` として保持する。ここで型引数 `C` を落とす。**代入にはキャストが要る**
 2. `read` は `setting.getValue()` の結果を返す。**ここにもキャストが要る**
 3. `write(key, value)` は `setting.getValue()` で現在値を読み、`key` だけを差し替えた値を `setting.setValue()` で書く。ここはキャスト不要
+4. `replace(value)` は、渡された値でグループ全体を `setting.setValue()` へ書く。バックアップの読み込みが使う
+5. `options` の `footer` と `after` は、そのまま `SettingsGroup` へ載せる
 
 型を落とす2箇所は次のように書く。
 
@@ -182,33 +266,75 @@ const read = () => setting.getValue() as Promise<Record<string, unknown>>;
 
 ### SettingsPanel
 
-1. 全グループの `read()` を `Promise.all` で呼び、`id` をキーとして値を保持する。待つ間は「設定を読み込み中...」を出す
+1. `extensionGroup` と `settingsGroups` の全グループの `read()` を `Promise.all` で呼び、`id` をキーとして値を保持する。待つ間は「設定を読み込み中...」を出す
 2. 読み込みに失敗した場合は、メッセージと「再試行」ボタンを `role="alert"` の中に出す。ボタンは手順1をやり直す
 3. `CATEGORY_LABELS` のキー順にタブを作る（ホーム・コース・全体）
-4. 各タブへ、そのカテゴリに属するグループを `fields.ts` に並べた順で置く。置き方は下の「グループの置き方」に従う
-5. `FieldRow` から変更が届いたら、下の「保存」に従って書き込む
+4. 各タブへ、そのカテゴリに属するグループを `fields.ts` に並べた順で置く。置き方は下の「カードの区切り」に従う
+5. 「全体」タブの末尾へ、見出し「バックアップ」のカードを置き、`BackupButtons` を入れる
+6. `FieldRow` から変更が届いたら、下の「保存」に従って書き込む
+7. `FieldRow` から `onOpen` が届いたら、下の「別の画面」に従ってその行を開く
 
-#### グループの置き方
+#### カードの区切り
 
-グループを1枚のカード（角丸の白い面）にし、カードの上へ `title` を小さな見出しとして出す。項目はカードの中へ1行ずつ並べ、行の間を線で区切る。線は左端だけを行の文字の位置へ揃え、右端はカードの端まで引く。
+グループの項目を、`fields` に書いた順で行にする。行はそれぞれ見出しを1つ持つ。見出しは項目の `section`、省いた場合はグループの `title`。
 
-グループの形から、次の2通りを選ぶ。選ぶのは `SettingsPanel` で、`fields.ts` は形を指定しない。
+**見出しが同じで隣り合う行を、1枚のカード（角丸の白い面）へまとめる。** カードの上へ見出しを出す。項目はカードの中へ1行ずつ並べ、行の間を線で区切る。線は左端だけを行の文字の位置へ揃え、右端はカードの端まで引く。
 
-| グループの形 | 置き方 |
+この規則1つから、次の置き方がすべて出る。
+
+| やりたいこと | 書き方 |
 |---|---|
-| 項目がトグル1つだけで、`footer` を持たない | 隣り合う同じ形のグループと1枚のカードへまとめ、1行ずつ並べる。行の文言は項目の `label`。見出しは出さない |
-| それ以外 | グループごとに1枚のカードにする。見出しは `title` |
+| 複数のグループを1枚のカードへまとめる | グループの `title` を同じにして隣り合わせに並べる（「コースページ」の3グループ） |
+| 1つのグループを2枚のカードへ分ける | 分けたい行の `section` へ別の見出しを書く（`menuBadgesSetting` の「時計」と「カウントダウン」） |
+| 別のグループの行を、カードの途中へ入れる | 入れる側のグループの `after` へ、直前に来る行の id（`rowId(groupId, key)`）を書き、行の `section` を入れ先の見出しに揃える（時限表を、時間割の入り切りの直後へ入れる） |
 
-カードにするグループが `enabled` という名前のトグルを持つ場合、それを機能全体の入り切りとして扱う。
+`after` を持つグループは、自分の位置には置かず、指した行の直後にだけ置く。保存先は元のグループのまま変わらない。
+
+グループの `footer` は、そのグループの最後の行と同じカードの末尾へ置く。
+
+グループが `enabled` という名前のトグルを持つ場合、それを機能全体の入り切りとして扱う。
 
 1. `enabled` の行は、他の項目と同じ形でカードの中に描く。`fields.ts` で先頭に書く
 2. `enabled` が false の間は、`enabled` の行だけを描く。残りの項目と `footer` は描かない
+3. `after` で差し込まれた別のグループの行は、差し込み先のグループの `enabled` に従わない。差し込む側のグループの `enabled` にだけ従う
+
+#### 全体のスイッチ
+
+`extensionGroup` の `enabled` を、タブの上の「有効」スイッチとして描く。保存は他の項目と同じ手順を使う。
+
+false の間も、タブとカードは操作できるまま残し、タブの中身を半透明（`opacity-50`）にする。機能を止めるのは content script の側で、設定画面は値の編集を止めない。
+
+#### 別の画面
+
+`nested` と `custom` の行は、押すとその項目だけを出す画面へ進む。
+
+1. 今のスクロール位置を控え、開く行と、そこまでの道筋（タブの名前・カードの見出し・項目の `label`）を持つ
+2. タブの中身の代わりに、その項目の中身を1枚のカードで描く。`nested` は子の項目を `FieldRow` の行として並べ、`custom` は `meta.control.component` を `value` と `onChange` を渡して描く
+3. ヘッダの「有効」スイッチとタブの代わりに、「戻る」ボタンと道筋（パンくず）を出す。道筋の最後の要素が今いる場所で、`aria-current="page"` を付ける
+4. 「戻る」が押されたら一覧へ戻し、控えたスクロール位置へ戻す
+
+`nested` の子の変更は、親のオブジェクトへ畳み込んでから `group.write(key, value)` へ渡す（`{ ...value, [k]: sub }`）。最上位のキーの値が丸ごと届くため、保存の手順は他の項目と変わらない。
+
+#### バックアップ
+
+書き出し:
+
+1. `buildBackup(values)` へ、いま保持している全グループの値を渡す。`{ app: "mi-mo", version: 1, settings }` の形になる
+2. JSON の文字列にし、`saveBlob` で `BACKUP_FILENAME` として保存する
+
+読み込み:
+
+1. 選ばれたファイルの文字列を `parseBackup(text, current)` へ渡す
+2. `parseBackup` は、`app` が `"mi-mo"` でないファイルと、JSON として読めないファイルに例外を投げる
+3. 今あるグループとキーのうち、ファイルに値があり、種類（`typeof` と、配列かどうか）が今の値と合うものだけを取り込む。それ以外のキーは今の値を残す。ファイルに無いグループは返さない
+4. `SettingsPanel` は、進行中の保存（`saveQueue`）を待ってから、返ったグループごとに `group.replace(value)` を呼び、全グループを読み直す
+5. 結果を「設定を読み込みました」「このファイルは読み込めません」のどちらかで、`role="status"` の中に出す
 
 #### 保存
 
 1. 変更前の値を控え、手元の値を先に新しい値へ更新する
 2. 書き込みを1本の `Promise` の鎖（`saveQueue`）の末尾へ足す。前の書き込みが終わってから `group.write(key, value)` を呼ぶ
-3. 書き込みが失敗した場合、`console.error("[mi-mo] settings", error)` を出し、手元の値を控えた値へ戻す。タブの下に「`<title>`」を保存できなかった旨を `role="alert"` で出す
+3. 書き込みが失敗した場合、`console.error("[mi-mo] settings", error)` を出し、手元の値を控えた値へ戻す。ヘッダの中に「「`<label>`」を保存できませんでした。もう一度操作してください。」を `role="alert"` で出す
 4. 次に何かを操作した時点で、そのメッセージを消す
 
 ### FieldRow
@@ -222,38 +348,44 @@ const read = () => setting.getValue() as Promise<Record<string, unknown>>;
 | `text` | shadcn の Input |
 | `date` | shadcn の Input（`type="date"`。値は `YYYY-MM-DD` の文字列） |
 | `select` | ネイティブの `<select>` |
-| `nested` | `label` を小さな見出しとして出し、その下へ `FieldRow` 自身を各キーに対して呼ぶ（下記）。子の行は字下げせず、他の行と同じ形で並べる |
-| `custom` | `<details>` の中へ、`meta.control.component` を `value` と `onChange` を渡して描く。閉じた状態を既定にする。`<summary>` には `label`・`description` と、値が配列の場合はその件数（「6件」）を出す |
+| `nested`、`custom` | 行全体を1つのボタンにする。左に `label` と `description`、右に値が配列の場合の件数（「6件」）と右向きの山形を出す。押されたら `onOpen` を呼ぶ。中身は描かない |
 
-`nested` の場合、`value` を `Record<string, unknown>` として扱い、`meta.control.fields` の各キー `k` について次を渡す。
-
-| 渡すもの | 値 |
-|---|---|
-| `meta` | `meta.control.fields[k]` |
-| `value` | `value[k]` |
-| `onChange` | `(sub) => onChange({ ...value, [k]: sub })` |
-
-子の変更を親のオブジェクトへ畳み込んでから、さらに上へ渡す。これを繰り返すと、最上位の `onChange` にはトップレベルのキーの値が丸ごと届き、`group.write(key, value)` がそのまま使える。
+`nested` と `custom` の中身は、`SettingsPanel` が別の画面に描く。
 
 ### 画面の骨組み
 
-上から、画面の名前と1行の説明、タブ、選んだタブの中身の順に置く。名前からタブまでは `sticky` で画面の上端に残し、スクロールしてもタブを押せるようにする。保存の失敗もこの中に出す。タブを切り替えたら、スクロール位置を先頭へ戻す。
+上から、「有効」スイッチと1行の注記（「変更を適用するにはページを再読み込みしてください」）、タブ、選んだタブの中身の順に置く。別の画面を開いている間は、スイッチとタブの代わりに「戻る」ボタンとパンくず（`aria-label="現在の場所"`）を置く。保存の失敗もヘッダの中に出す。
+
+スクロールはパネルのルート要素が持つ（`h-dvh overflow-x-hidden overflow-y-auto`）。ヘッダは `sticky top-0` でその上端に残し、スクロールしてもタブを押せるようにする。タブを切り替えた時と別の画面を開いた時は、スクロール位置を先頭へ戻す。別の画面から戻った時は、開く前の位置へ戻す。
 
 背景は `bg-muted`、カードは `bg-card` にし、面の明るさの差でまとまりを見せる。カードに枠線と影は付けない。ダークでは背景を `bg-background` にする。
 
 中身の幅は `max-w-2xl`（672px）の中央寄せにする。項目は幅にかかわらず1列に並べる。
 
-ポップアップは `src/entrypoints/popup/index.html` の `body` へ当てるスタイルで、幅 500px・高さ 600px に固定する。ポップアップは中身に合わせて伸び縮みするため、固定しないとタブを切り替えるたびに大きさが変わる。
+ポップアップは `src/entrypoints/popup/index.html` の `html` と `body` へ当てるスタイルで、幅 380px・高さ 560px・`overflow: hidden` に固定する。ポップアップは中身に合わせて伸び縮みするため、固定しないとタブを切り替えるたびに大きさが変わる。専用エディタは 380px の幅に収まる形で作る。
 
 ### 文字の大きさと強弱
 
 | 役割 | クラス | 大きさ |
 |---|---|---|
-| 画面の名前 | `text-lg font-semibold` | 18px |
+| カードの見出し、「有効」 | `text-row font-semibold` | 15px |
 | 項目の `label`、入力した値 | `text-row` | 15px |
-| `description`、カードの見出し、件数、単位 | `text-note text-muted-foreground` | 13px |
+| `description`、件数、単位、注記、パンくず | `text-note text-muted-foreground` | 13px |
 
-`text-row` と `text-note` は `src/assets/global.css` の `@theme` に置く。設定画面では 13px より小さい文字を使わない。太字は画面の名前だけに使い、行の中では色の濃淡だけで主従を付ける。
+`text-row` と `text-note` は `src/assets/global.css` の `@theme` に置く。設定画面では 13px より小さい文字を使わない。太字はカードの見出し、「有効」、パンくずの現在地にだけ使い、行の中では色の濃淡だけで主従を付ける。
+
+### 動き
+
+| 対象 | 動き |
+|---|---|
+| タブの選択中の印 | 1枚の面を `translateX` で滑らせる（`transition-transform duration-200`） |
+| タブの中身 | 切り替えた時に `fade-in` |
+| 行の出入り（入り切りで詳細が現れる・消える） | Svelte の `slide`（150ms） |
+| 別の画面 | 右から入る（`slide-in-from-right-4`） |
+| 別の画面から戻った一覧 | 戻った直後だけ左から入る（`slide-in-from-left-4`）。タブを切り替えた時点で外す |
+| 全体のスイッチが false | タブの中身を `opacity-50` へ `transition-opacity` で移す |
+
+CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減らす設定の間は止める。
 
 ### 行の形
 
@@ -264,10 +396,10 @@ const read = () => setting.getValue() as Promise<Record<string, unknown>>;
 `fields.ts` へ項目を足す時は、次に従う。画面の密度と優先度を保つための規約で、型では縛れない。
 
 - **機能全体を入り切りするトグルのキーは `enabled` にし、グループの先頭に書く。** 無効の間は、この行だけが残って詳細が畳まれる。別の名前にすると、無効な機能の詳細が並び続ける
-- **入り切りしかない機能は、トグル1つだけのグループにし、同じ形のグループと隣り合わせに並べる。** 1枚のカードへまとまり、見出しだけのカードが縦に並ぶのを避けられる。見出しが出ないため、`label` だけで何が起きるかを言い切る
-- **`label` は 18字前後に収める。** 右にコントロールが載るため、長いと折り返す。補足は `description` へ回す。カードの見出しが対象を示している場合は、名詞だけにする（「ホームから隠すもの」の下の「お知らせ」）
+- **入り切りしかない機能は、同じ画面に効くもの同士で `title` を揃え、隣り合わせに並べる。** 1枚のカードへまとまり、1行だけのカードが縦に並ぶのを避けられる。見出しは画面の名前になるため、`label` だけで何が起きるかを言い切る
+- **`label` は 18字前後に収める。** 右にコントロールが載るため、長いと折り返す。補足は `description` へ回す。カードの見出しが対象を示している場合は、名詞だけにする（「非表示にする項目」の下の「お知らせ」）
 - **`description` は、ラベルだけでは結果が想像できない項目にだけ書く。** すべての項目へ書くと、読むべき説明が埋もれる
-- **一覧や表を編集する項目は `custom` にする。** 閉じた状態で件数だけが見え、開いた人だけが中身を読む
+- **一覧や表を編集する項目は `custom` にする。** 一覧には件数だけが見え、中身は押した人だけが別の画面で読む
 - **1つのグループの項目は7つ前後までにする。** 超える場合は、`nested` でまとめるか、グループを分ける
 - **よく変える項目を上、一度決めたら触らない項目を下に置く。** `fields.ts` に並べた順がそのまま表示順になる。タブの中のグループの順も同じ規則で決める
 - **選択肢が2つで「する・しない」と読める場合は `toggle`、それ以外は `select` にする。** ラジオボタンは使わない
@@ -294,5 +426,14 @@ const read = () => setting.getValue() as Promise<Record<string, unknown>>;
 - **保存を直列にする。** `write` は読む・差し替える・書くの3手で、同じグループの2項目を続けて変えると、並行した書き込みの後勝ちで先の変更が消える
 - **失敗した保存は手元の値を巻き戻す。** 画面が保存されていない値を出し続けると、利用者は保存されたと受け取る
 - **無効な機能の詳細を描かない。** 効かない項目を並べると、読む量だけが増える。有効にした時点で現れるため、探す手間は増えない
-- **設定の検索、インポートとエクスポート、プロファイルの切り替えは作らない。** 仕様書に無い
+- **カードの区切りを、見出しの一致という1つの規則で決める。** グループは保存先の単位、カードは見た目の単位で、両者は一致しない場合がある（時限表は時計も使うため別の保存先を持ち、画面では時間割のカードに入る）。`title`・`section`・`after` の3つで、保存先を変えずに見た目だけを組み替える
+- **一覧や表の中身は、その場で開かず別の画面に出す。** 380px の幅で一覧の途中に編集欄を広げると、前後の行が画面の外へ押し出され、今どこにいるかを見失う。別の画面では、パンくずが場所を示し、編集欄が幅をすべて使える
+- **スクロールはパネル自身が持つ。** ポップアップとオプション画面ではスクロールする要素が違う。パネルが持つと、スクロール位置の控えと復帰を1つの要素に対して書ける
+- **全体のスイッチは、設定を残したまま全機能を止めるために持つ。** Moodle の表示が崩れた時に、原因が拡張機能かどうかを切り分けられる。拡張機能そのものを無効にすると設定画面も開けなくなる
+- **全体のスイッチはタブの中ではなく最上部に置く。** どのタブの機能にも効くため、タブに属させない
+- **全体のスイッチが false の間も、設定の編集は止めない。** 止めている間に設定を直してから戻す、という使い方を残す。半透明にして、効いていないことだけを見せる
+- **バックアップを持つ。** 拡張機能の入れ直しや別のブラウザへの移行で、時間割や時限表を打ち直さずに済む
+- **バックアップの読み込みは、今あるグループとキーで、値の種類が合うものだけを取り込む。** 古い版や手で書き換えたファイルを読んでも、知らないキーや形の違う値が保存先へ入らない
+- **バックアップのカードはグループの外に置く。** 保存項目を持たない操作で、`fields` のキーに対応しない
+- **設定の検索とプロファイルの切り替えは作らない。** 3つのタブに収まる量で、探す手段を足すほどの項目数が無い
 - **画面自体の設定（テーマの手動切り替えなど）は持たない。** 仕様書が「この画面自体の設定はない」と定めている

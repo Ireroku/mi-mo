@@ -22,7 +22,7 @@
 | `src/features/settings/fields/NewMenuItemsField.svelte` | 追加するメニュー項目の編集 |
 | `src/features/settings/fields/PeriodTableField.svelte` | 時限表の編集 |
 | `src/features/settings/fields/CountdownListField.svelte` | カウントダウン対象の編集 |
-| `src/features/settings/fields.ts` | menu 系2グループの定義を足す |
+| `src/features/settings/fields.ts` | 上部メニュー・時計とカウントダウン・時限表のグループの定義を足す |
 
 ## インターフェース
 
@@ -50,13 +50,13 @@
 | `PeriodTableField` | `PeriodSlot[]` |
 | `CountdownListField` | `CountdownConfig[]` |
 
-`fields.ts` へ足す2グループ:
+`fields.ts` へ足すグループ:
 
 ```ts
 defineGroup("general", "上部メニュー", menuSetting, {
   hidden: {
     label: "隠す項目",
-    description: "上部メニューから消す項目の名前",
+    description: "名称が一致する項目を非表示にします",
     control: { kind: "custom", component: HiddenMenuItemsField },
   },
   items: {
@@ -64,32 +64,48 @@ defineGroup("general", "上部メニュー", menuSetting, {
     control: { kind: "custom", component: NewMenuItemsField },
   },
 }),
-defineGroup("general", "時計とカウントダウン", menuBadgesSetting, {
+// title が同じで隣り合うため、上の2行と同じカードに入る
+defineGroup("general", "上部メニュー", menuLogoSetting, {
+  hidden: { label: "ロゴを隠す", control: { kind: "toggle" } },
+}),
+// section で、1つの保存先を「時計」と「カウントダウン」の2枚のカードへ分ける
+defineGroup("general", "時計", menuBadgesSetting, {
   clock: {
-    label: "時計の表示",
+    label: "時計のオプション",
     control: {
       kind: "nested",
       fields: {
-        showSeconds: { label: "秒を表示する", control: { kind: "toggle" } },
-        showDate: { label: "日付を表示する", control: { kind: "toggle" } },
-        showWeekday: { label: "曜日を表示する", control: { kind: "toggle" } },
-        showPeriod: { label: "時限を表示する", control: { kind: "toggle" } },
+        showSeconds: { label: "秒", control: { kind: "toggle" } },
+        showDate: { label: "日付", control: { kind: "toggle" } },
+        showWeekday: { label: "曜日", control: { kind: "toggle" } },
+        showPeriod: { label: "時限", control: { kind: "toggle" } },
       },
     },
   },
   countdowns: {
-    label: "カウントダウン",
+    label: "表示する項目",
+    section: "カウントダウン",
     control: { kind: "custom", component: CountdownListField },
   },
 }),
-defineGroup("general", "時限表", periodTableSetting, {
-  periods: {
-    label: "各時限の時刻",
-    description: "時計の時限表示と時間割の両方が使う",
-    control: { kind: "custom", component: PeriodTableField },
+// after で、「ホーム」タブの時間割のカードへ、入り切りの直後に差し込む
+defineGroup(
+  "home",
+  "時限表",
+  periodTableSetting,
+  {
+    periods: {
+      label: "各時限の時刻",
+      description: "時計の時限表示にも使用します",
+      section: "時間割",
+      control: { kind: "custom", component: PeriodTableField },
+    },
   },
-}),
+  { after: rowId(timetableSetting.key, "enabled") },
+),
 ```
+
+`title`・`section`・`after` の働きは [`./panel.md`](./panel.md) の「カードの区切り」が持つ。
 
 ## 処理の流れ
 
@@ -110,7 +126,7 @@ defineGroup("general", "時限表", periodTableSetting, {
 
 ### PeriodTableField
 
-行は数値入力1つ（`period`）と時刻入力2つ（`start`・`end`）。時刻入力は `type="time"` を使い、値は `HH:MM` の文字列をそのまま保存する。`createItem` は、いま並んでいる最大の `period` に1を足した番号と、空の時刻を返す。
+行は数値入力1つ（`period`）と時刻入力2つ（`start`・`end`）。時刻入力は `type="time"` を使い、値は `HH:MM` の文字列をそのまま保存する。番号の欄は幅を固定し（`w-10`）、時刻の欄2つが残りの幅を分け合う（`min-w-0 flex-1`）。ポップアップの幅（380px）で時刻が欠けない形にする。`createItem` は、いま並んでいる最大の `period` に1を足した番号と、空の時刻を返す。
 
 ### CountdownListField
 
@@ -129,4 +145,5 @@ defineGroup("general", "時限表", periodTableSetting, {
 - **省略可能なキーは `undefined` を空配列として扱う。** `MenuConfig` の `hidden` と `items` はどちらも省略可能で、未設定のまま編集を始める場合がある。`ListField` の `items` は `undefined` を受けないため、`HiddenMenuItemsField` と `NewMenuItemsField` の中で `value ?? []` を挟んでから渡す
 - **メニュー項目の挿入位置（`NewMenuItem.position`）は編集させない。** 指定には既存の項目名を正確に知る必要があり、手入力では実用にならない。位置を省略した場合の既定の挙動に任せる
 - **隠す項目の候補を Moodle から自動で集めない。** 集めるには Moodle のページで採った項目名を保存しておく仕組みが要る。名前の手入力から始め、候補が欲しくなった時点で [`../menu/navbar.md`](../menu/navbar.md) 側へ収集を足す
+- **時限表は、保存先を時計と共有したまま、画面では時間割のカードに置く。** 時刻を決める動機は時間割の入力にあり、利用者は時間割の近くを探す。時計だけを使う利用者のために、説明へ時計にも効くことを書く。時間割を無効にしている間も、この行は残る
 - **並べ替え（ドラッグでの入れ替え）は作らない。** 時限表は開始時刻で自動的に整い、他の3項目は並び順が表示に影響しない

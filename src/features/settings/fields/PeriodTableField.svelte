@@ -25,14 +25,14 @@
   addLabel="時限を追加"
 >
   {#snippet row(item, update)}
-    <div class="flex items-center gap-2">
-      <div class="w-16 shrink-0 flex items-center gap-1">
+    <div class="flex items-center gap-1.5">
+      <div class="shrink-0 flex items-center gap-1">
         <Input
           type="number"
           min={1}
           max={20}
           value={item.period}
-          class="w-12 text-center"
+          class="w-10 px-1 text-center"
           oninput={(e) =>
             update({
               ...item,
@@ -44,7 +44,7 @@
       <Input
         type="time"
         value={item.start}
-        class="flex-1"
+        class="min-w-0 flex-1 px-2"
         oninput={(e) =>
           update({ ...item, start: (e.target as HTMLInputElement).value })}
       />
@@ -52,7 +52,7 @@
       <Input
         type="time"
         value={item.end}
-        class="flex-1"
+        class="min-w-0 flex-1 px-2"
         oninput={(e) =>
           update({ ...item, end: (e.target as HTMLInputElement).value })}
       />

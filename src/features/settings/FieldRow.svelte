@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { FieldMeta } from "./types";
-  import FieldRow from "./FieldRow.svelte";
   import { Switch } from "$lib/components/ui/switch";
   import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label";
@@ -10,9 +9,10 @@
     meta: FieldMeta;
     value: unknown;
     onChange: (next: unknown) => void;
+    onOpen?: () => void; // 別の画面で開く種類の行が押された時
   }
 
-  let { meta, value, onChange }: Props = $props();
+  let { meta, value, onChange, onOpen }: Props = $props();
 
   const id = `field-${crypto.randomUUID().slice(0, 8)}`;
 </script>
@@ -112,49 +112,25 @@
       </select>
     </div>
 
-  {:else if meta.control.kind === "nested"}
-    {@const objValue = (value as Record<string, unknown>) || {}}
-    <!-- 子の行は字下げせず、小さな見出しの下へ同じ形で並べる -->
-    <div class="-my-3 -mr-4 flex flex-col divide-y divide-border">
-      <div class="flex flex-col gap-0.5 pt-3 pr-4 pb-2">
-        <span class="text-note font-medium text-muted-foreground">{meta.label}</span>
+  {:else}
+    <!-- 入れ子の項目と、一覧や表の編集は別の画面で開く。行には件数だけを先に見せる -->
+    <button
+      type="button"
+      class="-my-3 -mr-4 flex cursor-pointer items-center justify-between gap-4 py-3 pr-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+      onclick={onOpen}
+    >
+      <span class="flex min-w-0 flex-col gap-0.5">
+        <span class="text-row">{meta.label}</span>
         {#if meta.description}
-          <p class="text-note text-muted-foreground">{meta.description}</p>
+          <span class="text-note text-muted-foreground">{meta.description}</span>
         {/if}
-      </div>
-      {#each Object.entries(meta.control.fields) as [k, subMeta]}
-        <FieldRow
-          meta={subMeta as unknown as FieldMeta}
-          value={objValue[k]}
-          onChange={(subVal) => onChange({ ...objValue, [k]: subVal })}
-        />
-      {/each}
-    </div>
-
-  {:else if meta.control.kind === "custom"}
-    {@const CustomComponent = meta.control.component}
-    <!-- 一覧や表の編集は場所を取る。閉じた状態を既定にし、件数だけ先に見せる -->
-    <details class="group">
-      <summary
-        class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
-      >
-        <span class="flex flex-col gap-0.5">
-          <span class="text-row">{meta.label}</span>
-          {#if meta.description}
-            <span class="text-note text-muted-foreground">{meta.description}</span>
-          {/if}
-        </span>
-        <span class="flex shrink-0 items-center gap-1 text-note text-muted-foreground">
-          {#if Array.isArray(value)}
-            {value.length}件
-          {/if}
-          <ChevronRight class="size-4 transition-transform group-open:rotate-90" />
-        </span>
-      </summary>
-      <div class="pt-4 pb-1">
-        <!-- @ts-expect-error CustomFieldProps generic mismatch handled at defineGroup -->
-        <CustomComponent {value} {onChange} />
-      </div>
-    </details>
+      </span>
+      <span class="flex shrink-0 items-center gap-1 text-note text-muted-foreground">
+        {#if Array.isArray(value)}
+          {value.length}件
+        {/if}
+        <ChevronRight class="size-4" />
+      </span>
+    </button>
   {/if}
 </div>

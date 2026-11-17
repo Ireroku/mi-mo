@@ -39,7 +39,7 @@ import type { ReverseSectionsConfig } from "@/features/coursePage/reverseSection
 export const coursePageReverseSectionsSetting =
   storage.defineItem<ReverseSectionsConfig>(
     "local:coursePage.reverseSections",
-    { fallback: { enabled: true } },
+    { fallback: { enabled: false } },
   );
 ```
 
@@ -85,5 +85,5 @@ body.pagelayout-course #theme_boost-drawers-courseindex #course-index {
 - **セレクタは `div.course-content > div > ul[...]` と直下の子で辿る。** セクションの概要文に同じ `data-for` を持つ `<ul>` が貼り付けられている場合があり、祖先を絞らないと2件ヒットする
 - **`ul.weeks` のクラスは使わない。** コースフォーマット依存のため、コア共通の `data-for="course_sectionlist"` の方が安定する
 - **ページ判定に [`../moodle/page.md`](../moodle/page.md) を使わず、セレクタの先頭へ `body.pagelayout-course` を書く。** `document_start` の時点では body が無く判定できない。CSS は body に class が付いた後で評価される
-- **既定で有効にする。** 機能として追加する以上、設定画面ができるまでは効いている状態を既定にする
+- **既定で無効にする。** Moodle が決めた並びを入れ替える機能で、入れた直後に断りなく順序が変わると、利用者は目当ての回を見失う。設定画面で選んだ利用者にだけ効かせる
 - **編集モードでの挙動は、本文とコースインデックスのどちらも未確認。** 教員がセクションをドラッグして並べ替える画面では、見た目の位置とドロップ先の判定がねじれる可能性がある。コースインデックス側も同じで、ツリーのキーボード操作を持つ場合は移動の向きが見た目と食い違う。実機で確かめたのは非編集モードでの表示崩れが無いことだけで、[`../../moodle/course-page.md`](../../moodle/course-page.md) の採取も非編集モードに限られる。編集権限を持つアカウントで問題が出た時点で、セレクタに編集モードの除外を足す

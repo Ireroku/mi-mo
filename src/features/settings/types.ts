@@ -30,6 +30,7 @@ export type FieldControl<V> =
 export interface FieldMeta<V = unknown> {
   label: string;
   description?: string;
+  section?: string; // この行を置くカードの見出し。省くとグループの title になる
   control: FieldControl<V>;
 }
 
@@ -41,8 +42,19 @@ export interface SettingsGroup {
   title: string;
   fields: Record<string, FieldMeta>;
   footer?: Component;
+  after?: string; // 行の id（`<グループの id>.<キー>`）。その行の直後へ、このグループの行を差し込む
   read: () => Promise<Record<string, unknown>>;
   write: (key: string, value: unknown) => Promise<void>;
+  replace: (value: Record<string, unknown>) => Promise<void>;
+}
+
+export interface GroupOptions {
+  footer?: Component;
+  after?: string;
+}
+
+export function rowId(groupId: string, key: string): string {
+  return `${groupId}.${key}`;
 }
 
 export function defineGroup<C extends object>(
@@ -50,7 +62,7 @@ export function defineGroup<C extends object>(
   title: string,
   setting: WxtStorageItem<C, Record<string, unknown>>,
   fields: FieldsOf<C>,
-  footer?: Component,
+  options: GroupOptions = {},
 ): SettingsGroup {
   const erasedFields = fields as unknown as Record<string, FieldMeta>;
   const read = () =>
@@ -68,9 +80,10 @@ export function defineGroup<C extends object>(
     category,
     title,
     fields: erasedFields,
-    footer,
+    ...options,
     read,
     write,
+    replace: (value) => setting.setValue(value as C),
   };
 }
 

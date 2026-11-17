@@ -325,7 +325,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`timetable/schedule.md`](./timetable/schedule.md) | `src/features/timetable/schedule.logic.ts` | 使う: utils/periods ／ 実日程と回数の計算 |
 | [`timetable/panel.md`](./timetable/panel.md) | `src/features/timetable/` | 使う: timetable/schedule ／ moodle/page |
 | [`timetable/ics.md`](./timetable/ics.md) | `src/features/timetable/ics.ts` | 使う: timetable/schedule ／ utils/periods |
-| [`settings/panel.md`](./settings/panel.md) | `src/features/settings/` | 使う: utils/settings ／ utils/theme ／ settings の各 Fields |
+| [`settings/panel.md`](./settings/panel.md) | `src/features/settings/`（`SettingsPanel`、`FieldRow`、`fields.ts`、`backup.logic`、`BackupButtons`） | 使う: utils/settings（全体のスイッチ `extensionSetting` を含む） ／ utils/theme ／ utils/download ／ settings の各 Fields |
 | [`settings/menuFields.md`](./settings/menuFields.md) | `src/features/settings/fields/` | 使う: settings/panel ／ 資料: menu 系3本の型 |
 | [`settings/timetableFields.md`](./settings/timetableFields.md) | `src/features/settings/fields/` | 使う: settings/panel ／ timetable/ics |
 | [`utils/settings.md`](./utils/settings.md) | `src/utils/settings.ts` | 使う: 各機能が export する設定の型 |
@@ -334,7 +334,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`utils/theme.md`](./utils/theme.md) | `src/utils/theme.ts` | 資料: [`../../src/assets/global.css`](../../src/assets/global.css) |
 | [`utils/filename.md`](./utils/filename.md) | `src/utils/filename.ts` | 参考: coursePage/exportMarkdown ／ coursePage/pageSave |
 | [`utils/markdown.md`](./utils/markdown.md) | `src/utils/markdown.ts` | 参考: coursePage/exportMarkdown ／ coursePage/pageSave |
-| [`utils/download.md`](./utils/download.md) | `src/utils/download.ts` ／ `src/entrypoints/background.ts` | 使う: coursePage の書き出しと一括保存 |
+| [`utils/download.md`](./utils/download.md) | `src/utils/download.ts` ／ `src/entrypoints/background.ts` | 使う: coursePage の書き出しと一括保存 ／ settings/panel のバックアップ |
 | [`utils/runFeature.md`](./utils/runFeature.md) | `src/utils/runFeature.ts` | 使う: content script の entrypoint 2本 |
 | [`moodle/page.md`](./moodle/page.md) | `src/moodle/page.ts` | 資料: [`../moodle/`](../moodle/) の各ページ |
 | [`moodle/courseList.md`](./moodle/courseList.md) | `src/moodle/courseList.ts` | 資料: [`../moodle/drawer.md`](../moodle/drawer.md) ／ 使う: utils/settings |

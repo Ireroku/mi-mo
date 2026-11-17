@@ -21,6 +21,15 @@ import type { PeriodTableConfig } from "@/utils/periods";
 import type { TimetableConfig } from "@/features/timetable/types";
 import type { TodayOrderConfig } from "@/features/myCourses/todayOrder";
 
+export interface ExtensionConfig {
+  enabled: boolean; // false の間は、設定を残したまま全機能を止める
+}
+
+export const extensionSetting = storage.defineItem<ExtensionConfig>(
+  "local:extension",
+  { fallback: { enabled: true } },
+);
+
 export const homeHideElementsSetting = storage.defineItem<HideElementsConfig>(
   "local:home.hideElements",
   {
@@ -89,7 +98,7 @@ export const uiFontSetting = storage.defineItem<FontConfig>("local:ui.font", {
 export const coursePageReverseSectionsSetting =
   storage.defineItem<ReverseSectionsConfig>(
     "local:coursePage.reverseSections",
-    { fallback: { enabled: true } },
+    { fallback: { enabled: false } },
   );
 
 export const homeGreetingSetting = storage.defineItem<GreetingConfig>(
@@ -180,7 +189,7 @@ export const timetableSetting = storage.defineItem<TimetableConfig>(
       },
       holidays: [],
       substitutes: [],
-      color: "sky",
+      color: "moodle",
     },
   },
 );
@@ -189,5 +198,3 @@ export const myCoursesTodayOrderSetting = storage.defineItem<TodayOrderConfig>(
   "local:myCourses.todayOrder",
   { fallback: { enabled: false } },
 );
-
-

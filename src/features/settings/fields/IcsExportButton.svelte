@@ -35,6 +35,6 @@
     onclick={handleExport}
   >
     <Download class="size-4" />
-    カレンダー (.ics) を書き出す
+    カレンダー予定ファイルとして書き出す (.ics)
   </Button>
 </div>

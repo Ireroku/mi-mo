@@ -165,6 +165,28 @@
 
 <style>
   /* テーマ・配色スタイル */
+  /* moodle は Moodle のカードと同じ色にする。Moodle に暗い配色が無いため、OS の配色に合わせて変えない */
+  .mimo-timetable-panel[data-mimo-color="moodle"] {
+    background-color: #ffffff;
+    color: #1d2125;
+    border-color: #dee2e6;
+  }
+  .mimo-timetable-panel[data-mimo-color="moodle"] thead tr,
+  .mimo-timetable-panel[data-mimo-color="moodle"] tbody tr,
+  .mimo-timetable-panel[data-mimo-color="moodle"] td,
+  .mimo-timetable-panel[data-mimo-color="moodle"] th {
+    border-color: #dee2e6;
+  }
+  .mimo-timetable-panel[data-mimo-color="moodle"] .is-today {
+    background-color: #e7f0f9;
+  }
+  .mimo-timetable-panel[data-mimo-color="moodle"] .text-foreground {
+    color: inherit;
+  }
+  .mimo-timetable-panel[data-mimo-color="moodle"] a {
+    color: #0f6cbf;
+  }
+
   .mimo-timetable-panel[data-mimo-color="white"] {
     background-color: #ffffff;
     color: #0f172a;

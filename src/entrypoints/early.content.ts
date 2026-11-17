@@ -7,6 +7,7 @@ import { applyReverseSections } from "@/features/coursePage/reverseSections";
 import { applyQuickDrawerVisibility } from "@/features/ui/quickDrawer";
 import { decideLanding } from "@/features/ui/landingPage";
 import {
+  extensionSetting,
   homeHideElementsSetting,
   menuLogoSetting,
   uiFloatingHintSetting,
@@ -26,6 +27,11 @@ export default defineContentScript({
   matches: ["*://lms-m41.mie-u.ac.jp/*"],
   runAt: "document_start",
   async main() {
+    // 全体のスイッチが切られている間は、どの機能も動かさない
+    if (!(await extensionSetting.getValue()).enabled) {
+      return;
+    }
+
     const [
       homeHideElements,
       menuLogo,

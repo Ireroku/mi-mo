@@ -41,7 +41,7 @@ export interface TimetableSubstitute {
   weekday: Weekday; // この日に行う授業の曜日
 }
 
-export type TimetableColor = "white" | "black" | "sky" | "pink" | "green";
+export type TimetableColor = "moodle" | "white" | "black" | "sky" | "pink" | "green";
 
 export interface TimetableConfig {
   enabled: boolean;

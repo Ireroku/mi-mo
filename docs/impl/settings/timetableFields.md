@@ -43,14 +43,9 @@ defineGroup(
   timetableSetting,
   {
     enabled: { label: "時間割を表示する", control: { kind: "toggle" } },
-    startDate: { label: "学期の開始日", control: { kind: "date" } },
-    lessonCount: {
-      label: "授業の回数",
-      description: "1コマあたり何回で終わるか",
-      control: { kind: "number", min: 1, max: 30, unit: "回" },
-    },
+    // この位置へ、時限表の「各時限の時刻」が差し込まれる（./menuFields.md）
     grid: {
-      label: "コマ",
+      label: "授業科目の設定",
       control: { kind: "custom", component: TimetableGridField },
     },
     holidays: {
@@ -61,11 +56,18 @@ defineGroup(
       label: "振替日",
       control: { kind: "custom", component: SubstituteListField },
     },
+    startDate: { label: "学期の開始日", control: { kind: "date" } },
+    lessonCount: {
+      label: "授業の回数",
+      description: "1つの授業が何回で終わるか",
+      control: { kind: "number", min: 1, max: 30, unit: "回" },
+    },
     color: {
       label: "配色",
       control: {
         kind: "select",
         options: [
+          { value: "moodle", label: "Moodle" },
           { value: "white", label: "白" },
           { value: "black", label: "黒" },
           { value: "sky", label: "水色" },
@@ -75,7 +77,7 @@ defineGroup(
       },
     },
   },
-  IcsExportButton,
+  { footer: IcsExportButton },
 ),
 ```
 
@@ -99,6 +101,8 @@ defineGroup(
 
 ### IcsExportButton
 
+ボタンの文言は「カレンダー予定ファイルとして書き出す (.ics)」。
+
 1. `timetableSetting` と `periodTableSetting` を読む
 2. `buildIcs(config, periodTable.periods)` で文字列を作る
 3. `Blob` を `text/calendar;charset=utf-8` で作り、`URL.createObjectURL` で URL にする
@@ -106,7 +110,8 @@ defineGroup(
 
 ## 決めごと
 
-- **グリッドを表ではなく、曜日ごとの折りたたみで編集する。** ポップアップの幅は 384px しかなく、5曜日を横に並べると1列 70px ほどになり、科目名を入力できない。縦に積めば狭い幅でも成立する
+- **グリッドを表ではなく、曜日ごとの折りたたみで編集する。** ポップアップの幅は 380px しかなく、5曜日を横に並べると1列 70px ほどになり、科目名を入力できない。縦に積めば狭い幅でも成立する
+- **毎学期に変える項目（科目、休講日、振替日）を上、決めたら触らない項目（開始日、回数、配色）を下に並べる。** [`./panel.md`](./panel.md) の「項目を足す時の規約」に従う
 - **折りたたみは既定で閉じる。** 5曜日 × 6時限を一度に開くと、時間割だけで画面が埋まる
 - **科目名が空のコマを `null` として保存する。** 空文字のコマが残ると、表示側が空きコマと区別できない
 - **時限の数を時間割側に持たせず、時限表から取る。** 同じ数を2箇所に持つと食い違う

@@ -93,10 +93,11 @@ export const timetableSetting = storage.defineItem<TimetableConfig>(
 
 ### 配色
 
-`config.color` の5色を、ルート要素の `data-mimo-color` 属性で切り替える。色ごとにライトとダークの2組を持ち、`prefers-color-scheme: dark` で入れ替える。
+`config.color` の6色を、ルート要素の `data-mimo-color` 属性で切り替える。既定は `moodle`。`moodle` 以外の色はライトとダークの2組を持ち、`prefers-color-scheme: dark` で入れ替える。
 
 | 値 | 見た目 |
 |---|---|
+| `moodle` | Moodle のカードと同じ色（背景 `#ffffff`、文字 `#1d2125`、罫線 `#dee2e6`、今日の列 `#e7f0f9`、リンク `#0f6cbf`）。OS の配色に合わせて変えない |
 | `white` | 白地 |
 | `black` | 黒地 |
 | `sky` | 水色 |
@@ -112,6 +113,7 @@ export const timetableSetting = storage.defineItem<TimetableConfig>(
 - **回数は表示している週の回数を出す。** 「次に何回目か」ではなく、そのセルが指す授業が何回目かを出す
 - **空きコマは空欄にする。** 「なし」などの文字を置くと、埋まっているコマと見分けにくくなる
 - **色はカレンダー全体にかけ、コマごとには持たせない。** 仕様書の設定項目が「色」1つのため
+- **既定の色を `moodle` にする。** 何も選んでいない状態で、周りの Moodle のカードと地続きに見える。Moodle は暗い配色を持たないため、この色は OS がダークでも明るいまま保つ
 - **ダークモードは、選んだ色の暗い側の組へ切り替える形にする。** Moodle 自体はダークテーマを持たないため、`white` を選んだ状態でも周囲は白いままになる。暗くしたい場合は `black` を選ぶ
 - **`enabled` が false の時は entrypoint 側で呼ばない。** 設定が切れているときに実日程の計算まで走らせない
 - **マイコースの並び順（[`../../features/my-courses/today-order.md`](../../features/my-courses/today-order.md)）はこのモジュールに含めない。** 同じ設定を読む別の機能として分ける

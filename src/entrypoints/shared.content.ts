@@ -16,6 +16,7 @@ import { advanceRecord, initLastAccess } from "@/features/home/lastAccess";
 import { initPinnedCourses } from "@/features/ui/quickDrawer";
 import { initTimetable } from "@/features/timetable";
 import {
+  extensionSetting,
   menuSetting,
   menuBadgesSetting,
   courseListCacheSetting,
@@ -38,6 +39,11 @@ export default defineContentScript({
   cssInjectionMode: "ui",
 
   async main(ctx) {
+    // 全体のスイッチが切られている間は、どの機能も動かさない
+    if (!(await extensionSetting.getValue()).enabled) {
+      return;
+    }
+
     const [
       menuConfig,
       badgesConfig,
