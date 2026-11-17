@@ -52,3 +52,41 @@ export function parseBackup(text: string, current: Values): Values {
   }
   return restored;
 }
+
+// 1つのグループの一部のキーだけを出し入れする範囲
+export interface BackupScope {
+  groupId: string;
+  keys: readonly string[];
+}
+
+/**
+ * 範囲に入るグループとキーだけを残して返す。
+ */
+export function narrowValues(values: Values, scope: BackupScope): Values {
+  const group = values[scope.groupId] ?? {};
+
+  return {
+    [scope.groupId]: Object.fromEntries(
+      scope.keys.filter((key) => key in group).map((key) => [key, group[key]]),
+    ),
+  };
+}
+
+/**
+ * バックアップの文字列から、範囲に入る値だけを取り込む。
+ * 範囲の外のキーは今の値を残し、グループ全体の値にして返す。
+ * ファイルに範囲のグループが無い場合は例外を投げる。
+ */
+export function parseScopedBackup(
+  text: string,
+  current: Values,
+  scope: BackupScope,
+): Values {
+  const restored = parseBackup(text, narrowValues(current, scope));
+  const group = restored[scope.groupId];
+  if (!group) {
+    throw new Error("このファイルには対象の設定がありません");
+  }
+
+  return { [scope.groupId]: { ...current[scope.groupId], ...group } };
+}

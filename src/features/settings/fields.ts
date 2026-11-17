@@ -36,7 +36,7 @@ import GreetingMessagesField from "./fields/GreetingMessagesField.svelte";
 import TimetableGridField from "./fields/TimetableGridField.svelte";
 import HolidayListField from "./fields/HolidayListField.svelte";
 import SubstituteListField from "./fields/SubstituteListField.svelte";
-import IcsExportButton from "./fields/IcsExportButton.svelte";
+import TimetableFooter from "./fields/TimetableFooter.svelte";
 
 // 全機能の入り切り。タブの中ではなく、画面の最上部に置く
 export const extensionGroup = defineGroup("general", "有効", extensionSetting, {
@@ -85,7 +85,7 @@ export const settingsGroups: readonly SettingsGroup[] = [
         },
       },
     },
-    { footer: IcsExportButton },
+    { footer: TimetableFooter },
   ),
 
   defineGroup("home", "挨拶", homeGreetingSetting, {

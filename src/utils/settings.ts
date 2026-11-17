@@ -93,9 +93,11 @@ export const uiFloatingHintSetting = storage.defineItem<FloatingHintConfig>(
   { fallback: { hidden: true } },
 );
 
-export const uiFontSetting = storage.defineItem<FontConfig>("local:ui.font", {
-  fallback: { enabled: false, family: "", scope: "all" },
-});
+// 1行目を `{` で終えると、auto-import の走査が fallback のキーを export と取り違える
+export const uiFontSetting = storage.defineItem<FontConfig>(
+  "local:ui.font",
+  { fallback: { enabled: false, family: "", scope: "all" } },
+);
 
 export const coursePageReverseSectionsSetting =
   storage.defineItem<ReverseSectionsConfig>(

@@ -6,6 +6,7 @@
     CATEGORY_LABELS,
     rowId,
     type FieldMeta,
+    type FooterProps,
     type SettingsCategory,
     type SettingsGroup,
   } from "./types";
@@ -36,7 +37,7 @@
   interface Footer {
     id: string;
     section: string;
-    footer: Component;
+    footer: Component<FooterProps>;
   }
 
   interface Section {
@@ -127,7 +128,11 @@
   }
 
   async function load() {
-    status = "loading";
+    // 取り込みの後の読み直しでは一覧を残す。消すと、取り込みの結果の文言も一緒に消える
+    if (status !== "ready") {
+      status = "loading";
+    }
+
     try {
       const entries = await Promise.all(
         allGroups.map(async (group) => [group.id, await group.read()] as const),
@@ -355,7 +360,7 @@
                     {#if "footer" in item}
                       {@const FooterComponent = item.footer}
                       <div class="py-3 pr-4">
-                        <FooterComponent />
+                        <FooterComponent values={groupValues} onRestore={restore} />
                       </div>
                     {:else}
                       <FieldRow

@@ -9,7 +9,7 @@
 - 使う: [`../utils/settings.md`](../utils/settings.md) — 編集対象のストレージ項目。ここが export する `<機能><設定名>Setting` を読み書きする
 - 使う: [`../utils/theme.md`](../utils/theme.md) — OS のカラースキームに合わせた `dark` クラスの付け外し
 - 使う: [`./menuFields.md`](./menuFields.md) — 時限表・カウントダウン・メニュー項目の専用エディタ
-- 使う: [`./timetableFields.md`](./timetableFields.md) — 時間割の専用エディタと `.ics` の書き出しボタン
+- 使う: [`./timetableFields.md`](./timetableFields.md) — 時間割の専用エディタと、`footer` に置くファイルの出し入れと `.ics` の書き出しボタン
 - 使う: [`../utils/download.md`](../utils/download.md) — バックアップのファイルを保存する `saveBlob`
 - 資料: [`../../features/ui/settings.md`](../../features/ui/settings.md) — 画面の目的と、ポップアップで兼ねる方針
 - 参考: [`../README.md`](../README.md) — スタイリングの節。shadcn のコンポーネントを入れて組み合わせる
@@ -81,15 +81,21 @@ export interface SettingsGroup {
   category: SettingsCategory;
   title: string;
   fields: Record<string, FieldMeta>;
-  footer?: Component;
+  footer?: Component<FooterProps>;
   after?: string; // 行の id。その行の直後へ、このグループの行を差し込む
   read: () => Promise<Record<string, unknown>>;
   write: (key: string, value: unknown) => Promise<void>;
   replace: (value: Record<string, unknown>) => Promise<void>;
 }
 
+// footer が受け取る、全グループの今の値と、値を取り込む手段
+export interface FooterProps {
+  values: Record<string, Record<string, unknown>>;
+  onRestore: (values: Record<string, Record<string, unknown>>) => Promise<void>;
+}
+
 export interface GroupOptions {
-  footer?: Component;
+  footer?: Component<FooterProps>;
   after?: string;
 }
 
@@ -147,6 +153,22 @@ export function buildBackup(values: Values): BackupFile;
 
 // current は今の値。ファイルにあるグループだけを、取り込んだ後の値にして返す
 export function parseBackup(text: string, current: Values): Values;
+
+// 1つのグループの一部のキーだけを出し入れする範囲
+export interface BackupScope {
+  groupId: string;
+  keys: readonly string[];
+}
+
+// 範囲に入るグループとキーだけを残して返す
+export function narrowValues(values: Values, scope: BackupScope): Values;
+
+// 範囲に入る値だけを取り込み、範囲の外のキーは今の値を残して、グループ全体の値を返す
+export function parseScopedBackup(
+  text: string,
+  current: Values,
+  scope: BackupScope,
+): Values;
 ```
 
 ```svelte
@@ -155,6 +177,9 @@ export function parseBackup(text: string, current: Values): Values;
   interface Props {
     values: Values;
     onRestore: (values: Values) => Promise<void>;
+    filename?: string; // 既定は BACKUP_FILENAME
+    scope?: BackupScope; // 省くと、すべての設定を出し入れする
+    noun?: string; // 結果の文言で、読み込んだものを指す名前。既定は「設定」
   }
 </script>
 ```
@@ -294,7 +319,7 @@ const read = async () =>
 
 `after` を持つグループは、自分の位置には置かず、指した行の直後にだけ置く。保存先は元のグループのまま変わらない。
 
-グループの `footer` は、そのグループの最後の行と同じカードの末尾へ置く。
+グループの `footer` は、そのグループの最後の行と同じカードの末尾へ置く。`values`（全グループの今の値）と `onRestore`（下の「バックアップ」の読み込みの手順4）を渡す。
 
 グループが `enabled` という名前のトグルを持つ場合、それを機能全体の入り切りとして扱う。
 
@@ -331,8 +356,13 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 1. 選ばれたファイルの文字列を `parseBackup(text, current)` へ渡す
 2. `parseBackup` は、`app` が `"mi-mo"` でないファイルと、JSON として読めないファイルに例外を投げる
 3. 今あるグループとキーのうち、ファイルに値があり、種類（`typeof` と、配列かどうか）が今の値と合うものだけを取り込む。それ以外のキーは今の値を残す。ファイルに無いグループは返さない
-4. `SettingsPanel` は、進行中の保存（`saveQueue`）を待ってから、返ったグループごとに `group.replace(value)` を呼び、全グループを読み直す
-5. 結果を「設定を読み込みました」「このファイルは読み込めません」のどちらかで、`role="status"` の中に出す
+4. `SettingsPanel` は、進行中の保存（`saveQueue`）を待ってから、返ったグループごとに `group.replace(value)` を呼び、全グループを読み直す。読み直す間も一覧は描いたまま残す
+5. 結果を「設定を読み込みました」「このファイルは読み込めません」のどちらかで、`role="status"` の中に出す。「設定」の部分は `noun` で差し替わる
+
+`scope` を渡した場合は、範囲のグループとキーだけを出し入れする。時間割のファイル（[`./timetableFields.md`](./timetableFields.md)）が使う。
+
+- 書き出し: `narrowValues(values, scope)` の結果を `buildBackup` へ渡し、`filename` で保存する
+- 読み込み: `parseScopedBackup(text, current, scope)` を使う。`narrowValues(current, scope)` を今の値として `parseBackup` を呼び、返ったグループを今のグループの値へ重ねる。ファイルに範囲のグループが無い場合は例外を投げる
 
 #### 保存
 
@@ -427,6 +457,9 @@ CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減ら�
 - **主色（`--primary`）を Moodle のリンク色（`#0f6cbf`）にする。** 有効なスイッチと主要なボタンに使う。Moodle へ差し込む部品も同じテーマを使うため、Moodle の画面の中で色が揃う
 - **`kind: "custom"` は、配列やオブジェクトのように汎用のコントロールで表せない項目のために置く。** 時限表・カウントダウン・隠すメニュー項目がこれにあたり、専用エディタは [`./menuFields.md`](./menuFields.md) が持つ
 - **`footer` は、値の編集にあたらない操作を置くために持つ。** `.ics` の書き出しボタン（[`./timetableFields.md`](./timetableFields.md)）のような、設定のキーに対応しない要素が入る。`fields` はキーと1対1で対応させ、そこへ操作を混ぜない
+- **`footer` へ、全グループの値と取り込みの手段を渡す。** ファイルの出し入れのように、複数のキーをまとめて書き換える操作を `footer` に置けるようにする。取り込みを `SettingsPanel` の1箇所へ通すことで、保存の順番待ちと読み直しを `footer` ごとに書かずに済む
+- **一部だけの出し入れも、バックアップと同じ形式のファイルにする。** 範囲は読む側と書く側が絞る。形式が1つなので、バックアップと時間割のファイルを相互に読める
+- **取り込みの後の読み直しでは、一覧を「読み込み中」へ戻さない。** 戻すと一覧が描き直され、`BackupButtons` が持つ結果の文言が消える
 - **`select` はネイティブの `<select>` で描く。** shadcn の Select は選択肢を別の層へ描くため、高さの限られたポップアップでは切れる場合がある。ネイティブの部品は OS が描くため切れず、キーボード操作も OS の標準に従う
 - **保存を直列にする。** `write` は読む・差し替える・書くの3手で、同じグループの2項目を続けて変えると、並行した書き込みの後勝ちで先の変更が消える
 - **失敗した保存は手元の値を巻き戻す。** 画面が保存されていない値を出し続けると、利用者は保存されたと受け取る

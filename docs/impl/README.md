@@ -327,7 +327,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`timetable/ics.md`](./timetable/ics.md) | `src/features/timetable/ics.ts` | 使う: timetable/schedule ／ utils/periods |
 | [`settings/panel.md`](./settings/panel.md) | `src/features/settings/`（`SettingsPanel`、`FieldRow`、`fields.ts`、`backup.logic`、`BackupButtons`） | 使う: utils/settings（全体のスイッチ `extensionSetting` を含む） ／ utils/theme ／ utils/download ／ settings の各 Fields |
 | [`settings/menuFields.md`](./settings/menuFields.md) | `src/features/settings/fields/` | 使う: settings/panel ／ 資料: menu 系3本の型 |
-| [`settings/timetableFields.md`](./settings/timetableFields.md) | `src/features/settings/fields/` | 使う: settings/panel ／ timetable/ics |
+| [`settings/timetableFields.md`](./settings/timetableFields.md) | `src/features/settings/fields/` | 使う: settings/panel ／ timetable/ics ／ utils/download |
 | [`utils/settings.md`](./utils/settings.md) | `src/utils/settings.ts` | 使う: 各機能が export する設定の型 |
 | [`utils/periods.md`](./utils/periods.md) | `src/utils/periods.ts` | 使う: menu/clock ／ menu/countdownBadge ／ timetable |
 | [`utils/styleSheet.md`](./utils/styleSheet.md) | `src/utils/styleSheet.ts` | 参考: [`home/hideElements.md`](./home/hideElements.md) |

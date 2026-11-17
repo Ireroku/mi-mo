@@ -41,15 +41,21 @@ export interface SettingsGroup {
   category: SettingsCategory;
   title: string;
   fields: Record<string, FieldMeta>;
-  footer?: Component;
+  footer?: Component<FooterProps>;
   after?: string; // 行の id（`<グループの id>.<キー>`）。その行の直後へ、このグループの行を差し込む
   read: () => Promise<Record<string, unknown>>;
   write: (key: string, value: unknown) => Promise<void>;
   replace: (value: Record<string, unknown>) => Promise<void>;
 }
 
+// footer が受け取る、全グループの今の値と、値を取り込む手段
+export interface FooterProps {
+  values: Record<string, Record<string, unknown>>;
+  onRestore: (values: Record<string, Record<string, unknown>>) => Promise<void>;
+}
+
 export interface GroupOptions {
-  footer?: Component;
+  footer?: Component<FooterProps>;
   after?: string;
 }
 

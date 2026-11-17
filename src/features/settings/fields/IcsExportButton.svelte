@@ -2,6 +2,7 @@
   import { Button } from "$lib/components/ui/button";
   import { timetableSetting, periodTableSetting } from "@/utils/settings";
   import { buildIcs, ICS_FILENAME } from "@/features/timetable/ics";
+  import { saveBlob } from "@/utils/download";
   import { Download } from "@lucide/svelte";
 
   async function handleExport() {
@@ -11,30 +12,20 @@
     ]);
 
     const icsContent = buildIcs(config, periodTable.periods);
-    const blob = new Blob([icsContent], {
-      type: "text/calendar;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = ICS_FILENAME;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    saveBlob(
+      new Blob([icsContent], { type: "text/calendar;charset=utf-8" }),
+      ICS_FILENAME,
+    );
   }
 </script>
 
-<div class="pt-2">
-  <Button
-    type="button"
-    variant="outline"
-    size="sm"
-    class="gap-1.5"
-    onclick={handleExport}
-  >
-    <Download class="size-4" />
-    カレンダー予定ファイルとして書き出す (.ics)
-  </Button>
-</div>
+<Button
+  type="button"
+  variant="outline"
+  size="sm"
+  class="gap-1.5"
+  onclick={handleExport}
+>
+  <Download class="size-4" />
+  カレンダー予定ファイルとして書き出す (.ics)
+</Button>
