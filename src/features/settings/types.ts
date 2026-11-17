@@ -65,8 +65,12 @@ export function defineGroup<C extends object>(
   options: GroupOptions = {},
 ): SettingsGroup {
   const erasedFields = fields as unknown as Record<string, FieldMeta>;
-  const read = () =>
-    setting.getValue() as unknown as Promise<Record<string, unknown>>;
+  // 項目が後から増えた設定では、保存済みの値に新しいキーが無い。既定値で埋めて返す
+  const read = async () =>
+    ({
+      ...setting.fallback,
+      ...(await setting.getValue()),
+    }) as Record<string, unknown>;
   const write = async (key: string, value: unknown) => {
     const current = await setting.getValue();
     await setting.setValue({

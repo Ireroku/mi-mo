@@ -31,6 +31,7 @@ import NewMenuItemsField from "./fields/NewMenuItemsField.svelte";
 import PeriodTableField from "./fields/PeriodTableField.svelte";
 import CountdownListField from "./fields/CountdownListField.svelte";
 import PinnedCoursesField from "./fields/PinnedCoursesField.svelte";
+import { FIXED_SALUTATION } from "@/features/home/greeting.logic";
 import GreetingMessagesField from "./fields/GreetingMessagesField.svelte";
 import TimetableGridField from "./fields/TimetableGridField.svelte";
 import HolidayListField from "./fields/HolidayListField.svelte";
@@ -92,6 +93,18 @@ export const settingsGroups: readonly SettingsGroup[] = [
       label: "挨拶を表示する",
       description: "ホームの上部に、ひとことを出します",
       control: { kind: "toggle" },
+    },
+    salutation: {
+      label: "名前の前の言葉",
+      description: "「こんにちは、〇〇さん」の形で出します",
+      control: {
+        kind: "select",
+        options: [
+          { value: "time", label: "時間帯に合わせる" },
+          { value: "fixed", label: FIXED_SALUTATION },
+          { value: "none", label: "なし" },
+        ],
+      },
     },
     messages: {
       label: "メッセージ",

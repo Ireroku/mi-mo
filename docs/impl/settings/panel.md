@@ -250,7 +250,7 @@ pnpm dlx shadcn-svelte@latest add tabs switch input label button
 グループの `id` は WXT の保存項目が持つ `setting.key` から取得する。表示文言を変えても識別は変わらず、別の ID 定義を増やさない。保存先のキーやデータ形式の変更は伴わない。
 
 1. 渡された `fields` を `Record<string, FieldMeta>` として保持する。ここで型引数 `C` を落とす。**代入にはキャストが要る**
-2. `read` は `setting.getValue()` の結果を返す。**ここにもキャストが要る**
+2. `read` は `setting.fallback` の上へ `setting.getValue()` の結果を重ねて返す。重ねるのは最上位のキーだけ。**ここにもキャストが要る**
 3. `write(key, value)` は `setting.getValue()` で現在値を読み、`key` だけを差し替えた値を `setting.setValue()` で書く。ここはキャスト不要
 4. `replace(value)` は、渡された値でグループ全体を `setting.setValue()` へ書く。バックアップの読み込みが使う
 5. `options` の `footer` と `after` は、そのまま `SettingsGroup` へ載せる
@@ -259,7 +259,11 @@ pnpm dlx shadcn-svelte@latest add tabs switch input label button
 
 ```ts
 const erasedFields = fields as Record<string, FieldMeta>;
-const read = () => setting.getValue() as Promise<Record<string, unknown>>;
+const read = async () =>
+  ({
+    ...setting.fallback,
+    ...(await setting.getValue()),
+  }) as Record<string, unknown>;
 ```
 
 キャストが避けられない理由は下の決めごとに書く。
@@ -410,6 +414,7 @@ CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減ら�
 - **`FieldsOf<C>` で全キー分の `FieldMeta` を要求する。** 機能側の Config にキーを足すと `fields.ts` がコンパイルエラーになり、書き忘れが型で止まる
 - **`defineGroup` の戻り値は型引数を落とした `SettingsGroup` にする。** 型の違うグループを1つの配列へ並べるため。読み書きは `defineGroup` の中で型が閉じており、描画側は `unknown` だけを見る
 - **型を落とす2箇所はキャストで書く。安全性を手放す境界がここだと決める。** `FieldsOf<C>` から `Record<string, FieldMeta>` への代入は、`kind: "custom"` の `Component<CustomFieldProps<V>>` が `V` について不変（`value` と `onChange` の両方で `V` を使うため）で、`Component` 自体も Props に対して反変になるため、キャスト無しでは通らない。`setting.getValue()` の `Promise<C>` も、`C extends object` の制約だけでは `Promise<Record<string, unknown>>` へ代入できない。どちらも `tsc --strict` で確認済み
+- **`read` は既定値の上へ保存済みの値を重ねる。** `fallback` は何も保存されていない時にだけ効く。項目を後から足した設定では、保存済みの値に新しいキーが無く、そのままでは `select` が何も選ばれていない状態で出る。重ねておくと、バックアップの読み込みも新しいキーを取り込める
 - **キャストは `defineGroup` の中だけに閉じる。** 呼び出し側（`fields.ts`）は型が効いた状態で書き、描画側は `unknown` しか見ない。境界を1つの関数へ集めることで、型が緩む範囲をそこだけに限る
 - **値の型と `control` の種類の整合は型で縛らない。** `boolean` のキーに `kind: "number"` を書いても型は通る。完全に縛ると `FieldControl` が条件型だらけになり、読めなくなるほうの害が大きい
 - **保存は操作した瞬間に行う。** 保存ボタンを置かない。ポップアップは外側をクリックすると閉じるため、未保存の状態を抱えると消える

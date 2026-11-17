@@ -108,13 +108,20 @@ export const homeGreetingSetting = storage.defineItem<GreetingConfig>(
   {
     fallback: {
       enabled: true,
+      salutation: "time",
       messages: [
-        "おはようございます！",
+        "今日も一日、無理せずいきましょう。",
         "あんた、宿題やったの！？",
         "睡眠時間を減らすと効率が落ちるそうですよ。寝ましょう。",
       ],
     },
   },
+);
+
+// 直前に出した一言。続けて同じ一言を出さないために覚える
+export const homeGreetingLastMessage = storage.defineItem<string>(
+  "local:home.greeting.last",
+  { fallback: "" },
 );
 
 export const homeLastAccessRecord = storage.defineItem<LastAccessRecord>(

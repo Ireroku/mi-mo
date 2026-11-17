@@ -1,40 +1,37 @@
 // ホームへ挨拶を出す。
-// ログインユーザー名と、候補から選んだ一言を並べる。
+// 名前の前の言葉とログインユーザー名、候補から選んだ一言を並べる。
 
 import { mount, unmount } from "svelte";
 import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { readUserName } from "@/moodle/user";
 import { ensureHomeContainer } from "@/features/home/container";
+import type { SalutationMode } from "./greeting.logic";
+import { pickMessage, pickSalutation } from "./greeting.logic";
 import Greeting from "./Greeting.svelte";
 
 export interface GreetingConfig {
   enabled: boolean;
+  salutation?: SalutationMode; // この項目が増える前に保存された設定には無い
   messages: string[];
-}
-
-function pickRandomMessage(messages: string[]): string | undefined {
-  if (messages.length === 0) {
-    return undefined;
-  }
-
-  const index = Math.floor(Math.random() * messages.length);
-  return messages[index];
 }
 
 /**
  * ホームの挨拶コンポーネントを初期化してマウントする。
+ * 出した一言を返す。呼び出し側が保存し、次回の lastMessage として渡す。
  */
 export async function initGreeting(
   ctx: ContentScriptContext,
   config: GreetingConfig,
-): Promise<void> {
+  lastMessage: string,
+): Promise<string | undefined> {
   const container = ensureHomeContainer();
   if (!container) {
-    return;
+    return undefined;
   }
 
   const userName = readUserName();
-  const message = pickRandomMessage(config.messages);
+  const salutation = pickSalutation(new Date(), config.salutation);
+  const message = pickMessage(config.messages, lastMessage);
   const ui = await createShadowRootUi(ctx, {
     name: "mimo-greeting",
     position: "inline",
@@ -43,7 +40,7 @@ export async function initGreeting(
     onMount: (target) => {
       return mount(Greeting, {
         target,
-        props: { userName, message },
+        props: { salutation, userName, message },
       });
     },
     onRemove: (mounted) => {
@@ -53,4 +50,6 @@ export async function initGreeting(
     },
   });
   ui.mount();
+
+  return message;
 }

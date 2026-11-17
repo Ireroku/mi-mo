@@ -21,6 +21,7 @@ import {
   menuBadgesSetting,
   courseListCacheSetting,
   homeGreetingSetting,
+  homeGreetingLastMessage,
   homeLastAccessRecord,
   uiQuickDrawerSetting,
   coursePageAutoattendButtonSetting,
@@ -80,7 +81,16 @@ export default defineContentScript({
     await runFeature("loginComponent", () => initLoginComponent());
 
     if (greetingConfig.enabled) {
-      await runFeature("greeting", () => initGreeting(ctx, greetingConfig));
+      await runFeature("greeting", async () => {
+        const shown = await initGreeting(
+          ctx,
+          greetingConfig,
+          await homeGreetingLastMessage.getValue(),
+        );
+        if (shown !== undefined) {
+          await homeGreetingLastMessage.setValue(shown);
+        }
+      });
     }
 
     await runFeature("lastAccess", async () => {

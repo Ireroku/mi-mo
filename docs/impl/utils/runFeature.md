@@ -33,7 +33,7 @@ entrypoint からの呼び出し:
 import { runFeature } from "@/utils/runFeature";
 
 await runFeature("font", () => applyFont(uiFont));
-await runFeature("greeting", () => initGreeting(ctx, greetingConfig));
+await runFeature("menu", () => initMenu(menuConfig));
 ```
 
 ## 処理の流れ
