@@ -81,7 +81,6 @@ defineGroup(
     startDate: { label: "学期の開始日", control: { kind: "date" } },
     lessonCount: {
       label: "授業の回数",
-      description: "1つの授業が何回で終わるか",
       control: { kind: "number", min: 1, max: 30, unit: "回" },
     },
     color: {

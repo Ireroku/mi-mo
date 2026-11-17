@@ -69,7 +69,6 @@ export const settingsGroups: readonly SettingsGroup[] = [
       startDate: { label: "学期の開始日", control: { kind: "date" } },
       lessonCount: {
         label: "授業の回数",
-        description: "1つの授業が何回で終わるか",
         control: { kind: "number", min: 1, max: 30, unit: "回" },
       },
       color: {
@@ -151,7 +150,7 @@ export const settingsGroups: readonly SettingsGroup[] = [
   defineGroup("course", "マイコース", myCoursesTodayOrderSetting, {
     enabled: {
       label: "マイコースの先頭に今日の授業を表示する",
-      description: "「ホーム」タブの時間割情報を使用します",
+      description: "「ホーム」タブの時間割情報のコースURLを使用します",
       control: { kind: "toggle" },
     },
   }),
