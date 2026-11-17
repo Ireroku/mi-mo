@@ -55,8 +55,10 @@ export const menuBadgesSetting = storage.defineItem<MenuBadgesConfig>(
   {
     fallback: {
       clock: {
-        showSeconds: true,
+        showSeconds: false,
+        hour12: false,
         showDate: true,
+        showYear: false,
         showWeekday: true,
         showPeriod: true,
       },

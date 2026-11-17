@@ -76,7 +76,9 @@ defineGroup("general", "時計", menuBadgesSetting, {
       kind: "nested",
       fields: {
         showSeconds: { label: "秒", control: { kind: "toggle" } },
+        hour12: { label: "12時間表記", control: { kind: "toggle" } },
         showDate: { label: "日付", control: { kind: "toggle" } },
+        showYear: { label: "年", control: { kind: "toggle" } },
         showWeekday: { label: "曜日", control: { kind: "toggle" } },
         showPeriod: { label: "時限", control: { kind: "toggle" } },
       },

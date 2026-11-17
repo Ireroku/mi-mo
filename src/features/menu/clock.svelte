@@ -3,11 +3,9 @@
   import {
     formatDate,
     formatTime,
-    formatWeekday,
     findCurrentPeriod,
     startClockTicker,
   } from "./clock.logic";
-  import { Badge } from "$lib/components/ui/badge";
 
   interface Props {
     config: ClockConfig;
@@ -17,33 +15,32 @@
   let { config, periodTable }: Props = $props();
 
   let now = $state(new Date());
-  let showSeconds = $derived(config.showSeconds ?? false);
 
   $effect(() => {
     return startClockTicker((tick) => {
       now = tick;
-    }, showSeconds ? "second" : "minute");
+    }, config.showSeconds ? "second" : "minute");
   });
 
   let currentPeriod = $derived(
     config.showPeriod ? findCurrentPeriod(now, periodTable) : undefined,
   );
+  let dateText = $derived(formatDate(now, config));
 </script>
 
-<!-- 時刻を主役にし、日付と曜日は補助として落とす。時限はBadgeで独立させる -->
-<div class="flex h-full items-center gap-2 whitespace-nowrap px-3 font-sans">
-  <span class="text-sm font-medium tabular-nums text-foreground">
-    {formatTime(now, showSeconds)}
+<!-- 上段に時刻と時限、下段に日付。幅は長い方の段だけで決まる -->
+<div
+  class="flex h-full flex-col items-end justify-center whitespace-nowrap px-3 font-sans leading-tight"
+>
+  <span class="flex items-baseline gap-1.5">
+    <span class="text-sm font-medium tabular-nums text-foreground">
+      {formatTime(now, config)}
+    </span>
+    {#if currentPeriod}
+      <span class="text-xs text-muted-foreground">{currentPeriod.period}限</span>
+    {/if}
   </span>
-  {#if config.showDate}
-    <span class="text-xs text-muted-foreground">{formatDate(now)}</span>
-  {/if}
-  {#if config.showWeekday}
-    <span class="text-xs text-muted-foreground">{formatWeekday(now)}</span>
-  {/if}
-  {#if config.showPeriod}
-    <Badge variant="secondary">
-      {currentPeriod ? `${currentPeriod.period}限` : "時間外"}
-    </Badge>
+  {#if dateText}
+    <span class="text-xs tabular-nums text-muted-foreground">{dateText}</span>
   {/if}
 </div>

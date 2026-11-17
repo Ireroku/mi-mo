@@ -1,8 +1,10 @@
 export interface ClockConfig {
   showSeconds?: boolean;
+  showYear?: boolean;
   showDate?: boolean;
   showWeekday?: boolean;
   showPeriod?: boolean;
+  hour12?: boolean;
 }
 
 export type { PeriodSlot } from "@/utils/periods";
@@ -10,25 +12,33 @@ export { findCurrentPeriod, findNextPeriodStart } from "@/utils/periods";
 
 export type ClockGranularity = "second" | "minute";
 
-const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"] as const;
+const LOCALE = "ja-JP";
 
-export function formatTime(date: Date, showSeconds: boolean): string {
-  const hh = String(date.getHours()).padStart(2, "0");
-  const mm = String(date.getMinutes()).padStart(2, "0");
-  if (!showSeconds) {
-    return `${hh}:${mm}`;
+export function formatTime(date: Date, config: ClockConfig): string {
+  return new Intl.DateTimeFormat(LOCALE, {
+    hour: config.hour12 ? "numeric" : "2-digit",
+    minute: "2-digit",
+    second: config.showSeconds ? "2-digit" : undefined,
+    hourCycle: config.hour12 ? "h12" : "h23",
+  }).format(date);
+}
+
+/**
+ * 日付と曜日を1つの文字列にする。どちらも出さない設定では空文字を返す。
+ * 年は日付と一緒にだけ出す。
+ */
+export function formatDate(date: Date, config: ClockConfig): string {
+  if (!config.showDate && !config.showWeekday) {
+    return "";
   }
 
-  const ss = String(date.getSeconds()).padStart(2, "0");
-  return `${hh}:${mm}:${ss}`;
-}
-
-export function formatDate(date: Date): string {
-  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
-}
-
-export function formatWeekday(date: Date): string {
-  return `${WEEKDAYS[date.getDay()]}曜日`;
+  return new Intl.DateTimeFormat(LOCALE, {
+    year: config.showDate && config.showYear ? "numeric" : undefined,
+    // numeric は曜日が無い時に「11/7」となるため、常に「11月」を返す long を使う
+    month: config.showDate ? "long" : undefined,
+    day: config.showDate ? "numeric" : undefined,
+    weekday: config.showWeekday ? "short" : undefined,
+  }).format(date);
 }
 
 function msUntilNextBoundary(date: Date, granularity: ClockGranularity): number {

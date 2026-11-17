@@ -2,7 +2,7 @@
 
 ## 概要
 
-Moodle のナビゲーションメニューに現在時刻を表示する。時刻・日付・曜日・時限のそれぞれについて表示するかを設定で切り替える。Svelte コンポーネントを Shadow DOM へマウントして描画する。
+Moodle のナビゲーションメニューに現在時刻を表示する。上段に時刻と時限、下段に日付と曜日を置く。秒・12時間表記・日付・年・曜日・時限のそれぞれを設定で切り替える。Svelte コンポーネントを Shadow DOM へマウントして描画する。
 
 ## 関連
 
@@ -27,16 +27,17 @@ Moodle のナビゲーションメニューに現在時刻を表示する。時�
 // clock.logic.ts
 export interface ClockConfig {
   showSeconds?: boolean;
+  showYear?: boolean;
   showDate?: boolean;
   showWeekday?: boolean;
   showPeriod?: boolean;
+  hour12?: boolean;
 }
 
 export type ClockGranularity = "second" | "minute";
 
-export function formatTime(date: Date, showSeconds: boolean): string;
-export function formatDate(date: Date): string;
-export function formatWeekday(date: Date): string;
+export function formatTime(date: Date, config: ClockConfig): string;
+export function formatDate(date: Date, config: ClockConfig): string;
 export function startClockTicker(
   onTick: (now: Date) => void,
   granularity?: ClockGranularity,
@@ -98,19 +99,31 @@ await initMenuBadges(ctx, badgesConfig, periodTable.periods);
 
 ### 書式
 
-| 呼び出し | 出力例 |
-|---|---|
-| `formatTime(date, false)` | `09:05` |
-| `formatTime(date, true)` | `09:05:30` |
-| `formatDate(date)` | `2026/9/21` |
-| `formatWeekday(date)` | `日曜日` |
+どちらも `Intl.DateTimeFormat("ja-JP", …)` で整形する。
 
-時と分と秒はゼロ埋めする。年月日はゼロ埋めしない。
+| 関数 | 設定 | 出力例 |
+|---|---|---|
+| `formatTime` | なし | `09:05` |
+| `formatTime` | `showSeconds` | `09:05:30` |
+| `formatTime` | `hour12` | `午前9:05`、`午後2:05` |
+| `formatDate` | `showDate` と `showWeekday` | `11月7日(土)` |
+| `formatDate` | 上に加えて `showYear` | `2026年11月7日(土)` |
+| `formatDate` | `showDate` のみ | `11月7日` |
+| `formatDate` | `showWeekday` のみ | `土` |
+| `formatDate` | どちらも無し | 空文字 |
+
+24時間表記では時をゼロ埋めする。12時間表記の時と、月日はゼロ埋めしない。`showYear` は `showDate` が有効な時にだけ効く。
+
+### 表示の配置
+
+1. 上段に時刻（`text-sm font-medium`）を置き、その右に時限（`3限`、`text-xs text-muted-foreground`）を置く
+2. `formatDate` が空文字でなければ、下段に日付（`text-xs text-muted-foreground`）を置く
+3. 二段とも右揃えにする
 
 ### 時限の判定
 
 1. `findCurrentPeriod` が `PeriodSlot[]` を走査し、現在時刻が `start` 以上 `end` 未満に収まる枠を返す
-2. 該当がなければ `undefined` を返す。表示は「時間外」
+2. 該当がなければ `undefined` を返す。時限は表示しない
 
 ### マウント
 
@@ -128,8 +141,13 @@ await initMenuBadges(ctx, badgesConfig, periodTable.periods);
 - **`setInterval` を使わず、`setTimeout` で次の境界までを毎回計算し直す。** `setInterval` は誤差が累積するため
 - **`visibilitychange` で表示へ戻った時点に再同期する。** バックグラウンドタブではタイマーが間引かれるため。ただし表示値は毎回 `new Date()` から計算するので、遅れるのは更新のタイミングだけで、表示内容そのものが狂うことはない
 - **時限まわりの計算は [`../utils/periods.md`](../utils/periods.md) に任せる。** ソート済みを前提とする理由や、当日に残りが無い場合の扱いはあちらが持つ
-- **時刻を主役にし、日付と曜日は `text-xs text-muted-foreground` で落とす。** 4つの情報を同じ大きさで並べると、どれを見ればよいか判断できなくなる
-- **時限は shadcn の `Badge`（`variant="secondary"`）で囲む。** 時刻や日付と違い、現在どの枠にいるかという別種の情報のため。追加は `pnpm dlx shadcn-svelte@latest add badge -y`
+- **時刻を主役にし、日付と曜日と時限は `text-xs text-muted-foreground` で落とす。** 4つの情報を同じ大きさで並べると、どれを見ればよいか判断できなくなる
+- **一段に並べず、二段に積む。** 上部メニューの幅は Moodle の項目と分け合う。二段にすると、幅は長い方の段（多くは日付）だけで決まる
+- **時限を枠で囲まず、文字だけにする。** 大きさと色の差で時刻との区別が付くため、枠は区別を増やさない
+- **授業時間の外では「時間外」と書かず、時限を出さない。** 時限が無いこと自体が、時間外であることを伝える
+- **整形を `Intl.DateTimeFormat` に任せる。** 曜日の名前、午前・午後、桁埋めを自前で持たずに済む
+- **月の指定は `numeric` ではなく `long` にする。** `numeric` は曜日を出さない時に `11/7` を返す。`long` は常に `11月7日` を返す
+- **秒・年・12時間表記の既定はオフにする。** 幅を使う割に、要る人が少ない。保存済みの設定を持つ利用者には、既定の変更は及ばない
 - **数字には `tabular-nums` を当てる。** 桁ごとに幅が変わると、1秒ごとに横幅が揺れる
 - **ルート要素へ `font-sans` を明示する。** `createShadowRootUi` が `:host{all:initial}` でリセットするため、指定しないとブラウザ既定のフォントに落ちる
 - **設定は entrypoint が読み、`initMenuBadges` が引数で受け取る。** このモジュールは設定の保存場所も形式も参照しない
