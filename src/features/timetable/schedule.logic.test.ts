@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PeriodSlot } from "@/utils/periods";
 import { formatDateKey } from "./date";
-import { buildSchedule, lessonsOn } from "./schedule.logic";
+import { buildSchedule, hasLessons, lessonsOn } from "./schedule.logic";
 import type { TimetableConfig } from "./types";
 
 const periods: PeriodSlot[] = [
@@ -72,17 +72,42 @@ describe("buildSchedule", () => {
   it("開始日の形式が合わない場合は空にする", () => {
     expect(buildSchedule(makeConfig({ startDate: "2026/04/06" }), periods)).toEqual([]);
   });
+
+  it("時限表に無い番号の授業は含めない", () => {
+    expect(datesOf(makeConfig(), "月2")).toHaveLength(3);
+    expect(
+      buildSchedule(makeConfig(), [periods[0]!]).filter((occ) => occ.slot.title === "月2"),
+    ).toEqual([]);
+  });
 });
 
 describe("lessonsOn", () => {
-  it("指定した日のコマを時限の順に返す", () => {
+  it("指定した日のコマを時限表の並び順に返す", () => {
     const schedule = buildSchedule(makeConfig(), periods);
     const titles = lessonsOn(new Date(2026, 3, 6), schedule).map((occ) => occ.slot.title);
     expect(titles).toEqual(["月1", "月2"]);
   });
 
+  it("時限表を並べ替えると、番号に結び付いた授業も一緒に並び替わる", () => {
+    const schedule = buildSchedule(makeConfig(), [...periods].reverse());
+    const titles = lessonsOn(new Date(2026, 3, 6), schedule).map((occ) => occ.slot.title);
+    expect(titles).toEqual(["月2", "月1"]);
+  });
+
   it("授業の無い日は空にする", () => {
     const schedule = buildSchedule(makeConfig(), periods);
     expect(lessonsOn(new Date(2026, 3, 7), schedule)).toEqual([]);
+  });
+});
+
+describe("hasLessons", () => {
+  const empty = { mon: [], tue: [null], wed: [], thu: [], fri: [] };
+
+  it("授業が1つでもあれば true を返す", () => {
+    expect(hasLessons({ grid: { ...empty, wed: [null, { title: "授業" }] } })).toBe(true);
+  });
+
+  it("空の枠だけなら false を返す", () => {
+    expect(hasLessons({ grid: empty })).toBe(false);
   });
 });

@@ -289,6 +289,8 @@ pnpm dlx shadcn-svelte@latest add tabs switch input label button select popover 
 4. `replace(value)` は、渡された値を `options.normalize` で整えてから、グループ全体を `setting.setValue()` へ書く。`normalize` を省くと値をそのまま書く。バックアップと時間割のファイルの読み込みが使う
 5. `options` の `footer` と `after` は、そのまま `SettingsGroup` へ載せる
 
+時間割のグループは `normalize` に `normalizePeriods`（[`../utils/periods.md`](../utils/periods.md)）を渡し、古いファイルの時限表を読んでも番号が振り直されるようにする。
+
 型を落とす2箇所は次のように書く。
 
 ```ts

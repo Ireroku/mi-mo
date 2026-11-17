@@ -2,9 +2,10 @@
   import type { CustomFieldProps } from "../types";
   import type { TimetableSlot, Weekday } from "@/features/timetable/types";
   import { periodTableSetting } from "@/utils/settings";
-  import type { PeriodSlot } from "@/utils/periods";
+  import { periodName, type PeriodSlot } from "@/utils/periods";
+  import * as Accordion from "$lib/components/ui/accordion";
   import { Input } from "$lib/components/ui/input";
-  import { ChevronDown, ChevronRight } from "@lucide/svelte";
+  import StackedInputs from "../controls/StackedInputs.svelte";
 
   let {
     value,
@@ -19,24 +20,14 @@
     { key: "fri", label: "金曜日" },
   ];
 
+  // 時限表の並びで行を出す。時限表は別の画面で直すため、開いた時に一度だけ読む
   let periods = $state<PeriodSlot[]>([]);
-  let openDays = $state<Record<Weekday, boolean>>({
-    mon: false,
-    tue: false,
-    wed: false,
-    thu: false,
-    fri: false,
-  });
 
   $effect(() => {
     periodTableSetting.getValue().then((table) => {
       periods = table.periods;
     });
   });
-
-  function toggleDay(w: Weekday) {
-    openDays[w] = !openDays[w];
-  }
 
   interface SlotInput {
     title: string;
@@ -55,11 +46,8 @@
     };
   }
 
-  function handleSlotChange(
-    weekday: Weekday,
-    periodIndex: number,
-    input: SlotInput,
-  ) {
+  // 授業は時限の番号（period - 1）の位置に置く。時限表の並べ替えで授業が入れ替わらないようにするため
+  function handleSlotChange(weekday: Weekday, periodIndex: number, input: SlotInput) {
     const list = [...(value[weekday] || [])];
     // 足りない分を null で埋める
     while (list.length <= periodIndex) {
@@ -73,63 +61,50 @@
       [weekday]: list,
     });
   }
-
-  let periodCount = $derived(Math.max(periods.length, 5));
 </script>
 
-<div class="flex flex-col gap-2 w-full">
-  {#each WEEKDAYS as { key, label }}
-    {@const isOpen = openDays[key]}
+<Accordion.Root type="single" class="w-full">
+  {#each WEEKDAYS as { key, label } (key)}
     {@const slots = value[key] || []}
-    <div class="rounded-lg border bg-card text-card-foreground shadow-2xs overflow-hidden">
-      <button
-        type="button"
-        class="flex w-full items-center justify-between px-3 py-2 text-note font-semibold hover:bg-accent/50 transition-colors"
-        onclick={() => toggleDay(key)}
-      >
-        <span>{label}</span>
-        {#if isOpen}
-          <ChevronDown class="size-4 text-muted-foreground" />
-        {:else}
-          <ChevronRight class="size-4 text-muted-foreground" />
-        {/if}
-      </button>
-
-      {#if isOpen}
-        <div class="border-t px-3 py-2 flex flex-col gap-2.5 bg-background/50">
-          {#each Array(periodCount) as _, idx}
-            {@const slot = slots[idx]}
-            {@const periodSlot = periods.find((p) => p.period === idx + 1)}
-            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-              <span class="w-16 shrink-0 text-note font-mono font-medium text-muted-foreground">
-                {idx + 1}限{#if periodSlot} ({periodSlot.start}){/if}
-              </span>
+    <Accordion.Item value={key}>
+      <Accordion.Trigger class="text-row font-normal">{label}</Accordion.Trigger>
+      <Accordion.Content class="flex flex-col gap-3">
+        {#each periods as periodSlot (periodSlot.period)}
+          {@const index = periodSlot.period - 1}
+          {@const slot = slots[index]}
+          {@const heading = `${periodName(periodSlot)}（${periodSlot.start}）`}
+          <div class="flex flex-col gap-1">
+            <span class="whitespace-nowrap text-note font-normal text-muted-foreground">
+              {heading}
+            </span>
+            <StackedInputs>
               <Input
                 type="text"
                 placeholder="科目名"
+                aria-label={`${label} ${heading}の科目名`}
                 value={slot?.title ?? ""}
-                class="flex-1"
                 oninput={(e) =>
-                  handleSlotChange(key, idx, {
-                    title: (e.target as HTMLInputElement).value,
+                  handleSlotChange(key, index, {
+                    title: e.currentTarget.value,
                     url: slot?.url ?? "",
                   })}
               />
               <Input
                 type="text"
+                inputmode="url"
                 placeholder="リンク先URL（任意）"
+                aria-label={`${label} ${heading}のリンク先URL`}
                 value={slot?.url ?? ""}
-                class="flex-1"
                 oninput={(e) =>
-                  handleSlotChange(key, idx, {
+                  handleSlotChange(key, index, {
                     title: slot?.title ?? "",
-                    url: (e.target as HTMLInputElement).value,
+                    url: e.currentTarget.value,
                   })}
               />
-            </div>
-          {/each}
-        </div>
-      {/if}
-    </div>
+            </StackedInputs>
+          </div>
+        {/each}
+      </Accordion.Content>
+    </Accordion.Item>
   {/each}
-</div>
+</Accordion.Root>

@@ -9,7 +9,9 @@
 - 使う: [`./panel.md`](./panel.md) — `CustomFieldProps` の形と、`kind: "custom"` の差し込み口
 - 使う: [`../menu/navbar.md`](../menu/navbar.md) — `MenuConfig` と `NewMenuItem` の型
 - 使う: [`../menu/clock.md`](../menu/clock.md) — `ClockConfig` の型
-- 使う: [`../utils/periods.md`](../utils/periods.md) — `PeriodSlot` と `PeriodTableConfig` の型
+- 使う: [`../utils/periods.md`](../utils/periods.md) — `PeriodSlot` と `PeriodTableConfig` の型、`defaultPeriodName` と `nextPeriodNumber`
+- 使う: [`./controls.md`](./controls.md) — 時限表の時刻に使う `TimePicker`、行の欄を積む `StackedInputs`、候補付きの入力欄 `SuggestInput`
+- 使う: [`../moodle/menuItems.md`](../moodle/menuItems.md) — 隠す項目の候補にする、Moodle で控えたメニュー項目名（`menuItemsCacheSetting`）
 - 使う: [`../menu/countdownBadge.md`](../menu/countdownBadge.md) — `CountdownConfig` と `CountdownSource` の型
 - 資料: [`../../features/ui/menu.md`](../../features/ui/menu.md) — メニュー項目の削除と追加でユーザーが何をしたいか
 
@@ -17,7 +19,7 @@
 
 | パス | 役割 |
 |---|---|
-| `src/features/settings/fields/ListField.svelte` | 行の追加と削除を扱う共通の枠 |
+| `src/features/settings/fields/ListField.svelte` | 行の追加と削除を扱う共通の枠。時限表は使わない |
 | `src/features/settings/fields/HiddenMenuItemsField.svelte` | 隠すメニュー項目の編集 |
 | `src/features/settings/fields/NewMenuItemsField.svelte` | 追加するメニュー項目の編集 |
 | `src/features/settings/fields/PeriodTableField.svelte` | 時限表の編集 |
@@ -146,7 +148,17 @@ defineGroup(
 
 ### PeriodTableField
 
-行は数値入力1つ（`period`）と時刻入力2つ（`start`・`end`）。時刻入力は `type="time"` を使い、値は `HH:MM` の文字列をそのまま保存する。番号の欄は幅を固定し（`w-10`）、時刻の欄2つが残りの幅を分け合う（`min-w-0 flex-1`）。ポップアップの幅（380px）で時刻が欠けない形にする。`createItem` は、いま並んでいる最大の `period` に1を足した番号と、空の時刻を返す。
+`ListField` を使わず、`svelte-dnd-action` の `dragHandleZone` で行をドラッグして並べ替えられる一覧を自前で描く。配列の順が、そのまま時間割の行の順になる（[`../utils/periods.md`](../utils/periods.md)）。
+
+行は左から、持ち手・名前・時刻2つ・削除ボタン。
+
+1. 持ち手（`GripVertical`）に `dragHandle` を付け、`aria-label` に「`<名前>`を並べ替える」を書く。持ち手の外を押しても行は動かない。キーボードでは、持ち手へフォーカスして Enter か Space で掴み、矢印キーで動かす
+2. 名前はテキスト入力1つ。値は `name`、placeholder は `defaultPeriodName(period)`。空にした場合は `name` を消し、既定の名前へ戻す。`period`（番号）は画面に出さず、編集もさせない
+3. 時刻は `TimePicker`（[`./controls.md`](./controls.md)）を2つ、「〜」で挟んで並べる。値は `HH:MM` の文字列
+4. 名前の欄は伸び（`min-w-28 flex-1`）、時刻の2つは縮めない（`shrink-0`）。名前と時刻の入れ物は折り返す（`flex-wrap`）。380px の幅では時刻が名前の下へ回り、広い設定ページでは1行に並ぶ。時計のボタンが欠けない
+5. 並べ替えの部品は `id` を持つ項目を求めるため、`{ id: period, slot }` の形に包んで渡す。`consider` の間は部品から届いた並びで手元の配列を上書きし、`finalize` で `slot` だけを取り出して `onChange` を呼ぶ
+6. 並べ替えの動き（`flipDurationMs`）は 150ms。OS が動きを減らす設定の間は 0 にする。設定の変化は `svelte/reactivity` の `MediaQuery` で追う
+7. 一覧の下の「時限を追加」は、`nextPeriodNumber` の番号と空の時刻を持つ枠を末尾へ足す。`taken` には、時間割に授業の入っている番号を渡す。番号は画面を開いた時に `timetableSetting` から一度だけ集める
 
 ### CountdownListField
 
@@ -162,12 +174,14 @@ defineGroup(
 
 ## 決めごと
 
-- **4つのエディタで配列の操作を書き直さず、`ListField` に集める。** 行の追加・削除・差し替えはどれも同じ手順になる
+- **並べ替えの無い3つのエディタは、配列の操作を書き直さず `ListField` に集める。** 行の追加・削除・差し替えはどれも同じ手順になる。時限表は並べ替えの部品が一覧の要素そのものに付くため、`ListField` の外で描く
 - **`id` は自動で振り、画面に出さない。** `CountdownConfig.id` は内部の識別子で、ユーザーが決める意味が無い
 - **`source.at` は `datetime-local` の値をそのまま保存する。** `buildCountdownTargets` が `new Date(source.at)` で解釈するため、`YYYY-MM-DDTHH:MM` の形がそのまま通る
-- **時限表を保存時に並べ替えない。** 読み込む側（`initMenuBadges`）が `sortByStart` で開始時刻の順に整えるため、画面側で二重に持たない
+- **時限表を保存時に開始時刻で並べ替えない。** 配列の順は時間割の表示の順として利用者が決める。時計は読む側（`initMenuBadges`）が `sortByStart` で開始時刻の順に整える
 - **省略可能なキーは `undefined` を空配列として扱う。** `MenuConfig` の `hidden` と `items` はどちらも省略可能で、未設定のまま編集を始める場合がある。`ListField` の `items` は `undefined` を受けないため、`HiddenMenuItemsField` と `NewMenuItemsField` の中で `value ?? []` を挟んでから渡す
 - **メニュー項目の挿入位置（`NewMenuItem.position`）は編集させない。** 指定には既存の項目名を正確に知る必要があり、手入力では実用にならない。位置を省略した場合の既定の挙動に任せる
 - **隠す項目は、Moodle で控えた項目名を候補に出し、候補に無い名前も書けるようにする。** 正確な名前を手で打つと一字違いで効かない。一方で、控えは最後に開いたページの項目しか持たず、Moodle が項目を足すこともあるため、候補だけに絞らない
 - **時限表は、保存先を時計と共有したまま、画面では時間割のカードに置く。** 時刻を決める動機は時間割の入力にあり、利用者は時間割の近くを探す。時計だけを使う利用者のために、説明へ時計にも効くことを書く。時間割を無効にしている間も、この行は残る
-- **並べ替え（ドラッグでの入れ替え）は作らない。** 時限表は開始時刻で自動的に整い、他の3項目は並び順が表示に影響しない
+- **時限表だけ、ドラッグで並べ替えられるようにする。** 時限の名前を自由に付けられるため（「1-2限」のようなまとめた枠など）、時間割に出す順は利用者が決める。他の3項目の並べ替えは作らない
+- **並べ替えは持ち手でだけ始める。** 行の中に入力欄と時計のボタンがあり、行のどこでも掴めると、入力や選択のつもりの操作がドラッグになる
+- **時限の番号を画面から消す。** 番号は授業の置き場所を指す変わらない値で、利用者が変えると時間割の授業が別の時限へずれる。名前と並びは自由に変えてよく、番号は追加の時にだけ振る

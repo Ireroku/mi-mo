@@ -16,7 +16,7 @@ import type { AutoattendStatsConfig } from "@/features/coursePage/autoattendStat
 import type { GradeInlineConfig } from "@/features/coursePage/gradeInline";
 import type { ExportConfig } from "@/features/coursePage/exportMarkdown";
 import type { CourseRef } from "@/moodle/courseList";
-import type { PeriodTableConfig } from "@/utils/periods";
+import { migratePeriodsFromV1, type PeriodTableConfig } from "@/utils/periods";
 import type { TimetableConfig } from "@/features/timetable/types";
 import type { TodayOrderConfig } from "@/features/myCourses/todayOrder";
 
@@ -184,6 +184,14 @@ export const periodTableSetting = storage.defineItem<PeriodTableConfig>(
         { period: 5, start: "16:20", end: "17:50" },
         { period: 6, start: "18:00", end: "19:30" },
       ],
+    },
+    // 版 2 から、番号は時限を指す変わらない値になり、配列の順が表示の順になった
+    version: 2,
+    migrations: {
+      2: (old: PeriodTableConfig): PeriodTableConfig => ({
+        ...old,
+        periods: migratePeriodsFromV1(old.periods ?? []),
+      }),
     },
   },
 );

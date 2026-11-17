@@ -145,13 +145,13 @@ export function buildIcs(
       const key = `${w}-${periodIdx}`;
       const group = slotGroups.get(key) || [];
       const period = periods.find((p) => p.period === periodIdx + 1);
-      const startTime = period?.start ?? "09:00";
-      const endTime = period?.end ?? "10:30";
 
-      // 該当コマの通常実施が全くない場合はスキップ（振替だけで実施される極端なケース）
-      if (group.length === 0) {
+      // 該当コマの通常実施が全くない場合はスキップ（振替だけで実施される極端なケースと、時限表に無い時限）
+      if (group.length === 0 || !period) {
         continue;
       }
+      const startTime = period.start;
+      const endTime = period.end;
 
       const firstOcc = group[0];
       const lastOcc = group[group.length - 1];
@@ -197,9 +197,13 @@ export function buildIcs(
 
   // 2. 振替日の単発 VEVENT
   for (const occ of substituteLessons) {
+    // buildSchedule は時限表に無い時限の授業を含めないため、必ず見つかる
     const period = periods.find((p) => p.period === occ.periodIndex + 1);
-    const startTime = period?.start ?? "09:00";
-    const endTime = period?.end ?? "10:30";
+    if (!period) {
+      continue;
+    }
+    const startTime = period.start;
+    const endTime = period.end;
 
     const dtstart = toUtcString(occ.date, startTime);
     const dtend = toUtcString(occ.date, endTime);

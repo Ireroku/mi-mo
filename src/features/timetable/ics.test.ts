@@ -123,10 +123,8 @@ describe("buildIcs", () => {
     expect(eventsOf(ics)[0]).toContain(`SUMMARY:${title}`);
   });
 
-  it("時限表に無い時限は 09:00〜10:30 として扱う", () => {
-    const [event] = eventsOf(buildIcs(makeConfig(), []));
-    expect(event).toContain("DTSTART:20260406T000000Z");
-    expect(event).toContain("DTEND:20260406T013000Z");
+  it("時限表に無い時限の授業は予定に出さない", () => {
+    expect(eventsOf(buildIcs(makeConfig(), []))).toEqual([]);
   });
 
   it("授業の無い時間割では予定を出さない", () => {

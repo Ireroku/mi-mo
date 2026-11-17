@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PeriodSlot } from "@/utils/periods";
+  import { periodName, type PeriodSlot } from "@/utils/periods";
   import type { TimetableConfig, Weekday } from "./types";
   import { formatDateKey, isSameDay } from "./date";
   import {
@@ -65,13 +65,6 @@
     return config.holidays.some((h) => h.date === key);
   }
 
-  let maxPeriods = $derived(
-    Math.max(
-      periods.length,
-      ...Object.values(config.grid).map((list) => list.length),
-      5,
-    ),
-  );
 </script>
 
 <div
@@ -116,21 +109,19 @@
         </tr>
       </thead>
       <tbody>
-        {#each Array(maxPeriods) as _, periodIdx}
-          {@const periodSlot = periods.find((p) => p.period === periodIdx + 1)}
+        <!-- 行は時限表の並び順。授業は時限の番号で引くため、並べ替えても授業は時限に付いて動く -->
+        {#each periods as periodSlot (periodSlot.period)}
           <tr class="border-b last:border-b-0">
             <td class="p-2 text-center font-mono opacity-75 border-r">
-              <div class="font-semibold">{periodIdx + 1}限</div>
-              {#if periodSlot}
-                <div class="text-[9px] opacity-70 leading-tight mt-0.5">
-                  {periodSlot.start}<br />{periodSlot.end}
-                </div>
-              {/if}
+              <div class="font-semibold">{periodName(periodSlot)}</div>
+              <div class="text-[9px] opacity-70 leading-tight mt-0.5">
+                {periodSlot.start}<br />{periodSlot.end}
+              </div>
             </td>
             {#each weekDays as day, dayIdx}
               {@const isToday = isSameDay(day, today)}
               {@const dayMap = weekLessons[dayIdx]}
-              {@const occ = dayMap?.get(periodIdx)}
+              {@const occ = dayMap?.get(periodSlot.period - 1)}
               <td
                 class="p-2 align-top border-r last:border-r-0 transition-colors"
                 class:is-today={isToday}

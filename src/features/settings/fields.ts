@@ -25,6 +25,8 @@ import {
   timetableSetting,
   myCoursesTodayOrderSetting,
 } from "@/utils/settings";
+import { normalizePeriods } from "@/utils/periods";
+import { hasLessons } from "@/features/timetable/schedule.logic";
 
 import HiddenMenuItemsField from "./fields/HiddenMenuItemsField.svelte";
 import NewMenuItemsField from "./fields/NewMenuItemsField.svelte";
@@ -125,7 +127,11 @@ export const settingsGroups: readonly SettingsGroup[] = [
         control: { kind: "custom", component: PeriodTableField },
       },
     },
-    { after: rowId(timetableSetting.key, "enabled") },
+    {
+      after: rowId(timetableSetting.key, "enabled"),
+      // 版 1 の頃のバックアップには、番号の重なった時限が入っている場合がある
+      normalize: (config) => ({ ...config, periods: normalizePeriods(config.periods) }),
+    },
   ),
 
   defineGroup("home", "非表示にする項目", homeHideElementsSetting, {

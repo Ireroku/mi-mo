@@ -10,7 +10,8 @@
 - 使う: [`../utils/download.md`](../utils/download.md) — `.ics` を保存する `saveBlob`
 - 使う: [`../timetable/schedule.md`](../timetable/schedule.md) — `TimetableConfig` と関連する型
 - 使う: [`../timetable/ics.md`](../timetable/ics.md) — `buildIcs` と `ICS_FILENAME`
-- 使う: [`../utils/periods.md`](../utils/periods.md) — 時限の数と番号
+- 使う: [`../utils/periods.md`](../utils/periods.md) — 時限の並び、番号、名前（`periodName`）
+- 使う: [`./controls.md`](./controls.md) — 科目名と URL、休講日と振替日の日付と2つ目の欄を重ねる `StackedInputs`、日付の `DatePicker`
 - 参考: [`./menuFields.md`](./menuFields.md) — `ListField` を使った配列の編集
 
 ## 対象ファイル
@@ -40,7 +41,7 @@
 // src/features/settings/fields/TimetableFooter.svelte
 const TIMETABLE_FILENAME = "mi-mo-timetable.json";
 
-// ファイルで出し入れするキー
+// ファイルで出し入れするキー。時間割と時限表の2つのグループにまたがる
 const TIMETABLE_FILE_KEYS: readonly (keyof TimetableConfig)[] = [
   "grid",
   "holidays",
@@ -48,6 +49,11 @@ const TIMETABLE_FILE_KEYS: readonly (keyof TimetableConfig)[] = [
   "startDate",
   "lessonCount",
 ];
+const PERIOD_FILE_KEYS: readonly (keyof PeriodTableConfig)[] = ["periods"];
+const SCOPE: BackupScope = {
+  [timetableSetting.key]: TIMETABLE_FILE_KEYS,
+  [periodTableSetting.key]: PERIOD_FILE_KEYS,
+};
 ```
 
 `fields.ts` へ足すグループ:
@@ -101,11 +107,13 @@ defineGroup(
 
 ### TimetableGridField
 
-1. 曜日ごとの折りたたみを5つ縦に並べる。既定はすべて閉じる
-2. 開いた曜日の中に、時限の数だけ行を出す。時限の数と番号は時限表から取る
-3. 各行に科目名の入力と URL の入力を置く
-4. 科目名が空の行は `null` として保存する
-5. 時限表より配列が短い場合、足りない分は空のコマとして扱う
+1. 月曜から金曜を shadcn の Accordion（`type="single"`）で縦に並べる。同時に開くのは1つの曜日だけで、開いた曜日をもう一度押すと閉じる。既定はすべて閉じる
+2. 開いた曜日の中に、時限表の配列の順で時限ごとの行を出す。時限表は開いた時に `periodTableSetting` から一度だけ読む
+3. 各行の上に「`<時限の名前>`（`<開始時刻>`）」を1行で出す（`text-note font-normal text-muted-foreground`、折り返さない）。名前は `periodName` で取る
+4. その下へ、`StackedInputs`（[`./controls.md`](./controls.md)）で科目名の入力を上、URL の入力を下に重ねて置く
+5. 入力は、曜日の配列の `period - 1` の位置へ書く。配列の位置は時限の番号で決まり、時限表の並び順とは関係しない
+6. 科目名が空の行は `null` として保存する
+7. 時限表より配列が短い場合、足りない分は空のコマとして扱う
 
 ### HolidayListField
 
@@ -117,10 +125,10 @@ defineGroup(
 
 ### TimetableFooter
 
-上から、ファイルの出し入れ、その説明文、`IcsExportButton` の順に並べる。
+上から、ファイルの出し入れ、`IcsExportButton` の順に並べる。説明文は置かない。上書きは読み込みの前の確認が伝える。
 
-1. `BackupButtons` へ、受け取った `values` と `onRestore`、`filename`（`TIMETABLE_FILENAME`）、`scope`（`{ groupId: timetableSetting.key, keys: TIMETABLE_FILE_KEYS }`）、`noun`（「時間割」）を渡す。書き出しと読み込みの手順は [`./panel.md`](./panel.md) の「バックアップ」が持つ
-2. ボタンの下へ、説明文「授業科目、休講日、振替日、学期の開始日、授業の回数を出し入れします。読み込むと、今の内容と入れ替わります」を出す
+1. `BackupButtons` へ、受け取った `values` と `onRestore`、`filename`（`TIMETABLE_FILENAME`）、`scope`（`SCOPE`）、`noun`（「時間割」）を渡す。書き出しと読み込みの手順は [`./panel.md`](./panel.md) の「バックアップ」が持つ
+2. 時限表を持たない古いファイルを読んだ場合、`parseScopedBackup` は時間割のグループだけを返し、時限表は今の値を残す
 
 ### IcsExportButton
 

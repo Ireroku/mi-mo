@@ -37,6 +37,13 @@ export function weekdayOf(date: Date): Weekday | undefined {
   }
 }
 
+/**
+ * 時間割に授業が1つでも入っているかを返す。
+ */
+export function hasLessons(config: Pick<TimetableConfig, "grid">): boolean {
+  return Object.values(config.grid).some((list) => (list ?? []).some(Boolean));
+}
+
 // "YYYY-MM-DD" をローカルの0時として読む。形式が合わなければ undefined を返す。
 function parseStartDate(dateStr: string): Date | undefined {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
@@ -49,17 +56,21 @@ function parseStartDate(dateStr: string): Date | undefined {
 
 /**
  * 時間割設定から学期の実日程を組み立てる。
+ * 同じ日の中は時限表の並び順に並べる。時限表に無い番号の授業は含めない。
  */
 export function buildSchedule(
   config: TimetableConfig,
   periods: PeriodSlot[],
 ): LessonOccurrence[] {
+  // grid の添字を、時限表の並び順に並べたもの
+  const periodIndexes = periods.map((p) => p.period - 1);
+
   // 有効なコマの総数をチェック
   const weekdays: Weekday[] = ["mon", "tue", "wed", "thu", "fri"];
   const activeSlots: { weekday: Weekday; periodIndex: number; slot: TimetableSlot }[] = [];
   for (const w of weekdays) {
     const list = config.grid[w] || [];
-    for (let i = 0; i < Math.max(list.length, periods.length); i++) {
+    for (const i of periodIndexes) {
       const slot = list[i];
       if (slot) {
         activeSlots.push({ weekday: w, periodIndex: i, slot });
@@ -110,7 +121,7 @@ export function buildSchedule(
 
     if (targetWeekday) {
       const list = config.grid[targetWeekday] || [];
-      for (let i = 0; i < list.length; i++) {
+      for (const i of periodIndexes) {
         const slot = list[i];
         if (!slot) {
           continue;
@@ -140,13 +151,11 @@ export function buildSchedule(
 }
 
 /**
- * 指定日のコマ一覧を時限順で返す。
+ * 指定日のコマ一覧を返す。buildSchedule が日の中を時限表の並び順に並べるため、その順を保つ。
  */
 export function lessonsOn(
   date: Date,
   schedule: readonly LessonOccurrence[],
 ): LessonOccurrence[] {
-  return schedule
-    .filter((occ) => isSameDay(occ.date, date))
-    .sort((a, b) => a.periodIndex - b.periodIndex);
+  return schedule.filter((occ) => isSameDay(occ.date, date));
 }

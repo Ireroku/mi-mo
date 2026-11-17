@@ -45,7 +45,12 @@ export const menuBadgesSetting = storage.defineItem<MenuBadgesConfig>(
 
 export const periodTableSetting = storage.defineItem<PeriodTableConfig>(
   "local:periods.table",
-  { fallback: /* 下の決めごとを参照 */ },
+  {
+    fallback: /* 下の決めごとを参照 */,
+    // 版 2 で、番号を変えない値にし、配列の順を表示の順にした（../utils/periods.md）
+    version: 2,
+    migrations: { 2: (old) => ({ ...old, periods: migratePeriodsFromV1(old.periods ?? []) }) },
+  },
 );
 ```
 

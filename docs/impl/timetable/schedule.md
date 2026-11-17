@@ -8,7 +8,7 @@
 
 - 使う: [`../utils/periods.md`](../utils/periods.md) — 各時限の開始・終了時刻
 - 資料: [`../../features/home/timetable.md`](../../features/home/timetable.md) — 回数の数え方と振替の扱いが必要な理由
-- 参考: [`../menu/countdownBadge.md`](../menu/countdownBadge.md) — 設定を受け取って計算だけを行うモジュールの形
+- 参考: [`../menu/countdownBadge.md`](../menu/countdownBadge.md) — 設定を受け取って計算だけを行うモジュールの形。`lessonsOn` と `hasLessons` の呼び出し側でもある
 
 ## 対象ファイル
 
@@ -51,6 +51,8 @@ export interface TimetableConfig {
   holidays: TimetableHoliday[];
   substitutes: TimetableSubstitute[];
   color: TimetableColor;
+  // カウントダウン「今の時限の残り時間」を、授業のある時限だけで数えるか。無い保存済みの設定は合わせる側に倒す
+  syncCountdown?: boolean;
 }
 ```
 
@@ -75,6 +77,8 @@ export function lessonsOn(
 ): LessonOccurrence[];
 
 export function weekdayOf(date: Date): Weekday | undefined;
+
+export function hasLessons(config: Pick<TimetableConfig, "grid">): boolean;
 ```
 
 ```ts
@@ -94,13 +98,17 @@ export function isSameDay(first: Date, second: Date): boolean;
 3. その日が `holidays` に含まれる場合、何も行わずに次の日へ進む
 4. その日が `substitutes` に含まれる場合、行う授業の曜日をその指定に差し替える。含まれない場合は `weekdayOf` で求めた曜日を使う
 5. 曜日が `undefined`（土曜・日曜）の場合、何も行わずに次の日へ進む
-6. その曜日の `grid` を時限の順に見て、`null` でないコマそれぞれについて `LessonOccurrence` を作る。`count` はそのコマ（曜日と時限の組）にとって何回目かを数えた値
-7. すべてのコマが `config.lessonCount` 回に達した時点で終わる
+6. 時限表（`periods`）の配列の順に、その曜日の `grid` の `period - 1` の位置を見て、`null` でないコマそれぞれについて `LessonOccurrence` を作る。時限表に無い位置のコマは見ない。`count` はそのコマ（曜日と時限の組）にとって何回目かを数えた値
+7. 時限表にあるすべてのコマが `config.lessonCount` 回に達した時点で終わる
 8. 開始日から 365 日を超えた時点でも終わる
 
 ### lessonsOn
 
-`schedule` から、`date` と同じ日のものを時限の順に返す。時刻は見ない。
+`schedule` から、`date` と同じ日のものを返す。並べ替えず、`buildSchedule` が作った順（時限表の配列の順）のまま返す。時刻は見ない。
+
+### hasLessons
+
+`grid` のどこかに `null` でないコマが1つでもあれば true を返す。カウントダウンを時間割に合わせるかの判定（[`../menu/countdownBadge.md`](../menu/countdownBadge.md)）と、設定画面でその行を出すかの判定（[`../settings/timetableFields.md`](../settings/timetableFields.md)）が使う。
 
 ### weekdayOf
 
@@ -115,6 +123,7 @@ export function isSameDay(first: Date, second: Date): boolean;
 - **終了条件を「全コマが所定の回数に達すること」にする。** 学期の終了日を別に設定させない。休講が多いコマがあれば、その分だけ日程が後ろへ伸びる
 - **365 日の上限を置く。** 設定次第（回数が大きい、grid が空など）で終わらなくなるため、無条件に止まる線を引く
 - **土曜と日曜は授業を置かない。** `Weekday` を月曜から金曜に限る。土曜開講が必要になった時点で型を広げる
-- **`grid` は曜日ごとの配列で持ち、添字を時限に対応させる。** 時限の数は [`../utils/periods.md`](../utils/periods.md) の時限表に従う。配列の長さが時限表より短い場合、足りない分は空きコマとして扱う
+- **`grid` は曜日ごとの配列で持ち、添字を時限の番号（`period - 1`）に対応させる。** どの時限があり、どの順に並ぶかは [`../utils/periods.md`](../utils/periods.md) の時限表に従う。配列の長さが時限表より短い場合、足りない分は空きコマとして扱う
+- **時限表から消した時限のコマは、日程に入れず、`grid` からも消さない。** 消した時限を戻すと授業も戻る。消すと、誤って時限を消しただけで授業の入力が失われる
 - **`Date` を返し、文字列にしない。** 表示側で書式を決めるため。設定として保存する日付だけ `YYYY-MM-DD` の文字列にする
 - **このモジュールは時刻を持たない。** 各コマの開始・終了時刻は時限表にあり、`.ics` の書き出し（[`./ics.md`](./ics.md)）が組み合わせる
