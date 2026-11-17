@@ -26,6 +26,7 @@ OS: macOS, Windows
 |---|---|
 | どの文書をどの順で読むか | [docs/README.md](./docs/README.md) の「読む順序」 |
 | 命名・構成・書式の規約、既にあるモジュールの一覧 | [docs/impl/README.md](./docs/impl/README.md)。**実装の前に必ず読む** |
+| 画面と文言をどういう考えで作るか | [docs/ui-principles.md](./docs/ui-principles.md)。**画面や文言を作る前に必ず読む** |
 | 機能の一覧と、実装済みかどうか | [README.md](./README.md)。実装状況はここにだけ書く |
 | 機能がユーザーから見て何をするか | [docs/features/](./docs/features/) |
 | モジュールをどう作るか | [docs/impl/](./docs/impl/) |

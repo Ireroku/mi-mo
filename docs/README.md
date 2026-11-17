@@ -12,6 +12,7 @@ mi-mo の仕様と実装方針の正典。
 
 | ファイル | 内容 | 読む場面 |
 |---|---|---|
+| [`ui-principles.md`](./ui-principles.md) | 画面と文言を作る時の判断の軸 | 画面を作る前。文言を書く前 |
 | [`known-issues.md`](./known-issues.md) | 実装済みの機能に残っている課題と、実機で未確認の項目 | 直すものを探す時。不具合を見つけた時 |
 | [`verify.md`](./verify.md) | 変更を終える前に行う確認の手順 | 作業を終える前 |
 
@@ -25,7 +26,8 @@ AIエージェントのメモの保存先は、[AGENTS.md](../AGENTS.md) の配�
 |---|---|
 | 新しく機能を作る | [`impl/README.md`](./impl/README.md) の規約と「モジュール一覧と関連」→ [`features/`](./features/) の仕様書 → [`moodle/`](./moodle/) の DOM 資料 → 指示書を書いてから実装 |
 | 既にある機能を直す | [`impl/README.md`](./impl/README.md) の「モジュール一覧と関連」から指示書を引く → 指示書の「対象ファイル」に挙がったコード |
-| 設定項目を足す | [`impl/utils/settings.md`](./impl/utils/settings.md) → [`impl/settings/panel.md`](./impl/settings/panel.md) の「項目を足す時の規約」 |
+| 画面や文言を作る・直す | [`ui-principles.md`](./ui-principles.md) → 該当する指示書 |
+| 設定項目を足す | [`ui-principles.md`](./ui-principles.md) → [`impl/utils/settings.md`](./impl/utils/settings.md) → [`impl/settings/panel.md`](./impl/settings/panel.md) の「項目を足す時の規約」 |
 | 不具合を直す・課題を選ぶ | [`known-issues.md`](./known-issues.md) → 該当する指示書 |
 | 作業を終える | [`verify.md`](./verify.md) |
 
