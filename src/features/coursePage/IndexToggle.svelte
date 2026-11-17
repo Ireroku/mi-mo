@@ -22,7 +22,7 @@
 <Button
   variant="ghost"
   size="sm"
-  class="font-sans text-muted-foreground"
+  class="pr-2 font-sans text-muted-foreground"
   onclick={onToggle}
 >
   {#if state === "allCollapsed"}

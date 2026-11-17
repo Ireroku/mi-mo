@@ -94,7 +94,7 @@ body.pagelayout-course #courseindexdrawercontrolsmenubutton {
 
 ### IndexToggle.svelte
 
-`state` が `allCollapsed` なら「すべて開く」、それ以外なら「すべて閉じる」と出す。初期値は `allExpanded` とし、`setState` は同じ表示用の値を更新する。ボタンは shadcn-svelte の `Button` を `variant="ghost"` `size="sm"` で描き、文言の左へ開閉を表すアイコン（lucide の `ChevronsUpDown`・`ChevronsDownUp`）を置く。隣の閉じるボタン（×）が枠の無いアイコンのため、枠と影を付けない。押されたら `onToggle` を呼び、呼び出し側がその時点の DOM を読み直す。セクションが無ければ開閉を実行しない。
+`state` が `allCollapsed` なら「すべて開く」、それ以外なら「すべて閉じる」と出す。初期値は `allExpanded` とし、`setState` は同じ表示用の値を更新する。ボタンは shadcn-svelte の `Button` を `variant="ghost"` `size="sm"` で描き、文言の左へ開閉を表すアイコン（lucide の `ChevronsUpDown`・`ChevronsDownUp`）を置く。隣の閉じるボタン（×）が枠の無いアイコンのため、枠と影を付けない。右の内側の余白は `pr-2`（0.5rem）にし、コースインデックスの項目（`.courseindex-item`）の左右の余白と揃える。押されたら `onToggle` を呼び、呼び出し側がその時点の DOM を読み直す。セクションが無ければ開閉を実行しない。
 
 ## 決めごと
 
@@ -107,5 +107,6 @@ body.pagelayout-course #courseindexdrawercontrolsmenubutton {
 - **標準のドロップダウンボタンを隠す。** 中身は展開と折りたたみの2つだけで、トグルに置き換えれば役目が残らない。ボタンを消しても Moodle 側のリンクは DOM に残るため、`click()` で呼べる
 - **リンクの `click()` を呼び、開閉そのものは Moodle に任せる。** 各セクションの `aria-expanded` を自分で書き換えると、Moodle が持つ表示状態の記録と食い違う
 - **ボタンを shadcn-svelte の `Button` で描き、Bootstrap のクラスを使わない。** Shadow DOM の中には Moodle の Bootstrap が届かない。`btn btn-secondary btn-sm` を付けても装飾が当たらず、文字だけが表示される
+- **右の余白をコースインデックスの項目と同じ 0.5rem にする。** 文言の右端が、下に並ぶ項目の文字の右端と揃う。値は Moodle 4.5 の `theme/boost/scss/moodle/courseindex.scss` にある `$courseindex-item-padding-x` から取った。実機では揃い方を確かめていない
 - **設定を持たない。** 仕様書（[`../../features/course-page/index-toggle.md`](../../features/course-page/index-toggle.md)）に設定項目が無い
 - **format-weeks 以外のフォーマットは未確認。** 採取したコースが週フォーマットのみで、セクションの構造が同じかどうかは確かめられていない
