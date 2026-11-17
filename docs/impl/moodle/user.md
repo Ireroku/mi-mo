@@ -13,13 +13,15 @@
 
 | パス | 役割 |
 |---|---|
-| `src/moodle/user.ts` | 表示名の読み取り |
+| `src/moodle/user.ts` | ログイン状態とログインページの判定、表示名の読み取り |
 
 ## インターフェース
 
 ```ts
 // src/moodle/user.ts
 export function isLoggedIn(): boolean;
+
+export function isLoginPage(pathname: string): boolean;
 
 export function readUserName(): string | undefined;
 ```
@@ -29,6 +31,10 @@ export function readUserName(): string | undefined;
 ### isLoggedIn
 
 `document.body` に `notloggedin` クラスが付いていなければ `true` を返す。`body` が無い段階（`document_start`）では `false` を返す。
+
+### isLoginPage
+
+`pathname` が `/login/index.php` で始まれば `true` を返す。ログイン後の遷移（[`../ui/landingPage.md`](../ui/landingPage.md)）が、ログインページを通った印を付ける判断に使う。
 
 ### readUserName
 

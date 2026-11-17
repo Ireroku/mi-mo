@@ -3,7 +3,6 @@
 import { storage } from "wxt/utils/storage";
 import type { HideElementsConfig } from "@/features/home/hideElements";
 import type { GreetingConfig } from "@/features/home/greeting";
-import type { LastAccessRecord } from "@/features/home/lastAccess";
 import type { MenuBadgesConfig } from "@/features/menu";
 import type { MenuConfig } from "@/features/menu/navbar/types";
 import type { MenuLogoConfig } from "@/features/menu/logo";
@@ -124,11 +123,6 @@ export const homeGreetingSetting = storage.defineItem<GreetingConfig>(
 export const homeGreetingLastMessage = storage.defineItem<string>(
   "local:home.greeting.last",
   { fallback: "" },
-);
-
-export const homeLastAccessRecord = storage.defineItem<LastAccessRecord>(
-  "local:home.lastAccess",
-  { fallback: { previous: "", current: "" } },
 );
 
 export const uiQuickDrawerSetting = storage.defineItem<QuickDrawerConfig>(

@@ -51,7 +51,7 @@ const [timetableConfig, periodTable] = await Promise.all([
   periodTableSetting.getValue(),
 ]);
 
-if (timetableConfig.enabled) {
+if (loggedIn && timetableConfig.enabled) {
   await initTimetable(ctx, timetableConfig, periodTable.periods);
 }
 ```
@@ -107,7 +107,7 @@ export const timetableSetting = storage.defineItem<TimetableConfig>(
 ## 決めごと
 
 - **サイトホームとダッシュボードの両方に出す。** 仕様書の対象が「ホーム」で、Moodle ではこの2つが別ページにあたる。どちらを開いても同じものが見えるようにする
-- **差し込み先を自分で探さず、[`../home/container.md`](../home/container.md) の器へ入れる。** 挨拶と前回アクセスも同じ場所へ出るため、それぞれが Moodle の DOM へ割り込むと並び順が定まらない。表示側はどのページに出ているかを知らないままで済む
+- **差し込み先を自分で探さず、[`../home/container.md`](../home/container.md) の器へ入れる。** 挨拶も同じ場所へ出るため、それぞれが Moodle の DOM へ割り込むと並び順が定まらない。表示側はどのページに出ているかを知らないままで済む
 - **`createShadowRootUi` を使い、Moodle の CSS から隔離する。** Moodle 側の表のスタイルが当たると、行の高さや罫線が崩れる
 - **表示するのは今週だけにする。** 前後の週へ送る操作は仕様書に無い。学期全体は `.ics` へ書き出して他のアプリで見る形にする
 - **回数は表示している週の回数を出す。** 「次に何回目か」ではなく、そのセルが指す授業が何回目かを出す
@@ -116,4 +116,5 @@ export const timetableSetting = storage.defineItem<TimetableConfig>(
 - **既定の色を `moodle` にする。** 何も選んでいない状態で、周りの Moodle のカードと地続きに見える。Moodle は暗い配色を持たないため、この色は OS がダークでも明るいまま保つ
 - **ダークモードは、選んだ色の暗い側の組へ切り替える形にする。** Moodle 自体はダークテーマを持たないため、`white` を選んだ状態でも周囲は白いままになる。暗くしたい場合は `black` を選ぶ
 - **`enabled` が false の時は entrypoint 側で呼ばない。** 設定が切れているときに実日程の計算まで走らせない
+- **未ログインの間は entrypoint 側で呼ばない。** 未ログインのホームはログインのための画面で、個人の時間割を出す場面ではない。`loggedIn` は entrypoint が `isLoggedIn()` で1度だけ求めた値を使う
 - **マイコースの並び順（[`../../features/my-courses/today-order.md`](../../features/my-courses/today-order.md)）はこのモジュールに含めない。** 同じ設定を読む別の機能として分ける

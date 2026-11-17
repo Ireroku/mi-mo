@@ -12,7 +12,7 @@ import { initIncrementalSearch } from "@/features/myCourses/incrementalSearch";
 import { initTodayOrder } from "@/features/myCourses/todayOrder";
 import { initLoginComponent } from "@/features/home/loginComponent";
 import { initGreeting } from "@/features/home/greeting";
-import { advanceRecord, initLastAccess } from "@/features/home/lastAccess";
+import { isLoggedIn } from "@/moodle/user";
 import { initPinnedCourses } from "@/features/ui/quickDrawer";
 import { initTimetable } from "@/features/timetable";
 import {
@@ -22,7 +22,6 @@ import {
   courseListCacheSetting,
   homeGreetingSetting,
   homeGreetingLastMessage,
-  homeLastAccessRecord,
   uiQuickDrawerSetting,
   coursePageAutoattendButtonSetting,
   coursePageAutoattendStatsSetting,
@@ -49,7 +48,6 @@ export default defineContentScript({
       menuConfig,
       badgesConfig,
       greetingConfig,
-      lastAccessRecord,
       quickDrawerConfig,
       autoattendButtonConfig,
       autoattendStatsConfig,
@@ -62,7 +60,6 @@ export default defineContentScript({
       menuSetting.getValue(),
       menuBadgesSetting.getValue(),
       homeGreetingSetting.getValue(),
-      homeLastAccessRecord.getValue(),
       uiQuickDrawerSetting.getValue(),
       coursePageAutoattendButtonSetting.getValue(),
       coursePageAutoattendStatsSetting.getValue(),
@@ -75,12 +72,15 @@ export default defineContentScript({
 
     // 機能は互いに独立している。1つが失敗しても残りを動かす。
     await runFeature("menu", () => initMenu(menuConfig));
+    // 未ログインの間は、挨拶と時間割を出さない
+    const loggedIn = isLoggedIn();
+
     await runFeature("menuBadges", () =>
       initMenuBadges(ctx, badgesConfig, periodTableConfig.periods),
     );
     await runFeature("loginComponent", () => initLoginComponent());
 
-    if (greetingConfig.enabled) {
+    if (loggedIn && greetingConfig.enabled) {
       await runFeature("greeting", async () => {
         const shown = await initGreeting(
           ctx,
@@ -92,13 +92,6 @@ export default defineContentScript({
         }
       });
     }
-
-    await runFeature("lastAccess", async () => {
-      await initLastAccess(ctx, lastAccessRecord);
-      await homeLastAccessRecord.setValue(
-        advanceRecord(lastAccessRecord, new Date()),
-      );
-    });
 
     if (!quickDrawerConfig.hidden && quickDrawerConfig.pinned.length > 0) {
       await runFeature("pinnedCourses", () =>
@@ -141,7 +134,7 @@ export default defineContentScript({
 
     await runFeature("bulkDownload", () => initBulkDownload());
 
-    if (timetableConfig.enabled) {
+    if (loggedIn && timetableConfig.enabled) {
       await runFeature("timetable", () =>
         initTimetable(ctx, timetableConfig, periodTableConfig.periods),
       );

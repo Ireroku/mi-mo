@@ -38,7 +38,7 @@ div#region-main
     br
 ```
 
-`#region-main > div`（先頭の無名 div）の直下に、上から お知らせ → コースカテゴリ → コース検索 の順で並ぶ。新規要素を挿入するなら、この3つを隠した後に空く場所として **`div.course-content` の直前**（= `span#maincontent` の直後）が自然。[`timetable.md`](../features/home/timetable.md)・[`greeting.md`](../features/home/greeting.md)・[`last-login.md`](../features/home/last-login.md) の差し込み先はここ。
+`#region-main > div`（先頭の無名 div）の直下に、上から お知らせ → コースカテゴリ → コース検索 の順で並ぶ。新規要素を挿入するなら、この3つを隠した後に空く場所として **`div.course-content` の直前**（= `span#maincontent` の直後）が自然。[`timetable.md`](../features/home/timetable.md)・[`greeting.md`](../features/home/greeting.md) の差し込み先はここ。
 
 ### お知らせ
 

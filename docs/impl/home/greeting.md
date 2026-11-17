@@ -13,7 +13,6 @@
 - 使う: [`../settings/panel.md`](../settings/panel.md) — 設定画面の行の定義と `CustomFieldProps`
 - 使う: [`../settings/menuFields.md`](../settings/menuFields.md) — 一覧の編集に使う `ListField`
 - 資料: [`../../features/home/greeting.md`](../../features/home/greeting.md) — 一言の例と、常時表示にする動機
-- 参考: [`./lastAccess.md`](./lastAccess.md) — 判断を純粋な計算に切り出し、保存を entrypoint が行う形
 - 参考: [`../menu/clock.md`](../menu/clock.md) — `createShadowRootUi` で要素を差し込む書き方
 
 ## 対象ファイル
@@ -102,7 +101,7 @@ entrypoint からの呼び出し。`main()` の中でこのモジュールが担
 
 ```ts
 // src/entrypoints/shared.content.ts
-if (greetingConfig.enabled) {
+if (loggedIn && greetingConfig.enabled) {
   await runFeature("greeting", async () => {
     const shown = await initGreeting(
       ctx,
@@ -212,15 +211,16 @@ defineGroup("home", "挨拶", homeGreetingSetting, {
 
 - **一言はページを開くたびに選び直す。** 仕様書が「毎回同じ文面では飽きる」としており、遷移のたびに変わる方が動機に合う
 - **直前に出した1件だけを覚え、続けて同じ一言を出さない。** 候補が少ないと、無作為の選択では同じ一言が続く。覚えるのは1件で、履歴は持たない
-- **直前の一言は、設定とは別の保存項目に持つ。** 利用者が決める値ではなく、設定画面にもバックアップにも出さない。保存は [`./lastAccess.md`](./lastAccess.md) と同じく entrypoint が行い、機能側は `src/utils/settings.ts` を参照しない
+- **直前の一言は、設定とは別の保存項目に持つ。** 利用者が決める値ではなく、設定画面にもバックアップにも出さない。保存は entrypoint が行い、機能側は `src/utils/settings.ts` を参照しない
 - **名前の前の言葉と一言を別のものとして扱う。** 言葉は時刻で決まる定型の呼びかけ、一言は利用者が書く文面で、時間帯の判定は言葉にだけ効く。一言がいつ出るかは時刻に左右されない
 - **時間帯の区切りは固定にし、設定へ出さない。** 区切りを変えたい場面より、設定の行が増える害の方が大きい
 - **`salutation` を省略可能にする。** この項目が増える前に保存された設定には無い。無い場合は `"time"` として扱う
 - **既定の一言へ、時間帯を含む文面を入れない。** 名前の前の言葉が「こんばんは」の時に「おはようございます！」が並ぶと食い違う
-- **名前が取れない場合も挨拶を出す。** 未ログインや Moodle 側の構造の変化で読めない場合がある。言葉と一言だけでも表示は成立する
+- **名前が取れない場合も挨拶を出す。** Moodle 側の構造の変化で読めない場合がある。言葉と一言だけでも表示は成立する
 - **候補が1つでも同じ選択の手順を通す。** 分岐を減らす。結果は常に同じ1つになる
 - **`enabled` が false の時は entrypoint 側で呼ばない。** 名前の読み取りまで走らせない
-- **[`./container.md`](./container.md) の器へ入れる。** 最終アクセスや時間割と同じ場所へ出るため、並び順を entrypoint の呼び出し順で決められるようにする
+- **未ログインの間は entrypoint 側で呼ばない。** 呼びかける相手がいない。`loggedIn` は entrypoint が `isLoggedIn()`（[`../moodle/user.md`](../moodle/user.md)）で1度だけ求め、時間割の判定にも使う
+- **[`./container.md`](./container.md) の器へ入れる。** 時間割と同じ場所へ出るため、並び順を entrypoint の呼び出し順で決められるようにする
 - **メッセージファイルは JSON ではなく、1行1件のテキストにする。** メモ帳で書け、他の人へそのまま渡せる。一言は改行を含まない
 - **ファイルの読み込みは、追加ではなく置き換えにする。** 追加にすると、同じファイルを読み直すたびに何が残るかを考える必要が出る。置き換えは結果がファイルの中身と一致する。前の一覧を残したい場合は、先に書き出せる
 - **ファイルの操作を一覧より上に置く。** 件数が増えると一覧が長くなり、下に置いた操作へ届かない

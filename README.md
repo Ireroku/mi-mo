@@ -84,7 +84,6 @@ pnpm dev:firefox
 
 - ホーム
   - [x] [未ログイン時にログインコンポーネントを表示](./docs/features/home/login-component.md)
-  - [x] [最終ログイン時刻の表示](./docs/features/home/last-login.md)
   - [x] [気さくな挨拶](./docs/features/home/greeting.md)
     - [x] ユーザ名を常に表示
   - [x] [時間割カレンダー](./docs/features/home/timetable.md)

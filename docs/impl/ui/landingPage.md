@@ -8,7 +8,7 @@
 
 - 使う: [`../utils/settings.md`](../utils/settings.md) — 設定と、ログインを通った印を置くストレージ項目
 - 資料: [`../../features/ui/landing-page.md`](../../features/ui/landing-page.md) — 1クリックを削る動機
-- 参考: [`../home/lastAccess.md`](../home/lastAccess.md) — 判断を純粋な計算に切り出し、保存と副作用を entrypoint が行う形
+- 参考: [`../home/greeting.md`](../home/greeting.md) — 判断を純粋な計算に切り出し、保存を entrypoint が行う形
 
 ## 対象ファイル
 
@@ -81,7 +81,7 @@ if (decision.redirectTo) {
 ### decideLanding
 
 1. `config.enabled` が false の場合、`{ pending: false }` を返す
-2. `location.pathname` が `/login/index.php` で始まる場合、`{ pending: true }` を返す
+2. `isLoginPage(location.pathname)`（[`../moodle/user.md`](../moodle/user.md)）が真の場合、`{ pending: true }` を返す
 3. `pending` が false の場合、`{ pending: false }` を返す
 4. `location.pathname` が `/my/` でも `/` でもない場合、`{ pending: true }` を返す（印を保ったまま何もしない）
 5. `config.url` を `URL` として解き、ホストが現在のページと違う場合、`{ pending: false }` を返す

@@ -16,6 +16,13 @@ export function isLoggedIn(): boolean {
 }
 
 /**
+ * ログインページのパスかどうかを返す。ログイン後の遷移が、ここを通ったことを印にする。
+ */
+export function isLoginPage(pathname: string): boolean {
+  return pathname.startsWith("/login/index.php");
+}
+
+/**
  * ログイン中のユーザー表示名をユーザーメニューから読み取る。
  * 1. #usernavigation [data-region="usermenu"] .avatar.current [title] を探す
  * 2. 見つかれば title 属性の値を返す

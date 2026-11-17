@@ -299,10 +299,9 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`menu/countdownBadge.md`](./menu/countdownBadge.md) | `src/features/menu/countdownBadge.*` | 使う: clock の `startClockTicker` |
 | [`menu/logo.md`](./menu/logo.md) | `src/features/menu/logo.ts` | 使う: styleSheet ／ 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
 | [`home/hideElements.md`](./home/hideElements.md) | `src/features/home/hideElements.ts` | 資料: [`../moodle/home.md`](../moodle/home.md) |
-| [`home/container.md`](./home/container.md) | `src/features/home/container.ts` | 使う: moodle/page ／ 挨拶・前回アクセス・時間割の器 |
+| [`home/container.md`](./home/container.md) | `src/features/home/container.ts` | 使う: moodle/page ／ 挨拶と時間割の器 |
 | [`home/loginComponent.md`](./home/loginComponent.md) | `src/features/home/loginComponent.ts` | 使う: home/container ／ moodle/user ／ 資料: [`../moodle/home.md`](../moodle/home.md) |
 | [`home/greeting.md`](./home/greeting.md) | `src/features/home/greeting.*` | 使う: home/container ／ moodle/user |
-| [`home/lastAccess.md`](./home/lastAccess.md) | `src/features/home/lastAccess.*` | 使う: home/container ／ utils/settings |
 | [`coursePage/reverseSections.md`](./coursePage/reverseSections.md) | `src/features/coursePage/reverseSections.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/sectionTitleLink.md`](./coursePage/sectionTitleLink.md) | `src/features/coursePage/sectionTitleLink.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/sectionToggleDesign.md`](./coursePage/sectionToggleDesign.md) | `src/features/coursePage/sectionToggleDesign.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |

@@ -1,6 +1,8 @@
 // ログイン直後に開くページを、設定した URL へ差し替える。
 // ログインページを通った印を控え、既定の遷移先へ着いた時だけ移動する。
 
+import { isLoginPage } from "@/moodle/user";
+
 export interface LandingPageConfig {
   enabled: boolean;
   url: string;
@@ -23,7 +25,7 @@ export function decideLanding(
     return { pending: false };
   }
 
-  if (location.pathname.startsWith("/login/index.php")) {
+  if (isLoginPage(location.pathname)) {
     return { pending: true };
   }
 
