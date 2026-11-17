@@ -296,7 +296,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 |---|---|---|
 | [`menu/navbar.md`](./menu/navbar.md) | `src/features/menu/navbar/` | 使う: styleSheet ／ 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
 | [`menu/clock.md`](./menu/clock.md) | `src/features/menu/clock.*` | 参考: navbar / countdownBadge |
-| [`menu/countdownBadge.md`](./menu/countdownBadge.md) | `src/features/menu/countdownBadge.*` | 使う: clock の `startClockTicker` |
+| [`menu/countdownBadge.md`](./menu/countdownBadge.md) | `src/features/menu/countdownBadge.*` | 使う: clock の `startClockTicker` ／ utils/periods ／ utils/graphemes ／ timetable/schedule |
 | [`menu/logo.md`](./menu/logo.md) | `src/features/menu/logo.ts` | 使う: styleSheet ／ 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
 | [`home/hideElements.md`](./home/hideElements.md) | `src/features/home/hideElements.ts` | 資料: [`../moodle/home.md`](../moodle/home.md) |
 | [`home/container.md`](./home/container.md) | `src/features/home/container.ts` | 使う: moodle/page ／ 挨拶と時間割の器 |
@@ -331,6 +331,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`settings/timetableFields.md`](./settings/timetableFields.md) | `src/features/settings/fields/` | 使う: settings/panel ／ settings/controls ／ timetable/ics ／ utils/download |
 | [`utils/settings.md`](./utils/settings.md) | `src/utils/settings.ts` | 使う: 各機能が export する設定の型 |
 | [`utils/periods.md`](./utils/periods.md) | `src/utils/periods.ts` | 使う: menu/clock ／ menu/countdownBadge ／ timetable |
+| [`utils/graphemes.md`](./utils/graphemes.md) | `src/utils/graphemes.ts` | 使う: menu/clock ／ menu/countdownBadge |
 | [`utils/styleSheet.md`](./utils/styleSheet.md) | `src/utils/styleSheet.ts` | 参考: [`home/hideElements.md`](./home/hideElements.md) |
 | [`utils/theme.md`](./utils/theme.md) | `src/utils/theme.ts` | 資料: [`../../src/assets/global.css`](../../src/assets/global.css) |
 | [`utils/filename.md`](./utils/filename.md) | `src/utils/filename.ts` | 参考: coursePage/exportMarkdown ／ coursePage/pageSave |

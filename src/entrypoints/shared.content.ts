@@ -93,7 +93,7 @@ export default defineContentScript({
     });
     await runFeature("menu", () => initMenu(menuConfig));
     await runFeature("menuBadges", () =>
-      initMenuBadges(ctx, badgesConfig, periodTableConfig.periods),
+      initMenuBadges(ctx, badgesConfig, periodTableConfig.periods, timetableConfig),
     );
     await runFeature("loginComponent", () => initLoginComponent());
 

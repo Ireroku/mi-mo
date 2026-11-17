@@ -76,13 +76,14 @@ defineGroup("general", "時計", menuBadgesSetting, {
     label: "時計のオプション",
     control: {
       kind: "nested",
+      // 子の section が変わる所でカードを分ける。空の section は見出しを出さずに区切る
       fields: {
-        showSeconds: { label: "秒", control: { kind: "toggle" } },
-        hour12: { label: "12時間表記", control: { kind: "toggle" } },
-        showDate: { label: "日付", control: { kind: "toggle" } },
-        showYear: { label: "年", control: { kind: "toggle" } },
-        showWeekday: { label: "曜日", control: { kind: "toggle" } },
-        showPeriod: { label: "時限", control: { kind: "toggle" } },
+        hour12: { label: "12時間表記", section: "時間表記", control: { kind: "toggle" } },
+        showYear: { label: "年", section: "", control: { kind: "toggle" } },
+        showDate: { label: "日付", section: "", control: { kind: "toggle" } },
+        showWeekday: { label: "曜日", section: "", control: { kind: "toggle" } },
+        showSeconds: { label: "秒", section: "", control: { kind: "toggle" } },
+        showPeriod: { label: "時限", section: "", control: { kind: "toggle" } },
       },
     },
   },
@@ -181,6 +182,12 @@ defineGroup(
 - **省略可能なキーは `undefined` を空配列として扱う。** `MenuConfig` の `hidden` と `items` はどちらも省略可能で、未設定のまま編集を始める場合がある。`ListField` の `items` は `undefined` を受けないため、`HiddenMenuItemsField` と `NewMenuItemsField` の中で `value ?? []` を挟んでから渡す
 - **メニュー項目の挿入位置（`NewMenuItem.position`）は編集させない。** 指定には既存の項目名を正確に知る必要があり、手入力では実用にならない。位置を省略した場合の既定の挙動に任せる
 - **隠す項目は、Moodle で控えた項目名を候補に出し、候補に無い名前も書けるようにする。** 正確な名前を手で打つと一字違いで効かない。一方で、控えは最後に開いたページの項目しか持たず、Moodle が項目を足すこともあるため、候補だけに絞らない
+- **時計のオプションは、表記の切り替えを先頭の「時間表記」のカードに置き、出す要素を見出しの無いカードに、日付に関わるものから時刻に関わるものへ（年・日付・曜日・秒・時限）並べる。** 表記の切り替えは他の項目と働きが違い、出す要素と混ぜると探しにくい。出す要素は時計の表示に近い順にすると、どの項目がどこに効くかを読み取れる
+- **カウントダウンは、対象・ラベル・日時を横に並べず縦に積む。** 380px の幅で3つを1行に置くと日時の欄が欠ける
+- **対象を先頭に置き、ラベルの欄は「日時を指定」の時だけ出す。** 「今の時限の残り時間」のラベルは自動で決まり、書いても使われない欄を出すと、効かない入力に見える
+- **改行の位置を注記で伝える。** ラベルは1行4文字で折れる。空白で折れることを知らないと、意図しない位置で切れる
+- **足した行の既定の対象は「日時を指定」にする。** 「今の時限の残り時間」は1つあれば足り、追加で増やすのは日時の対象のため
+- **書きかけで空のカウントダウンは「戻る」で消す。** 「追加」を押しただけの行が残ると、メニューに名前の無いバッジが並ぶ。「今の時限の残り時間」はラベルも日時も持たないため、消さない
 - **時限表は、保存先を時計と共有したまま、画面では時間割のカードに置く。** 時刻を決める動機は時間割の入力にあり、利用者は時間割の近くを探す。時計だけを使う利用者のために、説明へ時計にも効くことを書く。時間割を無効にしている間も、この行は残る
 - **時限表だけ、ドラッグで並べ替えられるようにする。** 時限の名前を自由に付けられるため（「1-2限」のようなまとめた枠など）、時間割に出す順は利用者が決める。他の3項目の並べ替えは作らない
 - **並べ替えは持ち手でだけ始める。** 行の中に入力欄と時計のボタンがあり、行のどこでも掴めると、入力や選択のつもりの操作がドラッグになる

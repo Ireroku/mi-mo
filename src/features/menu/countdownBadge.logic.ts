@@ -1,9 +1,18 @@
-import { findNextPeriodStart, type PeriodSlot } from "@/utils/periods";
+import { ELLIPSIS, chunkGraphemes, splitGraphemes } from "@/utils/graphemes";
+import { findPeriodSegment, periodName, type PeriodSlot } from "@/utils/periods";
+import {
+  lessonsOn,
+  type LessonOccurrence,
+} from "@/features/timetable/schedule.logic";
+
+// ある時点で出す中身。counting はラベルと数える先、classesOver はその日の授業が終わったこと
+export type CountdownState =
+  | { kind: "counting"; label: string; target: Date }
+  | { kind: "classesOver" };
 
 export interface CountdownTarget {
   id: string;
-  label: string;
-  getTargetTime: () => Date;
+  resolve: (now: Date) => CountdownState;
 }
 
 export type CountdownSource =
@@ -17,6 +26,7 @@ export interface CountdownConfig {
 }
 
 export const COUNTDOWN_ENDED_LABEL = "終了しました";
+export const CLASSES_OVER_LABEL = "授業終了";
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -61,35 +71,90 @@ export function formatRemaining(remainingMs: number): string {
   return `${days}日`;
 }
 
-export function describeCountdown(
-  target: CountdownTarget,
-  now: Date = new Date(),
-): string {
-  return formatRemaining(target.getTargetTime().getTime() - now.getTime());
+/**
+ * 時限の区切りまでのカウントダウンの中身を返す。
+ * 時限の最中はその終了（「五限 終了まで」）、時限の前は次の時限の開始（「六限 まで」）を数える。
+ * その日に残りの時限が無ければ classesOver を返し、翌日へは回さない。
+ * schedule を渡すと、その日に授業のある時限だけを数える。sortedPeriods はソート済みの表を前提とする。
+ */
+export function resolvePeriodCountdown(
+  now: Date,
+  sortedPeriods: readonly PeriodSlot[],
+  schedule?: readonly LessonOccurrence[],
+): CountdownState {
+  let periods = sortedPeriods;
+  if (schedule) {
+    // 授業の periodIndex は、時限の番号 - 1
+    const today = new Set(lessonsOn(now, schedule).map((lesson) => lesson.periodIndex + 1));
+    periods = sortedPeriods.filter((slot) => today.has(slot.period));
+  }
+
+  const segment = findPeriodSegment(now, periods);
+  if (!segment) {
+    return { kind: "classesOver" };
+  }
+
+  const name = periodName(segment.slot);
+  return {
+    kind: "counting",
+    label: segment.phase === "during" ? `${name} 終了まで` : `${name} まで`,
+    target: segment.at,
+  };
 }
 
 /**
  * 保存できる形の CountdownConfig[] を、実行時の CountdownTarget[] へ変換する。
- * periods はソート済みであることを前提とする（findNextPeriodStart の要件を引き継ぐ）。
+ * sortedPeriods はソート済みであることを前提とする（findPeriodSegment の要件を引き継ぐ）。
+ * schedule は時間割に合わせる時にだけ渡す。
+ * 日時が空か読めない対象は、書きかけの行として飛ばす。
  */
 export function buildCountdownTargets(
   configs: CountdownConfig[],
-  periods: PeriodSlot[],
+  sortedPeriods: PeriodSlot[],
+  schedule?: readonly LessonOccurrence[],
 ): CountdownTarget[] {
-  return configs.map(({ id, label, source }) => {
+  return configs.flatMap(({ id, label, source }): CountdownTarget[] => {
     switch (source.kind) {
       case "nextPeriod":
-        return {
-          id,
-          label,
-          getTargetTime: () => findNextPeriodStart(new Date(), periods) ?? new Date(),
-        };
-      case "fixedDate":
-        return {
-          id,
-          label,
-          getTargetTime: () => new Date(source.at),
-        };
+        // ラベルは区切りに合わせて作り、保存されたラベルは使わない
+        return [
+          {
+            id,
+            resolve: (now) => resolvePeriodCountdown(now, sortedPeriods, schedule),
+          },
+        ];
+      case "fixedDate": {
+        const target = new Date(source.at);
+        if (Number.isNaN(target.getTime())) {
+          return [];
+        }
+        return [{ id, resolve: () => ({ kind: "counting", label, target }) }];
+      }
     }
   });
+}
+
+export const LABEL_CHARS_PER_LINE = 4;
+export const LABEL_MAX_LINES = 2;
+
+/**
+ * ラベルを表示する行に分ける。空白があればそこで改行し、各語を perLine 文字ごとに折る。
+ * maxLines を超える分は捨て、最終行の末尾を「…」にする。
+ * 文字は書記素（見た目の1文字）で数え、結合文字や絵文字を途中で割らない。
+ */
+export function wrapLabel(
+  label: string,
+  perLine: number = LABEL_CHARS_PER_LINE,
+  maxLines: number = LABEL_MAX_LINES,
+): string[] {
+  const words = label.trim().split(/\s+/).filter((word) => word !== "");
+  const lines = words.flatMap((word) => chunkGraphemes(word, perLine));
+  if (lines.length <= maxLines) {
+    return lines;
+  }
+
+  const visible = lines.slice(0, maxLines);
+  const last = splitGraphemes(visible[maxLines - 1]!).slice(0, perLine - 1);
+  visible[maxLines - 1] = last.join("") + ELLIPSIS;
+  return visible;
 }

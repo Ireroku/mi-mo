@@ -27,4 +27,6 @@ export interface TimetableConfig {
   holidays: TimetableHoliday[];
   substitutes: TimetableSubstitute[];
   color: TimetableColor;
+  // 上部メニューの時限のカウントダウンで、授業のある時限だけを数える。この項目が増える前に保存された設定には無く、無ければ合わせる
+  syncCountdown?: boolean;
 }

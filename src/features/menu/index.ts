@@ -9,6 +9,31 @@ import {
   type PeriodSlot,
 } from "@/utils/periods";
 import { buildCountdownTargets, type CountdownConfig } from "./countdownBadge.logic";
+import { applyStyleSheet } from "@/utils/styleSheet";
+import { buildSchedule, hasLessons } from "@/features/timetable/schedule.logic";
+import type { TimetableConfig } from "@/features/timetable/types";
+
+const STYLE_ID = "mimo-menu-badges";
+const SLOT_CLASS = "mimo-countdown-slot";
+
+// カウントダウンの置き場所は、メニューの残りの幅だけを受け取る（flex-basis 0 で伸びるだけ）。
+// 幅を奪わないため、Moodle の「さらに」の計算はバッジが無い時と同じになる。
+// 伸びる置き場所が空きを吸うため、時計と通知は右端に寄ったまま離れない。
+// バッジの host は WXT の :host{all:initial !important} で外からの指定が効かないため、自前の要素に当てる
+const CSS = `
+nav.navbar .${SLOT_CLASS} {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+nav.navbar #usernavigation {
+  margin-left: 0 !important;
+}
+`;
 
 export interface MenuBadgesConfig {
   clock: ClockConfig;
@@ -29,14 +54,16 @@ export function initMenu(config: MenuConfig): void {
 async function mountBadge<Props extends Record<string, unknown>>(
   ctx: ContentScriptContext,
   name: string,
+  anchor: Element,
+  append: "before" | "last",
   component: Component<Props>,
   props: Props,
 ): Promise<void> {
   const ui = await createShadowRootUi(ctx, {
     name,
     position: "inline",
-    anchor: "#usernavigation",
-    append: "before",
+    anchor,
+    append,
     onMount: (container) => mount(component, { target: container, props }),
     onRemove: (mounted) => {
       if (mounted) {
@@ -49,18 +76,37 @@ async function mountBadge<Props extends Record<string, unknown>>(
 
 /**
  * 時計・カウントダウンバッジをShadow DOM経由でnavbarに差し込む。エントリーポイント（shared.content.ts）から呼び出す。
+ * 時間割が有効で授業が入っており、カウントダウンを時間割に合わせる設定なら、時限のカウントダウンは授業のある時限だけを数える。
  */
 export async function initMenuBadges(
   ctx: ContentScriptContext,
   config: MenuBadgesConfig,
   periods: PeriodSlot[],
+  timetable: TimetableConfig,
 ): Promise<void> {
   const periodTable = sortPeriodsByStart(periods);
-  const countdownTargets = buildCountdownTargets(config.countdowns, periodTable);
+  const sync =
+    timetable.enabled && timetable.syncCountdown !== false && hasLessons(timetable);
+  const schedule = sync ? buildSchedule(timetable, periodTable) : undefined;
+  const countdownTargets = buildCountdownTargets(config.countdowns, periodTable, schedule);
 
-  // 同じアンカーの前へ差し込むため、並列に作ると先に済んだ方が左になり、並びが読み込みのたびに変わる。
-  await mountBadge(ctx, "mimo-clock-badge", ClockBadge, { config: config.clock, periodTable });
-  await mountBadge(ctx, "mimo-countdown-badge", CountdownBadge, { targets: countdownTargets });
+  const userNavigation = document.querySelector("#usernavigation");
+  if (!userNavigation) {
+    return;
+  }
+  applyStyleSheet(STYLE_ID, CSS);
+  // 並びはカウントダウンの置き場所、時計、Moodle の通知の順。置き場所はカウントダウンが無くても空きを吸うために置く
+  const slot = document.createElement("div");
+  slot.className = SLOT_CLASS;
+  userNavigation.before(slot);
+  ctx.onInvalidated(() => slot.remove());
+  await mountBadge(ctx, "mimo-countdown-badge", slot, "last", CountdownBadge, {
+    targets: countdownTargets,
+  });
+  await mountBadge(ctx, "mimo-clock-badge", userNavigation, "before", ClockBadge, {
+    config: config.clock,
+    periodTable,
+  });
 
   // Moodle はメニューに収まる項目数を resize の時にだけ計算する。
   // バッジで幅が減った分を反映させないと、項目が2段に折り返す。

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatTime } from "./clock.logic";
+import { formatDate, formatPeriodName, formatTime } from "./clock.logic";
 
 // 2026年11月7日は土曜日
 const morning = new Date(2026, 10, 7, 9, 5, 30);
@@ -32,18 +32,18 @@ describe("formatTime", () => {
 describe("formatDate", () => {
   it("日付と曜日を並べる", () => {
     expect(formatDate(morning, { showDate: true, showWeekday: true })).toBe(
-      "11月7日(土)",
+      "11/7 土",
     );
   });
 
   it("年を足す", () => {
     expect(
       formatDate(morning, { showDate: true, showWeekday: true, showYear: true }),
-    ).toBe("2026年11月7日(土)");
+    ).toBe("2026/11/7 土");
   });
 
   it("片方だけを出す", () => {
-    expect(formatDate(morning, { showDate: true })).toBe("11月7日");
+    expect(formatDate(morning, { showDate: true })).toBe("11/7");
     expect(formatDate(morning, { showWeekday: true })).toBe("土");
   });
 
@@ -53,5 +53,21 @@ describe("formatDate", () => {
 
   it("どちらも出さない時は空文字を返す", () => {
     expect(formatDate(morning, {})).toBe("");
+  });
+});
+
+describe("formatPeriodName", () => {
+  it("2文字以内は1列にする", () => {
+    expect(formatPeriodName("三限")).toBe("三限");
+  });
+
+  it("2文字ごとに列を分ける", () => {
+    expect(formatPeriodName("11限")).toBe("11\n限");
+    expect(formatPeriodName("昼休み")).toBe("昼休\nみ");
+    expect(formatPeriodName("1234")).toBe("12\n34");
+  });
+
+  it("4文字を超えたら3文字と「…」にする", () => {
+    expect(formatPeriodName("1-2限目")).toBe("1-\n2…");
   });
 });

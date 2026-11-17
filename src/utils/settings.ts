@@ -213,6 +213,7 @@ export const timetableSetting = storage.defineItem<TimetableConfig>(
       holidays: [],
       substitutes: [],
       color: "moodle",
+      syncCountdown: true,
     },
   },
 );
