@@ -131,12 +131,12 @@
                     {#if occ.slot.url}
                       <a
                         href={occ.slot.url}
-                        class="font-medium hover:underline text-foreground leading-snug break-words"
+                        class="font-medium hover:underline leading-snug break-words"
                       >
                         {occ.slot.title}
                       </a>
                     {:else}
-                      <span class="font-medium text-foreground leading-snug break-words">
+                      <span class="font-medium leading-snug break-words">
                         {occ.slot.title}
                       </span>
                     {/if}
@@ -156,7 +156,7 @@
 
 <style>
   /* テーマ・配色スタイル */
-  /* moodle は Moodle のカードと同じ色にする。Moodle に暗い配色が無いため、OS の配色に合わせて変えない */
+  /* Moodle に暗い配色が無いため、どの色も OS の配色に合わせて変えない。moodle は Moodle のカードと同じ色にする */
   .mimo-timetable-panel[data-mimo-color="moodle"] {
     background-color: #ffffff;
     color: #1d2125;
@@ -170,9 +170,6 @@
   }
   .mimo-timetable-panel[data-mimo-color="moodle"] .is-today {
     background-color: #e7f0f9;
-  }
-  .mimo-timetable-panel[data-mimo-color="moodle"] .text-foreground {
-    color: inherit;
   }
   .mimo-timetable-panel[data-mimo-color="moodle"] a {
     color: #0f6cbf;
@@ -251,68 +248,5 @@
   }
   .mimo-timetable-panel[data-mimo-color="green"] .is-today {
     background-color: #dcfce7;
-  }
-
-  /* ダークモード対応 */
-  @media (prefers-color-scheme: dark) {
-    .mimo-timetable-panel[data-mimo-color="white"] {
-      background-color: #18181b;
-      color: #f4f4f5;
-      border-color: #27272a;
-    }
-    .mimo-timetable-panel[data-mimo-color="white"] thead tr,
-    .mimo-timetable-panel[data-mimo-color="white"] tbody tr,
-    .mimo-timetable-panel[data-mimo-color="white"] td,
-    .mimo-timetable-panel[data-mimo-color="white"] th {
-      border-color: #27272a;
-    }
-    .mimo-timetable-panel[data-mimo-color="white"] .is-today {
-      background-color: #27272a;
-    }
-
-    .mimo-timetable-panel[data-mimo-color="sky"] {
-      background-color: #082f49;
-      color: #e0f2fe;
-      border-color: #0369a1;
-    }
-    .mimo-timetable-panel[data-mimo-color="sky"] thead tr,
-    .mimo-timetable-panel[data-mimo-color="sky"] tbody tr,
-    .mimo-timetable-panel[data-mimo-color="sky"] td,
-    .mimo-timetable-panel[data-mimo-color="sky"] th {
-      border-color: #0c4a6e;
-    }
-    .mimo-timetable-panel[data-mimo-color="sky"] .is-today {
-      background-color: #0c4a6e;
-    }
-
-    .mimo-timetable-panel[data-mimo-color="pink"] {
-      background-color: #500724;
-      color: #fce7f3;
-      border-color: #9d174d;
-    }
-    .mimo-timetable-panel[data-mimo-color="pink"] thead tr,
-    .mimo-timetable-panel[data-mimo-color="pink"] tbody tr,
-    .mimo-timetable-panel[data-mimo-color="pink"] td,
-    .mimo-timetable-panel[data-mimo-color="pink"] th {
-      border-color: #700a32;
-    }
-    .mimo-timetable-panel[data-mimo-color="pink"] .is-today {
-      background-color: #700a32;
-    }
-
-    .mimo-timetable-panel[data-mimo-color="green"] {
-      background-color: #052e16;
-      color: #dcfce7;
-      border-color: #15803d;
-    }
-    .mimo-timetable-panel[data-mimo-color="green"] thead tr,
-    .mimo-timetable-panel[data-mimo-color="green"] tbody tr,
-    .mimo-timetable-panel[data-mimo-color="green"] td,
-    .mimo-timetable-panel[data-mimo-color="green"] th {
-      border-color: #14532d;
-    }
-    .mimo-timetable-panel[data-mimo-color="green"] .is-today {
-      background-color: #14532d;
-    }
   }
 </style>
