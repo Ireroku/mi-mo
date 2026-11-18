@@ -59,9 +59,15 @@
 
 ### Firefox のポップアップでファイルを選ぶと閉じる恐れがある
 
-- 起きること: Firefox では、ポップアップからファイル選択のダイアログを開くとポップアップが閉じる場合がある。閉じると、バックアップと時間割の「ファイルから読み込む」が終わらない。実機では未確認
-- 場所: `src/features/settings/BackupButtons.svelte`
+- 起きること: Firefox では、ポップアップからファイル選択のダイアログを開くとポップアップが閉じる場合がある。閉じると、バックアップ・時間割・挨拶のメッセージの「ファイルから読み込む」が終わらない。実機では未確認
+- 場所: `src/features/settings/BackupButtons.svelte`（バックアップと、`fields/TimetableFooter.svelte` から使う時間割）、`src/features/settings/fields/GreetingMessagesField.svelte`
 - 直す方向: 実機で起きることを確かめる。起きる場合は、Firefox のポップアップでは読み込みをオプション画面へ案内する
+
+### background が保存先のファイル名を確かめていない
+
+- 起きること: 保存のメッセージを受けた background は、`url` が文字列かどうかだけを見て、`filename` をそのまま `browser.downloads.download` へ渡す。メッセージを送るのは自分の content script だけのため、今は害が無い。送り手が増えた時や、ファイル名を組み立てる処理に誤りがあった時に、意図しない名前や階層で保存される
+- 場所: `src/entrypoints/background.ts` の `onMessage` の受け口
+- 直す方向: `filename` も文字列であることを確かめ、`..` や絶対パスを含む名前は捨てる。ファイル名を作る処理は [`impl/utils/filename.md`](./impl/utils/filename.md) にあり、同じ規則で検証する
 
 ### 空の休講日と振替日の行は消えない
 
