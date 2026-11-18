@@ -36,7 +36,7 @@ export function applyFloatingHint(config: FloatingHintConfig): void;
 // src/utils/settings.ts
 import type { FloatingHintConfig } from "@/features/ui/floatingHint";
 
-export const uiFloatingHintSetting = storage.defineItem<FloatingHintConfig>(
+export const uiFloatingHintSetting = defineSetting<FloatingHintConfig>(
   "local:ui.floatingHint",
   { fallback: { hidden: true } },
 );

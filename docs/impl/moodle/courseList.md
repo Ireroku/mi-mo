@@ -42,7 +42,7 @@ export interface CourseListCache {
   updatedAt: string; // ISO の日時
 }
 
-export const courseListCacheSetting = storage.defineItem<CourseListCache>(
+export const courseListCacheSetting = defineSetting<CourseListCache>(
   "local:moodle.courseList",
   { fallback: { courses: [], updatedAt: "" } },
 );

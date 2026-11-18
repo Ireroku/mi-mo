@@ -57,7 +57,7 @@ interface Props {
 ```ts
 // src/utils/settings.ts
 export const coursePageAutoattendStatsSetting =
-  storage.defineItem<AutoattendStatsConfig>(
+  defineSetting<AutoattendStatsConfig>(
     "local:coursePage.autoattendStats",
     { fallback: { enabled: true } },
   );

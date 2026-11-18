@@ -131,7 +131,7 @@ export interface ExtensionConfig {
   enabled: boolean; // false の間は、設定を残したまま全機能を止める
 }
 
-export const extensionSetting = storage.defineItem<ExtensionConfig>(
+export const extensionSetting = defineSetting<ExtensionConfig>(
   "local:extension",
   { fallback: { enabled: true } },
 );

@@ -52,7 +52,7 @@ interface Props {
 
 ```ts
 // src/utils/settings.ts
-export const uiQuickDrawerSetting = storage.defineItem<QuickDrawerConfig>(
+export const uiQuickDrawerSetting = defineSetting<QuickDrawerConfig>(
   "local:ui.quickDrawer",
   { fallback: { hidden: false, pinned: [] } },
 );

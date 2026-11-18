@@ -43,12 +43,12 @@ export function decideLanding(
 
 ```ts
 // src/utils/settings.ts
-export const uiLandingPageSetting = storage.defineItem<LandingPageConfig>(
+export const uiLandingPageSetting = defineSetting<LandingPageConfig>(
   "local:ui.landingPage",
   { fallback: { enabled: false, url: "" } },
 );
 
-export const uiLandingPendingFlag = storage.defineItem<boolean>(
+export const uiLandingPendingFlag = defineSetting<boolean>(
   "local:ui.landingPending",
   { fallback: false },
 );

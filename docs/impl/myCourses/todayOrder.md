@@ -40,7 +40,7 @@ export function initTodayOrder(
 
 ```ts
 // src/utils/settings.ts
-export const myCoursesTodayOrderSetting = storage.defineItem<TodayOrderConfig>(
+export const myCoursesTodayOrderSetting = defineSetting<TodayOrderConfig>(
   "local:myCourses.todayOrder",
   { fallback: { enabled: false } },
 );

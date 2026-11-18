@@ -1,6 +1,12 @@
 // 拡張機能の設定を保存・読み出しする。機能ごとに独立したストレージキーを持つ。
 
-import { storage } from "wxt/utils/storage";
+import {
+  storage,
+  type StorageItemKey,
+  type WxtStorageItem,
+  type WxtStorageItemOptions,
+} from "wxt/utils/storage";
+import { fillDefaults } from "@/utils/fillDefaults";
 import type { HideElementsConfig } from "@/features/home/hideElements";
 import type { GreetingConfig } from "@/features/home/greeting";
 import type { MenuBadgesConfig } from "@/features/menu";
@@ -20,36 +26,54 @@ import { migratePeriodsFromV1, type PeriodTableConfig } from "@/utils/periods";
 import type { TimetableConfig } from "@/features/timetable/types";
 import type { TodayOrderConfig } from "@/features/myCourses/todayOrder";
 
+// storage.defineItem と同じ項目を作る。読み出す値に欠けたキーがあれば fallback から補う。
+// 保存済みの値は書き換えず、読むたびに補う
+function defineSetting<T>(
+  key: StorageItemKey,
+  options: WxtStorageItemOptions<T> & { fallback: T },
+): WxtStorageItem<T, Record<string, never>> {
+  const item = storage.defineItem<T, Record<string, never>>(key, options);
+  const fill = (value: T) => fillDefaults(value, options.fallback);
+  return {
+    ...item,
+    getValue: async () => fill(await item.getValue()),
+    watch: (cb) => item.watch((next, prev) => cb(fill(next), fill(prev))),
+  };
+}
+
 export interface ExtensionConfig {
   enabled: boolean; // false の間は、設定を残したまま全機能を止める
 }
 
-export const extensionSetting = storage.defineItem<ExtensionConfig>(
+export const extensionSetting = defineSetting<ExtensionConfig>(
   "local:extension",
   { fallback: { enabled: true } },
 );
 
-export const homeHideElementsSetting = storage.defineItem<HideElementsConfig>(
+export const homeHideElementsSetting = defineSetting<HideElementsConfig>(
   "local:home.hideElements",
   {
     fallback: { announcements: true, categories: true, search: true },
   },
 );
 
-export const menuSetting = storage.defineItem<MenuConfig>("local:menu.items", {
-  fallback: {
-    hidden: [
-      "Office365",
-      "Google",
-      "eラーニング",
-      "Scilets",
-      "三重創生ファンタジスタ",
-      "旧Moodle",
-    ],
+export const menuSetting = defineSetting<MenuConfig>(
+  "local:menu.items",
+  {
+    fallback: {
+      hidden: [
+        "Office365",
+        "Google",
+        "eラーニング",
+        "Scilets",
+        "三重創生ファンタジスタ",
+        "旧Moodle",
+      ],
+    },
   },
-});
+);
 
-export const menuBadgesSetting = storage.defineItem<MenuBadgesConfig>(
+export const menuBadgesSetting = defineSetting<MenuBadgesConfig>(
   "local:menu.badges",
   {
     fallback: {
@@ -77,7 +101,7 @@ export interface CourseListCache {
   updatedAt: string; // ISO の日時
 }
 
-export const courseListCacheSetting = storage.defineItem<CourseListCache>(
+export const courseListCacheSetting = defineSetting<CourseListCache>(
   "local:moodle.courseList",
   { fallback: { courses: [], updatedAt: "" } },
 );
@@ -87,34 +111,34 @@ export interface MenuItemsCache {
   updatedAt: string; // ISO の日時
 }
 
-export const menuItemsCacheSetting = storage.defineItem<MenuItemsCache>(
+export const menuItemsCacheSetting = defineSetting<MenuItemsCache>(
   "local:moodle.menuItems",
   { fallback: { names: [], updatedAt: "" } },
 );
 
-export const menuLogoSetting = storage.defineItem<MenuLogoConfig>(
+export const menuLogoSetting = defineSetting<MenuLogoConfig>(
   "local:menu.logo",
   { fallback: { hidden: false } },
 );
 
-export const uiFloatingHintSetting = storage.defineItem<FloatingHintConfig>(
+export const uiFloatingHintSetting = defineSetting<FloatingHintConfig>(
   "local:ui.floatingHint",
   { fallback: { hidden: true } },
 );
 
 // 1行目を `{` で終えると、auto-import の走査が fallback のキーを export と取り違える
-export const uiFontSetting = storage.defineItem<FontConfig>(
+export const uiFontSetting = defineSetting<FontConfig>(
   "local:ui.font",
   { fallback: { enabled: false, family: "", scope: "all" } },
 );
 
 export const coursePageReverseSectionsSetting =
-  storage.defineItem<ReverseSectionsConfig>(
+  defineSetting<ReverseSectionsConfig>(
     "local:coursePage.reverseSections",
     { fallback: { enabled: false } },
   );
 
-export const homeGreetingSetting = storage.defineItem<GreetingConfig>(
+export const homeGreetingSetting = defineSetting<GreetingConfig>(
   "local:home.greeting",
   {
     fallback: {
@@ -130,49 +154,50 @@ export const homeGreetingSetting = storage.defineItem<GreetingConfig>(
 );
 
 // 直前に出した一言。続けて同じ一言を出さないために覚える
-export const homeGreetingLastMessage = storage.defineItem<string>(
+export const homeGreetingLastMessage = defineSetting<string>(
   "local:home.greeting.last",
   { fallback: "" },
 );
 
-export const uiQuickDrawerSetting = storage.defineItem<QuickDrawerConfig>(
+export const uiQuickDrawerSetting = defineSetting<QuickDrawerConfig>(
   "local:ui.quickDrawer",
   { fallback: { hidden: false, pinned: [] } },
 );
 
-export const uiLandingPageSetting = storage.defineItem<LandingPageConfig>(
+export const uiLandingPageSetting = defineSetting<LandingPageConfig>(
   "local:ui.landingPage",
   { fallback: { enabled: false, url: "" } },
 );
 
-export const uiLandingPendingFlag = storage.defineItem<boolean>(
+export const uiLandingPendingFlag = defineSetting<boolean>(
   "local:ui.landingPending",
   { fallback: false },
 );
 
 export const coursePageAutoattendButtonSetting =
-  storage.defineItem<AutoattendButtonConfig>(
+  defineSetting<AutoattendButtonConfig>(
     "local:coursePage.autoattendButton",
     { fallback: { enabled: true, placement: "top" } },
   );
 
 export const coursePageAutoattendStatsSetting =
-  storage.defineItem<AutoattendStatsConfig>(
+  defineSetting<AutoattendStatsConfig>(
     "local:coursePage.autoattendStats",
     { fallback: { enabled: true } },
   );
 
 export const coursePageGradeInlineSetting =
-  storage.defineItem<GradeInlineConfig>("local:coursePage.gradeInline", {
-    fallback: { enabled: true },
-  });
+  defineSetting<GradeInlineConfig>(
+    "local:coursePage.gradeInline",
+    { fallback: { enabled: true } },
+  );
 
-export const coursePageExportSetting = storage.defineItem<ExportConfig>(
+export const coursePageExportSetting = defineSetting<ExportConfig>(
   "local:coursePage.export",
   { fallback: { enabled: true, format: "markdown" } },
 );
 
-export const periodTableSetting = storage.defineItem<PeriodTableConfig>(
+export const periodTableSetting = defineSetting<PeriodTableConfig>(
   "local:periods.table",
   {
     fallback: {
@@ -196,7 +221,7 @@ export const periodTableSetting = storage.defineItem<PeriodTableConfig>(
   },
 );
 
-export const timetableSetting = storage.defineItem<TimetableConfig>(
+export const timetableSetting = defineSetting<TimetableConfig>(
   "local:home.timetable",
   {
     fallback: {
@@ -218,7 +243,7 @@ export const timetableSetting = storage.defineItem<TimetableConfig>(
   },
 );
 
-export const myCoursesTodayOrderSetting = storage.defineItem<TodayOrderConfig>(
+export const myCoursesTodayOrderSetting = defineSetting<TodayOrderConfig>(
   "local:myCourses.todayOrder",
   { fallback: { enabled: false } },
 );

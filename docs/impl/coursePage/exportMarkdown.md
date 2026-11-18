@@ -70,7 +70,7 @@ export function initExportMarkdown(config: ExportConfig): void;
 
 ```ts
 // src/utils/settings.ts
-export const coursePageExportSetting = storage.defineItem<ExportConfig>(
+export const coursePageExportSetting = defineSetting<ExportConfig>(
   "local:coursePage.export",
   { fallback: { enabled: true, format: "markdown" } },
 );

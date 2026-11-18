@@ -38,7 +38,7 @@ export function applyFont(config: FontConfig): void;
 
 ```ts
 // src/utils/settings.ts
-export const uiFontSetting = storage.defineItem<FontConfig>("local:ui.font", {
+export const uiFontSetting = defineSetting<FontConfig>("local:ui.font", {
   fallback: { enabled: false, family: "", scope: "all" },
 });
 ```

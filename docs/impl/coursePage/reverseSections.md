@@ -37,7 +37,7 @@ export function applyReverseSections(config: ReverseSectionsConfig): void;
 import type { ReverseSectionsConfig } from "@/features/coursePage/reverseSections";
 
 export const coursePageReverseSectionsSetting =
-  storage.defineItem<ReverseSectionsConfig>(
+  defineSetting<ReverseSectionsConfig>(
     "local:coursePage.reverseSections",
     { fallback: { enabled: false } },
   );

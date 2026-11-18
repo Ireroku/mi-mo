@@ -35,7 +35,7 @@ export interface MenuItemsCache {
   updatedAt: string; // ISO の日時
 }
 
-export const menuItemsCacheSetting = storage.defineItem<MenuItemsCache>(
+export const menuItemsCacheSetting = defineSetting<MenuItemsCache>(
   "local:moodle.menuItems",
   { fallback: { names: [], updatedAt: "" } },
 );

@@ -34,7 +34,7 @@ export function applyMenuLogo(config: MenuLogoConfig): void;
 
 ```ts
 // src/utils/settings.ts
-export const menuLogoSetting = storage.defineItem<MenuLogoConfig>(
+export const menuLogoSetting = defineSetting<MenuLogoConfig>(
   "local:menu.logo",
   { fallback: { hidden: false } },
 );

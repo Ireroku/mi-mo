@@ -342,7 +342,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`settings/controls.md`](./settings/controls.md) | `src/features/settings/controls/`（`StackedInputs`、`SuggestInput`、`TimePicker`、`DatePicker`、`ConfirmDialog`、`time.logic`） | 使う: settings/panel の shadcn-svelte の部品 |
 | [`settings/menuFields.md`](./settings/menuFields.md) | `src/features/settings/fields/` | 使う: settings/panel ／ settings/controls ／ moodle/menuItems ／ 資料: menu 系3本の型 |
 | [`settings/timetableFields.md`](./settings/timetableFields.md) | `src/features/settings/fields/` | 使う: settings/panel ／ settings/controls ／ timetable/ics ／ utils/download |
-| [`utils/settings.md`](./utils/settings.md) | `src/utils/settings.ts` | 使う: 各機能が export する設定の型 |
+| [`utils/settings.md`](./utils/settings.md) | `src/utils/settings.ts`、`src/utils/fillDefaults.ts` | 使う: 各機能が export する設定の型 |
 | [`utils/periods.md`](./utils/periods.md) | `src/utils/periods.ts` | 使う: menu/clock ／ menu/countdownBadge ／ timetable |
 | [`utils/graphemes.md`](./utils/graphemes.md) | `src/utils/graphemes.ts` | 使う: menu/clock ／ menu/countdownBadge |
 | [`utils/styleSheet.md`](./utils/styleSheet.md) | `src/utils/styleSheet.ts` | 参考: [`home/hideElements.md`](./home/hideElements.md) |

@@ -52,7 +52,7 @@ export async function initGradeInline(
 ```ts
 // src/utils/settings.ts
 export const coursePageGradeInlineSetting =
-  storage.defineItem<GradeInlineConfig>("local:coursePage.gradeInline", {
+  defineSetting<GradeInlineConfig>("local:coursePage.gradeInline", {
     fallback: { enabled: true },
   });
 ```

@@ -60,7 +60,7 @@ if (loggedIn && timetableConfig.enabled) {
 
 ```ts
 // src/utils/settings.ts
-export const timetableSetting = storage.defineItem<TimetableConfig>(
+export const timetableSetting = defineSetting<TimetableConfig>(
   "local:home.timetable",
   { fallback: /* 空のグリッドと、その年度の開始日 */ },
 );

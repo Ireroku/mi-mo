@@ -2,7 +2,7 @@
 
 ## 概要
 
-拡張機能の設定を保存・読み出しする。機能ごとに独立したストレージキーを持ち、既定値を添えて項目を定義する。参照するのは entrypoint だけで、`src/features/` の実装はこのモジュールを import しない。
+拡張機能の設定を保存・読み出しする。機能ごとに独立したストレージキーを持ち、既定値を添えて項目を定義する。読み出す値に欠けたキーがあれば、既定値から補う。参照するのは entrypoint だけで、`src/features/` の実装はこのモジュールを import しない。
 
 ## 関連
 
@@ -14,6 +14,7 @@
 | パス | 役割 |
 |---|---|
 | `src/utils/settings.ts` | 機能ごとのストレージ項目を定義して export する |
+| `src/utils/fillDefaults.ts` | 欠けたキーを既定値から補う |
 | `wxt.config.ts` | `storage` permission を manifest へ宣言する |
 
 ## インターフェース
@@ -26,24 +27,30 @@ import type { MenuBadgesConfig } from "@/features/menu";
 import type { MenuConfig } from "@/features/menu/navbar/types";
 import type { PeriodTableConfig } from "@/utils/periods";
 
-export const homeHideElementsSetting = storage.defineItem<HideElementsConfig>(
+// storage.defineItem と同じ項目を返す。getValue と watch が渡す値だけ、欠けたキーを fallback から補う
+function defineSetting<T>(
+  key: StorageItemKey,
+  options: WxtStorageItemOptions<T> & { fallback: T },
+): WxtStorageItem<T, Record<string, never>>;
+
+export const homeHideElementsSetting = defineSetting<HideElementsConfig>(
   "local:home.hideElements",
   {
     fallback: { announcements: true, categories: true, search: true },
   },
 );
 
-export const menuSetting = storage.defineItem<MenuConfig>(
+export const menuSetting = defineSetting<MenuConfig>(
   "local:menu.items",
   { fallback: /* 下の決めごとを参照 */ },
 );
 
-export const menuBadgesSetting = storage.defineItem<MenuBadgesConfig>(
+export const menuBadgesSetting = defineSetting<MenuBadgesConfig>(
   "local:menu.badges",
   { fallback: /* 下の決めごとを参照 */ },
 );
 
-export const periodTableSetting = storage.defineItem<PeriodTableConfig>(
+export const periodTableSetting = defineSetting<PeriodTableConfig>(
   "local:periods.table",
   {
     fallback: /* 下の決めごとを参照 */,
@@ -52,6 +59,13 @@ export const periodTableSetting = storage.defineItem<PeriodTableConfig>(
     migrations: { 2: (old) => ({ ...old, periods: migratePeriodsFromV1(old.periods ?? []) }) },
   },
 );
+```
+
+```ts
+// src/utils/fillDefaults.ts
+// 既定値にあって value に無い（undefined か null の）キーを足す。入れ子のオブジェクトは中まで補い、
+// 配列と、既定値と型の違う値は value のまま残す。既定値に無いキーも残す。引数は書き換えない
+export function fillDefaults<T>(value: T, defaults: T): T;
 ```
 
 読み出す側:
@@ -64,22 +78,26 @@ const config = await homeHideElementsSetting.getValue();
 
 ## 処理の流れ
 
-このモジュールは定義だけを持ち、実行される処理はない。設定項目を1つ増やす手順は次の通り。
+読み出しでは、WXT の `getValue()` と `watch` が返す値を `fillDefaults(value, fallback)` に通す。保存済みの値は書き換えない。設定項目を1つ増やす手順は次の通り。
 
 1. 機能側で設定の型を定義して export する
 2. `settings.ts` でその型を import する
-3. `storage.defineItem<型>("local:<機能>.<設定名>", { fallback: 既定値 })` を export する
+3. `defineSetting<型>("local:<機能>.<設定名>", { fallback: 既定値 })` を export する
 4. entrypoint から `await <項目名>.getValue()` で読み、機能へ引数として渡す
 
 ## 決めごと
 
 - **`wxt.config.ts` の `manifest.permissions` に `"storage"` を宣言する。** WXT は storage API の使用を自動で検出しないため、宣言が無いと `browser.storage` へアクセスできず `getValue()` が失敗する。生成物の `.output/<target>/manifest.json` を見れば宣言されたか確認できる
-- **`storage.defineItem(` の引数は、キーとオプションを別の行に書く。** `defineItem<T>("キー", {` のように1行目を `{` で終えると、WXT の auto-import の走査が `fallback` のキー（`scope` など）を export と取り違える。同じ名前の変数を使う別のモジュールへ、存在しない import が差し込まれ、ビルドが `MISSING_EXPORT` で止まる
+- **`defineSetting(` の引数は、キーとオプションを別の行に書く。** `defineSetting<T>("キー", {` のように1行目を `{` で終えると、WXT の auto-import の走査が `fallback` のキー（`scope` など）を export と取り違える。同じ名前の変数を使う別のモジュールへ、存在しない import が差し込まれ、ビルドが `MISSING_EXPORT` で止まる
 - **設定の型は機能側が持ち、`settings.ts` が import する。** 逆向きにすると `src/features/` が設定モジュールへ依存し、機能が設定の出所を知らないという方針が崩れる
 - **キーは機能ごとに分け、`local:<機能>.<設定名>` の形にする。** 全設定を1つのキーにまとめると、`document_start` で動く entrypoint が使わない設定まで読み込む
 - **ストレージ領域は `local:` を使う。** `sync:` は1項目 8KB・全体 100KB の制限があり、時間割のような大きい設定が収まらない
 - **既定値は `fallback` で与える。** 未設定時に `null` が返らなくなり、呼び出し側の分岐が消える
-- **`fallback` を変えても、値を保存済みの利用者には効かない。** `fallback` は未保存の時だけ使われる。保存済みの値まで変える場合は、`version` と `migrations` で移す
+- **項目は `storage.defineItem` を直に呼ばず、`defineSetting` で定義する。** 型にキーを足した時、保存済みの値にそのキーが無くても既定値が入る。版を上げて移す処理を、キーを足すたびに書かずに済む。何かの理由で保存済みの値が一部欠けても、機能が `undefined` を読んで壊れない
+- **補うのは読み出す時だけにし、保存済みの値は書き換えない。** 読むだけの entrypoint がストレージへ書き込まない。次に設定画面で保存した時に、補った値ごと保存される
+- **既にあるキーの既定値を変えても、値を保存済みの利用者には効かない。** 補うのは欠けたキーだけで、保存された値は既定値と違っても残す。保存済みの値まで変える場合は、`version` と `migrations` で移す
+- **補う計算は `fillDefaults.ts` に分ける。** `settings.ts` は WXT のストレージを読み込むため、単体テストから呼べない
+- **配列の中は補わない。** 配列は利用者が要素を消した結果かもしれず、既定値の要素を足すと消した要素が戻る
 - **`getValue()` が非同期であることを前提に組む。** 値はストレージから読むため、同期にはできない
 - **変数名は `<機能><設定名>Setting` の形にする。** import した先で何の設定か分かるようにするため
 - **「インターフェース」に並ぶ項目は例示で、全項目の一覧ではない。** どの項目を定義するかは各機能の指示書が自分の分を持つ。ここへ全部を集めると、機能が増えるたびに2箇所を直すことになる

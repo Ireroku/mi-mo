@@ -49,7 +49,7 @@ interface Props {
 ```ts
 // src/utils/settings.ts
 export const coursePageAutoattendButtonSetting =
-  storage.defineItem<AutoattendButtonConfig>(
+  defineSetting<AutoattendButtonConfig>(
     "local:coursePage.autoattendButton",
     { fallback: { enabled: true, placement: "top" } },
   );

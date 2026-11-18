@@ -75,7 +75,7 @@ interface Props {
 
 ```ts
 // src/utils/settings.ts
-export const homeGreetingSetting = storage.defineItem<GreetingConfig>(
+export const homeGreetingSetting = defineSetting<GreetingConfig>(
   "local:home.greeting",
   {
     fallback: {
@@ -91,7 +91,7 @@ export const homeGreetingSetting = storage.defineItem<GreetingConfig>(
 );
 
 // 直前に出した一言
-export const homeGreetingLastMessage = storage.defineItem<string>(
+export const homeGreetingLastMessage = defineSetting<string>(
   "local:home.greeting.last",
   { fallback: "" },
 );
