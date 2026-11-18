@@ -4,11 +4,16 @@ import {
   type DownloadMessage,
   type DownloadResponse,
 } from "@/utils/download";
+import { sanitizeFilename } from "@/utils/filename";
 
 async function startDownloads(items: DownloadItem[]): Promise<DownloadResponse> {
   const results = await Promise.allSettled(
     items.map((item) =>
-      browser.downloads.download({ url: item.url, filename: item.filename }),
+      browser.downloads.download({
+        url: item.url,
+        // 送り手の組み立て誤りで階層や予約名が混ざっても、保存先のフォルダの外へ出さない
+        filename: typeof item.filename === "string" ? sanitizeFilename(item.filename) : undefined,
+      }),
     ),
   );
 

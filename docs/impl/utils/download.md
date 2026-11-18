@@ -9,6 +9,7 @@ content script からファイルを保存する窓口を作る。URL の保存�
 - 使う: [`../coursePage/bulkDownload.md`](../coursePage/bulkDownload.md) — 資料の一括保存
 - 使う: [`../coursePage/exportMarkdown.md`](../coursePage/exportMarkdown.md) — 書き出したテキストの保存
 - 使う: [`../coursePage/pageSave.md`](../coursePage/pageSave.md) — ページ資料をまとめた ZIP の保存
+- 使う: [`./filename.md`](./filename.md) — 受け取った保存名を整える
 - 資料: [WXT: Entrypoints](https://wxt.dev/guide/essentials/entrypoints.html) — `defineBackground` の書き方
 
 ## 対象ファイル
@@ -84,7 +85,7 @@ export default defineBackground(() => {
 
 1. メッセージの `type` が `DOWNLOAD_MESSAGE_TYPE` でなければ何もせず、値も返さない
 2. `items` のうち `url` が文字列のものを `browser.downloads.download({ url, filename })` へ渡す。全件を `Promise.allSettled` で待つ
-3. `filename` が無い項目は、保存名を `downloads` に決めさせる
+3. `filename` が文字列の項目は、`sanitizeFilename`（[`./filename.md`](./filename.md)）へ通してから渡す。文字列でない項目は `filename` を渡さず、保存名を `downloads` に決めさせる
 4. reject された項目を `console.error("[mi-mo] download", 理由)` で出し、件数を数える
 5. `sendResponse({ failed: 件数 })` で応答する。リスナー自体は `true` を返し、応答が後から届くことをブラウザへ伝える
 
@@ -98,6 +99,7 @@ export default defineBackground(() => {
 - **URL の保存にリンクのクリック（`<a download>`）を使わない。** ページから続けて起こす複数の保存は、ブラウザが確認を出して止める。別のオリジンへ転送される URL では `download` 属性の保存名も効かない
 - **content script の中で作った大きなデータは、`saveBlob` で保存する。** `blob:` の URL は background で解決できない場合があり、`data:` の URL は数十MBのデータに向かない。メッセージで中身を background へ送る形は、Chrome では JSON に直されるため、バイナリをそのまま渡せない。リンクのクリックなら、作った文脈の中で保存まで終わる。保存は1回の操作につき1件に限る
 - **`saveBlob` は URL を60秒後に返す。** 保存が始まる前に返すと失敗する。返さないと、ページを開いている間データがメモリに残る
+- **受け口でも保存名を整える。** 依頼する側も名前を整えるが、組み立てに誤りがあると `..` や予約名が混ざり、保存先のフォルダの外や意図しない名前で保存される。受け口は1つで、すべての保存がここを通るため、ここで1回整えれば足りる。保存名は1階層の名前だけを受け取る
 - **保存を開始できたかどうかだけを呼び出し側へ返す。** `browser.downloads.download` は保存を開始した時点で解決するため、待ち時間はファイルの大きさに左右されない。開始に失敗した場合（permission の不足、不正な URL など）は利用者が気付けないため、依頼する側がボタンの文言で知らせる
 - **保存の完了は待たず、途中の失敗も扱わない。** 開始した後の成否は、利用者がブラウザのダウンロード欄で見る
 - **応答は `sendResponse` と `return true` で返し、リスナーから `Promise` を返さない。** `Promise` を返す形は Firefox では応答になるが、Chrome では無視されて送信側へ `undefined` が届く。両方で同じに動く書き方へ揃える
