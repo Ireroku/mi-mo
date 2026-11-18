@@ -46,6 +46,22 @@ dev ビルドは、localhost への接続と `tabs`・`scripting` の権限を�
 | ライトとダークの両方で読める | OS のカラースキームを切り替える |
 | コンソールにエラーが出ない | ポップアップを右クリック →「検証」 |
 
+### 拡張機能として読み込まずに開く（開発用のページ）
+
+拡張機能を読み込めないブラウザでも、設定画面を普通のページとして開ける。[known-issues.md](./known-issues.md) の「開発用のページで確認済み」は、このページでの確認を指す。
+
+```sh
+pnpm harness                                                  # ビルドして .output/harness を作る
+python3 -m http.server 8766 --bind 127.0.0.1 --directory .output/harness
+```
+
+`http://localhost:8766/popup.html` でポップアップ、`options.html` でオプション画面が開く。ポップアップの大きさは、ブラウザの幅を 380×560px に絞って見る。
+
+- **仕組み**: [`scripts/harness/build.mjs`](../scripts/harness/build.mjs) が `.output/chrome-mv3` を `.output/harness` へ写し、`popup.html` と `options.html` の `<head>` の先頭へ [`scripts/harness/shim.js`](../scripts/harness/shim.js) を差し込む。`shim.js` は `chrome.storage` を `localStorage` で代用する
+- **コードを変えたら `pnpm harness` を実行し直す。** `pnpm dev` の変更は反映されない
+- **保存した値は `localStorage` の `mimo-harness-storage` に入る。** 初期状態から見直す場合は、開発者ツールでこのキーを消す
+- **確かめられるのは設定画面の見た目と操作だけになる。** content script は動かず、メッセージの送信は何もしない。拡張機能のポップアップの枠での見え方（Firefox や Safari の枠で切れないかなど）は、実際のポップアップで確かめる
+
 ## 3. 実際の Moodle で確かめる
 
 Moodle のページへ手を入れる機能は、実機でしか確かめられない。[三重大学 Moodle](https://lms-m41.mie-u.ac.jp/) へのログインが要る。ログインは利用者本人が行う。
@@ -84,7 +100,8 @@ Moodle のページへ手を入れる機能は、実機でしか確かめられ�
 ## AIエージェントが確かめる場合
 
 - 1 の検査はそのまま実行する
-- 2 と 3 は、拡張機能を読み込んだブラウザを操作できる場合にだけ行う。利用者の Chrome を操作するツール（`claude-in-chrome`）が使え、そこへ `.output/chrome-mv3` が読み込まれていることが条件になる。拡張機能を読み込めないブラウザでは content script が動かないため、Moodle を開いても確認にならない
+- 2 の設定画面は、ブラウザを操作できれば「開発用のページ」で確かめられる。タブを切り替えた直後は動きの途中が写るため、2秒ほど待ってから撮る
+- 2 のほかの項目と 3 は、拡張機能を読み込んだブラウザを操作できる場合にだけ行う。利用者の Chrome を操作するツール（`claude-in-chrome`）が使え、そこへ `.output/chrome-mv3` が読み込まれていることが条件になる。拡張機能を読み込めないブラウザでは content script が動かないため、Moodle を開いても確認にならない
 - ログイン画面が出た場合は、利用者にログインを頼む。パスワードを自分で入力しない
 - 条件が揃わない場合は、下の「確認できなかった場合」に従う
 

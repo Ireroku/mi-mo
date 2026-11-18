@@ -13,6 +13,7 @@
     "zip:firefox": "wxt zip -b firefox",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
+    "harness": "wxt build && node scripts/harness/build.mjs",
     "postinstall": "wxt prepare"
   },
   "devDependencies": {

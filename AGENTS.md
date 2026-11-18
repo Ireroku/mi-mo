@@ -48,6 +48,7 @@ pnpm zip              # Chrome 向けのパッケージ作成
 pnpm zip:firefox      # Firefox 向けのパッケージ作成
 pnpm check            # svelte-check による型と構文の検査
 pnpm test             # Vitest による単体テスト
+pnpm harness          # 設定画面を普通のページとして開くための開発用ページを作る
 
 python3 scripts/checkdocs.py   # docs の文体規約とリンク切れの検査
 ```
