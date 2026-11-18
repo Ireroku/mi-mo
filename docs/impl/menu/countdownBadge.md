@@ -2,7 +2,7 @@
 
 ## 概要
 
-指定した時刻までの残り時間を、ナビゲーションメニューに表示する。対象を複数並べられる。対象は2種類ある。日時を指定する対象と、時限の区切り（今の時限の終了か、次の時限の開始）を数える対象。残り時間の長さに応じて、表示の粒度が4段階で切り替わる。
+指定した時刻までの残り時間を、ナビゲーションメニューに表示する。対象を複数並べられる。対象は2種類ある。日時を指定する対象と、時限の区切り（今の時限の終了か、次の時限の開始）を数える対象。残り時間の長さに応じて、表示の粒度が4段階で切り替わる。切り替わる境界は設定で決める。
 
 ## 関連
 
@@ -49,10 +49,20 @@ export interface CountdownConfig {
 export const COUNTDOWN_ENDED_LABEL = "終了しました";
 export const CLASSES_OVER_LABEL = "授業終了";
 
+// 粒度を切り替える境界。どれも「以下」で、その値を含む
+export interface CountdownThresholds {
+  secondsWithinMinutes: number; // この分数以下で秒まで出す。既定 15、範囲 1〜60
+  minutesWithinHours: number; // この時間数以下で分まで出す。既定 24、範囲 1〜72
+  hoursWithinDays: number; // この日数以下で日と時間を出す。既定 7、範囲 1〜30
+}
+
 export const LABEL_CHARS_PER_LINE = 4;
 export const LABEL_MAX_LINES = 2;
 
-export function formatRemaining(remainingMs: number): string;
+export function formatRemaining(
+  remainingMs: number,
+  thresholds: CountdownThresholds,
+): string;
 export function wrapLabel(
   label: string,
   perLine?: number,
@@ -76,10 +86,11 @@ export function buildCountdownTargets(
 // countdownBadge.svelte の Props
 interface Props {
   targets: CountdownTarget[];
+  thresholds: CountdownThresholds;
 }
 ```
 
-`formatRemaining` は残りミリ秒だけを受け取る純粋関数。`wrapLabel` はラベルを表示する行の配列にする純粋関数で、`perLine` と `maxLines` の既定は `LABEL_CHARS_PER_LINE` と `LABEL_MAX_LINES`。
+`formatRemaining` は残りミリ秒と境界を受け取る純粋関数。既定値は [`../utils/settings.md`](../utils/settings.md) の `menuBadgesSetting` の `fallback` にだけ書く。`wrapLabel` はラベルを表示する行の配列にする純粋関数で、`perLine` と `maxLines` の既定は `LABEL_CHARS_PER_LINE` と `LABEL_MAX_LINES`。
 
 ## 処理の流れ
 
@@ -87,7 +98,7 @@ interface Props {
 
 1. `countdownBadge.svelte` が `$effect` の中で `startClockTicker` を粒度 `"second"` で呼ぶ
 2. tick のたびに `now` を更新し、各 target について `target.resolve(now)` を呼ぶ。時限の区切りは tick ごとに求め直す
-3. `counting` なら、`wrapLabel(label)` の行と `formatRemaining(target − now)` を出す。`classesOver` なら `授業終了` を1行だけ出す
+3. `counting` なら、`wrapLabel(label)` の行と `formatRemaining(target − now, thresholds)` を出す。`classesOver` なら `授業終了` を1行だけ出す
 4. `{#each}` のキーには `target.id` を使う
 
 ### 表示の配置
@@ -129,15 +140,17 @@ interface Props {
 
 ### 残り時間の書式
 
-`formatRemaining` が4段階で整形する。境界はすべて「以下」で、その値自体を含む。
+`formatRemaining` が4段階で整形する。境界はすべて「以下」で、その値自体を含む。表の境界は既定値の場合。
 
 | 残り | 出力例 | 上位が0の場合 |
 |---|---|---|
 | 0以下 | `終了しました` | — |
-| 15分以下 | `12分34秒` | `34秒` |
-| 24時間以下 | `3時間45分` | `45分` |
-| 7日以下 | `2日と5時間` | `2日` |
-| 7日超 | `10日` | — |
+| `secondsWithinMinutes` 分（15分）以下 | `12分34秒` | `34秒` |
+| `minutesWithinHours` 時間（24時間）以下 | `3時間45分` | `45分` |
+| `hoursWithinDays` 日（7日）以下 | `2日と5時間` | `2日` |
+| それより長い | `10日` | — |
+
+境界は上の行から順に判定する。境界の大小が逆に設定されていても、先に当たった行の粒度で出す。
 
 ### buildCountdownTargets
 
@@ -181,7 +194,9 @@ interface Props {
 - **保存する形（`CountdownConfig`）と実行時の形（`CountdownTarget`）を分ける。** `resolve` が関数のため、`CountdownTarget` をそのまま storage へ保存できない
 - **変換は `initMenuBadges` の内部で行い、entrypoint には出さない。** entrypoint の担当を設定の取得と受け渡しだけに保つため
 - **目標時刻を過ぎたら、非表示にせず「終了しました」と表示する。** 消えてしまうと、設定を間違えたのか終わったのかを区別できない
-- **境界値はすべて「以下」の側へ含める。** 残りちょうど15分なら秒表示にする
+- **境界値はすべて「以下」の側へ含める。** 既定の境界で残りちょうど15分なら秒表示にする
+- **境界は `MenuBadgesConfig` の `thresholds` に持ち、カウントダウンの対象ごとには持たない。** 粒度は読み方の好みで、対象ごとに変える場面が無い
+- **境界の大小を検査しない。** 上から順に判定するため、逆に設定しても表示は崩れず、ある粒度が出なくなるだけになる
 - **上位の単位が0の時は省く。** 「0分34秒」ではなく「34秒」と出す
 - **表示が分単位や日単位でも、タイマーは1秒ごとに回す。** 粒度が切り替わる瞬間（残りが15分を切るなど）を取りこぼさないため
 - **残り時間を主役にし、ラベルは `text-xs leading-none text-muted-foreground` で落とす。** ラベルは何のカウントダウンかを示す補助で、読みたいのは残り時間そのもののため

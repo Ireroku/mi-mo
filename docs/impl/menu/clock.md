@@ -66,6 +66,7 @@ interface Props {
 export interface MenuBadgesConfig {
   clock: ClockConfig;
   countdowns: CountdownConfig[];
+  thresholds: CountdownThresholds;
 }
 
 export async function initMenuBadges(
@@ -78,7 +79,7 @@ export async function initMenuBadges(
 
 `timetable` はカウントダウンを時間割に合わせるかどうかの判定にだけ使う。時計は参照しない。扱いは [`countdownBadge.md`](./countdownBadge.md) にある。
 
-`MenuBadgesConfig` は時計とカウントダウンの両方の設定を持つ。`CountdownConfig` は [`countdownBadge.md`](./countdownBadge.md) が定義する。すべて JSON へ変換できる形にしてあり、そのまま storage へ保存できる。
+`MenuBadgesConfig` は時計とカウントダウンの両方の設定を持つ。`CountdownConfig` と `CountdownThresholds` は [`countdownBadge.md`](./countdownBadge.md) が定義する。すべて JSON へ変換できる形にしてあり、そのまま storage へ保存できる。
 
 呼び出し側（`src/entrypoints/shared.content.ts`）での使い方:
 

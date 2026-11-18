@@ -31,36 +31,41 @@ export const CLASSES_OVER_LABEL = "授業終了";
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
-const FIFTEEN_MINUTES_MS = 15 * MINUTE_MS;
-const SEVEN_DAYS_MS = 7 * DAY_MS;
+
+// 残り時間の粒度を切り替える境界。どれも「以内」で、その値を含む
+export interface CountdownThresholds {
+  secondsWithinMinutes: number; // この分数以内で秒まで出す
+  minutesWithinHours: number; // この時間数以内で分まで出す
+  hoursWithinDays: number; // この日数以内で日と時間を出す。超えたら日数だけ
+}
 
 /**
- * 残りmsを4段階の粒度（境界はすべて「以内」＝その値を含む）で整形する純粋関数。
- * - 15分以内: 秒
- * - 24時間以内: 分
- * - 7日以内: 日+時間
- * - それ以上: 日数のみ
+ * 残りmsを thresholds の境界で4段階の粒度に整形する純粋関数。
+ * 境界は上から順に判定し、大小が逆でも先に当たった粒度を使う。
  */
-export function formatRemaining(remainingMs: number): string {
+export function formatRemaining(
+  remainingMs: number,
+  thresholds: CountdownThresholds,
+): string {
   if (remainingMs <= 0) {
     return COUNTDOWN_ENDED_LABEL;
   }
 
-  if (remainingMs <= FIFTEEN_MINUTES_MS) {
+  if (remainingMs <= thresholds.secondsWithinMinutes * MINUTE_MS) {
     const totalSeconds = Math.floor(remainingMs / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`;
   }
 
-  if (remainingMs <= DAY_MS) {
+  if (remainingMs <= thresholds.minutesWithinHours * HOUR_MS) {
     const totalMinutes = Math.floor(remainingMs / MINUTE_MS);
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     return hours > 0 ? `${hours}時間${minutes}分` : `${minutes}分`;
   }
 
-  if (remainingMs <= SEVEN_DAYS_MS) {
+  if (remainingMs <= thresholds.hoursWithinDays * DAY_MS) {
     const totalHours = Math.floor(remainingMs / HOUR_MS);
     const days = Math.floor(totalHours / 24);
     const hours = totalHours % 24;

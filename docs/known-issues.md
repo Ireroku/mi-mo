@@ -76,14 +76,6 @@
 - 場所: `src/features/timetable/Timetable.svelte`、`src/features/myCourses/todayOrder.ts`
 - 直す方向: ページを読み込み直すと直る。タブへ戻った時に日付を取り直す処理は、必要性が確かめられてから足す
 
-## 保守性
-
-### カウントダウンの粒度を切り替える閾値を設定できない
-
-- 起きること: 秒刻み・分刻み・日数表示へ切り替わる残り時間（15分・24時間・7日）が固定値になっている
-- 場所: `src/features/menu/countdownBadge.logic.ts` の `formatRemaining`
-- 直す方向: `CountdownConfig` へ閾値を足し、[`impl/settings/menuFields.md`](./impl/settings/menuFields.md) のカウントダウン編集へ入力欄を足す
-
 ## 対応しない環境
 
 - **Safari では資料の保存とセクションの書き出しが動かない。** `browser.downloads` が無いため。理由と差し替えの方針は [`impl/utils/download.md`](./impl/utils/download.md) にある

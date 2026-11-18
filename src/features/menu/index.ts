@@ -8,7 +8,11 @@ import {
   sortPeriodsByStart,
   type PeriodSlot,
 } from "@/utils/periods";
-import { buildCountdownTargets, type CountdownConfig } from "./countdownBadge.logic";
+import {
+  buildCountdownTargets,
+  type CountdownConfig,
+  type CountdownThresholds,
+} from "./countdownBadge.logic";
 import { applyStyleSheet } from "@/utils/styleSheet";
 import { buildSchedule, hasLessons } from "@/features/timetable/schedule.logic";
 import type { TimetableConfig } from "@/features/timetable/types";
@@ -38,6 +42,7 @@ nav.navbar #usernavigation {
 export interface MenuBadgesConfig {
   clock: ClockConfig;
   countdowns: CountdownConfig[];
+  thresholds: CountdownThresholds;
 }
 
 /**
@@ -102,6 +107,7 @@ export async function initMenuBadges(
   ctx.onInvalidated(() => slot.remove());
   await mountBadge(ctx, "mimo-countdown-badge", slot, "last", CountdownBadge, {
     targets: countdownTargets,
+    thresholds: config.thresholds,
   });
   await mountBadge(ctx, "mimo-clock-badge", userNavigation, "before", ClockBadge, {
     config: config.clock,

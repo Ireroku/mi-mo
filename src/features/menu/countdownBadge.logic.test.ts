@@ -3,6 +3,7 @@ import {
   COUNTDOWN_ENDED_LABEL,
   buildCountdownTargets,
   formatRemaining,
+  type CountdownThresholds,
   resolvePeriodCountdown,
   wrapLabel,
 } from "./countdownBadge.logic";
@@ -14,30 +15,59 @@ const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
+const THRESHOLDS: CountdownThresholds = {
+  secondsWithinMinutes: 15,
+  minutesWithinHours: 24,
+  hoursWithinDays: 7,
+};
+const format = (ms: number) => formatRemaining(ms, THRESHOLDS);
+
 describe("formatRemaining", () => {
   it("0以下は終了の文言にする", () => {
-    expect(formatRemaining(0)).toBe(COUNTDOWN_ENDED_LABEL);
-    expect(formatRemaining(-1)).toBe(COUNTDOWN_ENDED_LABEL);
+    expect(format(0)).toBe(COUNTDOWN_ENDED_LABEL);
+    expect(format(-1)).toBe(COUNTDOWN_ENDED_LABEL);
   });
 
   it("15分以内は秒まで出す", () => {
-    expect(formatRemaining(45 * SECOND)).toBe("45秒");
-    expect(formatRemaining(15 * MINUTE)).toBe("15分0秒");
+    expect(format(45 * SECOND)).toBe("45秒");
+    expect(format(15 * MINUTE)).toBe("15分0秒");
   });
 
   it("24時間以内は分まで出す", () => {
-    expect(formatRemaining(15 * MINUTE + SECOND)).toBe("15分");
-    expect(formatRemaining(DAY)).toBe("24時間0分");
+    expect(format(15 * MINUTE + SECOND)).toBe("15分");
+    expect(format(DAY)).toBe("24時間0分");
   });
 
   it("7日以内は日と時間を出す", () => {
-    expect(formatRemaining(DAY + HOUR)).toBe("1日と1時間");
-    expect(formatRemaining(7 * DAY)).toBe("7日");
+    expect(format(DAY + HOUR)).toBe("1日と1時間");
+    expect(format(7 * DAY)).toBe("7日");
   });
 
   it("7日を超えたら日数だけを出す", () => {
-    expect(formatRemaining(7 * DAY + HOUR)).toBe("7日");
-    expect(formatRemaining(30 * DAY)).toBe("30日");
+    expect(format(7 * DAY + HOUR)).toBe("7日");
+    expect(format(30 * DAY)).toBe("30日");
+  });
+
+  it("境界を設定の値で切り替える", () => {
+    const custom: CountdownThresholds = {
+      secondsWithinMinutes: 1,
+      minutesWithinHours: 72,
+      hoursWithinDays: 30,
+    };
+    expect(formatRemaining(MINUTE, custom)).toBe("1分0秒");
+    expect(formatRemaining(2 * MINUTE, custom)).toBe("2分");
+    expect(formatRemaining(72 * HOUR, custom)).toBe("72時間0分");
+    expect(formatRemaining(10 * DAY + HOUR, custom)).toBe("10日と1時間");
+    expect(formatRemaining(31 * DAY, custom)).toBe("31日");
+  });
+
+  it("境界の大小が逆なら、上から先に当たった粒度を使う", () => {
+    const reversed: CountdownThresholds = {
+      secondsWithinMinutes: 60,
+      minutesWithinHours: 1,
+      hoursWithinDays: 1,
+    };
+    expect(formatRemaining(59 * MINUTE, reversed)).toBe("59分0秒");
   });
 });
 

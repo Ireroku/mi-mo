@@ -92,6 +92,11 @@ export const menuBadgesSetting = defineSetting<MenuBadgesConfig>(
           source: { kind: "nextPeriod" },
         },
       ],
+      thresholds: {
+        secondsWithinMinutes: 15,
+        minutesWithinHours: 24,
+        hoursWithinDays: 7,
+      },
     },
   },
 );

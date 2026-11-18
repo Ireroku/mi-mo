@@ -278,6 +278,27 @@ export const settingsGroups: readonly SettingsGroup[] = [
           ),
       },
     },
+    thresholds: {
+      label: "残り時間の刻み",
+      section: "カウントダウン",
+      control: {
+        kind: "nested",
+        fields: {
+          secondsWithinMinutes: {
+            label: "秒まで出す",
+            control: { kind: "number", min: 1, max: 60, unit: "分前から" },
+          },
+          minutesWithinHours: {
+            label: "分まで出す",
+            control: { kind: "number", min: 1, max: 72, unit: "時間前から" },
+          },
+          hoursWithinDays: {
+            label: "日と時間を出す",
+            control: { kind: "number", min: 1, max: 30, unit: "日前から" },
+          },
+        },
+      },
+    },
   }),
 
   defineGroup("general", "ヒントボタン", uiFloatingHintSetting, {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { CountdownTarget } from "./countdownBadge.logic";
+  import type { CountdownTarget, CountdownThresholds } from "./countdownBadge.logic";
   import {
     CLASSES_OVER_LABEL,
     formatRemaining,
@@ -9,9 +9,10 @@
 
   interface Props {
     targets: CountdownTarget[];
+    thresholds: CountdownThresholds;
   }
 
-  let { targets }: Props = $props();
+  let { targets, thresholds }: Props = $props();
 
   let now = $state(new Date());
 
@@ -47,7 +48,7 @@
             </span>
           {/if}
           <span class="whitespace-nowrap text-sm font-medium tabular-nums text-foreground">
-            {formatRemaining(state.target.getTime() - now.getTime())}
+            {formatRemaining(state.target.getTime() - now.getTime(), thresholds)}
           </span>
         </span>
       {/if}
