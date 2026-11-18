@@ -60,11 +60,21 @@ export const settingsGroups: readonly SettingsGroup[] = [
       },
       holidays: {
         label: "休講日",
-        control: { kind: "custom", component: HolidayListField },
+        control: {
+          kind: "custom",
+          component: HolidayListField,
+          // 日付も理由も入っていない行は、足しただけの行として閉じる時に消す
+          prune: (list) => list.filter((item) => item.date !== "" || (item.label ?? "").trim() !== ""),
+        },
       },
       substitutes: {
         label: "振替日",
-        control: { kind: "custom", component: SubstituteListField },
+        control: {
+          kind: "custom",
+          component: SubstituteListField,
+          // 曜日は既定で入るため、日付の無い行を足しただけの行とみなす
+          prune: (list) => list.filter((item) => item.date !== ""),
+        },
       },
       startDate: { label: "学期の開始日", control: { kind: "date" } },
       lessonCount: {

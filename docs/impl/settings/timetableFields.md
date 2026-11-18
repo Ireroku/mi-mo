@@ -72,11 +72,21 @@ defineGroup(
     },
     holidays: {
       label: "休講日",
-      control: { kind: "custom", component: HolidayListField },
+      control: {
+        kind: "custom",
+        component: HolidayListField,
+        // 日付も理由も入っていない行は、足しただけの行として閉じる時に消す
+        prune: (list) => list.filter((item) => item.date !== "" || (item.label ?? "").trim() !== ""),
+      },
     },
     substitutes: {
       label: "振替日",
-      control: { kind: "custom", component: SubstituteListField },
+      control: {
+        kind: "custom",
+        component: SubstituteListField,
+        // 曜日は既定で入るため、日付の無い行を足しただけの行とみなす
+        prune: (list) => list.filter((item) => item.date !== ""),
+      },
     },
     startDate: { label: "学期の開始日", control: { kind: "date" } },
     lessonCount: {
@@ -123,11 +133,11 @@ defineGroup(
 
 ### HolidayListField
 
-`ListField` を使う。行は `StackedInputs` で、`DatePicker`（[`./controls.md`](./controls.md)）を上、理由のテキスト入力を下に積む。`createItem` は `{ date: "" }` を返す。
+`ListField` を使う。行は `StackedInputs` で、`DatePicker`（[`./controls.md`](./controls.md)）を上、理由のテキスト入力を下に積む。`createItem` は `{ date: "" }` を返す。`fields.ts` の `prune` は、日付が無く理由も空白だけの行を消す。理由だけを入れた行は書きかけとして残す。
 
 ### SubstituteListField
 
-`ListField` を使う。行は `StackedInputs` で、`DatePicker` を上、曜日のセレクト（月曜から金曜）を下に積む。`createItem` は `{ date: "", weekday: "mon" }` を返す。
+`ListField` を使う。行は `StackedInputs` で、`DatePicker` を上、曜日のセレクト（月曜から金曜）を下に積む。`createItem` は `{ date: "", weekday: "mon" }` を返す。`fields.ts` の `prune` は、日付の無い行を消す。曜日は既定で入るため、日付の有無だけで足しただけの行かを見分ける。
 
 ### TimetableFooter
 
