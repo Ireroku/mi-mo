@@ -3,6 +3,8 @@ import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { MenuManager, type MenuConfig } from "./navbar/menu.manager";
 import ClockBadge from "./clock.svelte";
 import CountdownBadge from "./countdownBadge.svelte";
+import DrawerClock from "./drawerClock.svelte";
+import { HiddenTracker } from "./visibility.svelte";
 import type { ClockConfig } from "./clock.logic";
 import {
   sortPeriodsByStart,
@@ -14,6 +16,7 @@ import {
   type CountdownThresholds,
 } from "./countdownBadge.logic";
 import { applyStyleSheet } from "@/utils/styleSheet";
+import { DRAWER_REGION_SELECTOR } from "@/features/ui/quickDrawer";
 import { buildSchedule, hasLessons } from "@/features/timetable/schedule.logic";
 import type { TimetableConfig } from "@/features/timetable/types";
 
@@ -54,7 +57,7 @@ export function initMenu(config: MenuConfig): void {
 }
 
 /**
- * SvelteコンポーネントをShadow DOM経由でnavbarにマウントする共通処理。
+ * SvelteコンポーネントをShadow DOM経由でanchorの位置にマウントする共通処理。
  */
 async function mountBadge<Props extends Record<string, unknown>>(
   ctx: ContentScriptContext,
@@ -82,12 +85,14 @@ async function mountBadge<Props extends Record<string, unknown>>(
 /**
  * 時計・カウントダウンバッジをShadow DOM経由でnavbarに差し込む。エントリーポイント（shared.content.ts）から呼び出す。
  * 時間割が有効で授業が入っており、カウントダウンを時間割に合わせる設定なら、時限のカウントダウンは授業のある時限だけを数える。
+ * drawer が true でページに右のドロワーがあれば、メニューで隠れた時計とカウントダウンをドロワーの先頭のブロックへ移す。
  */
 export async function initMenuBadges(
   ctx: ContentScriptContext,
   config: MenuBadgesConfig,
   periods: PeriodSlot[],
   timetable: TimetableConfig,
+  drawer: boolean,
 ): Promise<void> {
   const periodTable = sortPeriodsByStart(periods);
   const sync =
@@ -105,14 +110,40 @@ export async function initMenuBadges(
   slot.className = SLOT_CLASS;
   userNavigation.before(slot);
   ctx.onInvalidated(() => slot.remove());
+
+  // 隠れたかどうかは、メニューのバッジが見張り、ドロワーのブロックが読む。控えはこの2つの見張り役だけが持つ
+  const region = drawer ? document.querySelector(DRAWER_REGION_SELECTOR) : null;
+  const trackers = region
+    ? { clock: new HiddenTracker<string>(), countdowns: new HiddenTracker<string>() }
+    : undefined;
+  if (trackers) {
+    ctx.onInvalidated(() => {
+      trackers.clock.disconnect();
+      trackers.countdowns.disconnect();
+    });
+  }
+
   await mountBadge(ctx, "mimo-countdown-badge", slot, "last", CountdownBadge, {
     targets: countdownTargets,
     thresholds: config.thresholds,
+    watch: trackers?.countdowns.watch,
   });
   await mountBadge(ctx, "mimo-clock-badge", userNavigation, "before", ClockBadge, {
     config: config.clock,
     periodTable,
+    watch: trackers?.clock.watch,
   });
+  // ブロックの並びの外（直前）へ置き、ピン留めのブロックとどちらが先に差し込まれても先頭に来るようにする
+  if (region && trackers) {
+    await mountBadge(ctx, "mimo-drawer-clock", region, "before", DrawerClock, {
+      clock: config.clock,
+      periodTable,
+      targets: countdownTargets,
+      thresholds: config.thresholds,
+      hiddenClock: trackers.clock,
+      hiddenCountdowns: trackers.countdowns,
+    });
+  }
 
   // Moodle はメニューに収まる項目数を resize の時にだけ計算する。
   // バッジで幅が減った分を反映させないと、項目が2段に折り返す。

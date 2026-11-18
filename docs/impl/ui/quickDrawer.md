@@ -2,7 +2,7 @@
 
 ## 概要
 
-右のブロックドロワーに対して、隠すか、よく使うコースの入口に作り変えるかを選べるようにする。隠す方は CSS だけで行い、ピン留めは独自のブロックをドロワーの先頭へ差し込む。
+右のブロックドロワーに対して、隠すか、よく使うコースの入口に作り変えるかを選べるようにする。隠す方は CSS だけで行い、ピン留めは独自のブロックをドロワーの先頭へ差し込む。ドロワーへ足すブロックの外枠（`DrawerBlock.svelte`）と、差し込み先のセレクタもここが持つ。
 
 ## 関連
 
@@ -11,6 +11,7 @@
 - 使う: [`../utils/settings.md`](../utils/settings.md) — ストレージ項目を足す手順
 - 資料: [`../../moodle/drawer.md`](../../moodle/drawer.md) — ドロワーのセレクタ、開閉状態の現れ方、`course_list` の構造
 - 参考: [`../menu/clock.md`](../menu/clock.md) — `createShadowRootUi` で要素を差し込む書き方
+- 参考: [`../menu/drawerClock.md`](../menu/drawerClock.md) — 同じ外枠と差し込み先を使う時計のブロック。ピン留めより上に置く
 
 ## 対象ファイル
 
@@ -18,6 +19,7 @@
 |---|---|
 | `src/features/ui/quickDrawer.ts` | 設定の型、CSS の組み立て、ピン留めブロックの差し込み |
 | `src/features/ui/PinnedCourses.svelte` | ピン留めしたコースの一覧の描画 |
+| `src/features/ui/DrawerBlock.svelte` | ドロワーへ足すブロックの外枠と見出し |
 | `src/utils/settings.ts` | ストレージ項目の定義 |
 | `src/entrypoints/early.content.ts` | 隠す CSS を当てる |
 | `src/entrypoints/shared.content.ts` | ピン留めブロックを差し込む |
@@ -33,6 +35,9 @@ export interface QuickDrawerConfig {
   pinned: CourseRef[];
 }
 
+// ドロワーの中でブロックが並ぶ場所。ほかの機能がドロワーへブロックを足す時も使う
+export const DRAWER_REGION_SELECTOR = "#theme_boost-drawers-blocks #block-region-side-pre";
+
 export function applyQuickDrawerVisibility(config: QuickDrawerConfig): void;
 
 export async function initPinnedCourses(
@@ -45,6 +50,14 @@ export async function initPinnedCourses(
 // PinnedCourses.svelte の Props
 interface Props {
   courses: CourseRef[];
+}
+```
+
+```ts
+// DrawerBlock.svelte の Props
+interface Props {
+  title: string;
+  children: Snippet;
 }
 ```
 
@@ -90,21 +103,25 @@ if (!config.hidden && config.pinned.length > 0) {
 
 ### initPinnedCourses
 
-1. `#theme_boost-drawers-blocks #block-region-side-pre` を探す。無ければ何もせず戻る
+1. `DRAWER_REGION_SELECTOR` の要素を探す。無ければ何もせず戻る
 2. `createShadowRootUi` で `PinnedCourses.svelte` を差し込む
 
 | 設定 | 値 |
 |---|---|
 | `name` | `mimo-pinned-courses` |
 | `position` | `inline` |
-| `anchor` | `#theme_boost-drawers-blocks #block-region-side-pre` |
+| `anchor` | 1 で見つけた要素 |
 | `append` | `first` |
 
 ### PinnedCourses.svelte
 
-1. 「ピン留め」の見出しを出す
-2. `courses` をリンクとして縦に並べる。`href` は `CourseRef.url`、表示は `CourseRef.title`
-3. 周囲のブロック（`section.block.card`）に合わせた余白と角丸を当てる
+1. `DrawerBlock` に「ピン留め」の見出しを付けて置く
+2. 中へ `courses` をリンクとして縦に並べる。`href` は `CourseRef.url`、表示は `CourseRef.title`
+
+### DrawerBlock.svelte
+
+1. `section` を周囲のブロック（`section.block.card`）に合わせた余白（`mb-3`、`p-3`）で置く
+2. `title` を見出し（`font-bold text-foreground`）として出し、その下へ `children` を描く
 
 ## 決めごと
 
@@ -117,3 +134,4 @@ if (!config.hidden && config.pinned.length > 0) {
 - **ピン留めするコースは [`../moodle/courseList.md`](../moodle/courseList.md) の控えから選ぶ。** コースIDを手で入力させない
 - **開閉状態を拡張機能から操作しない。** Moodle がユーザー設定として記憶しており、こちらが触ると食い違う。判定が必要な場面では `#theme_boost-drawers-blocks` の `show` クラスを見る（`body` のクラスには出ない）
 - **ドロワーが出ないページでは何もしない。** 差し込み先が無ければ戻るだけにする
+- **ドロワーへ足すブロックは `DrawerBlock.svelte` の外枠を共有する。** ピン留めと時計のブロックで、余白と見出しの形を揃えるため

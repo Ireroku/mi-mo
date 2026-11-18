@@ -310,6 +310,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`menu/navbar.md`](./menu/navbar.md) | `src/features/menu/navbar/` | 使う: styleSheet ／ 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
 | [`menu/clock.md`](./menu/clock.md) | `src/features/menu/clock.*` | 参考: navbar / countdownBadge |
 | [`menu/countdownBadge.md`](./menu/countdownBadge.md) | `src/features/menu/countdownBadge.*` | 使う: clock の `startClockTicker` ／ utils/periods ／ utils/graphemes ／ timetable/schedule |
+| [`menu/drawerClock.md`](./menu/drawerClock.md) | `src/features/menu/drawerClock.svelte`、`src/features/menu/visibility.svelte.ts` | 使う: menu/clock ／ menu/countdownBadge ／ ui/quickDrawer の `DrawerBlock` と `DRAWER_REGION_SELECTOR` ／ メニューで隠れた要素の見張り |
 | [`menu/logo.md`](./menu/logo.md) | `src/features/menu/logo.ts` | 使う: styleSheet ／ 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
 | [`home/hideElements.md`](./home/hideElements.md) | `src/features/home/hideElements.ts` | 資料: [`../moodle/home.md`](../moodle/home.md) |
 | [`home/container.md`](./home/container.md) | `src/features/home/container.ts` | 使う: moodle/page ／ 挨拶と時間割の器 |
@@ -319,7 +320,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`coursePage/sectionTitleLink.md`](./coursePage/sectionTitleLink.md) | `src/features/coursePage/sectionTitleLink.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/sectionToggleDesign.md`](./coursePage/sectionToggleDesign.md) | `src/features/coursePage/sectionToggleDesign.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`ui/floatingHint.md`](./ui/floatingHint.md) | `src/features/ui/floatingHint.ts` | 使う: styleSheet ／ 資料: [`../moodle/common.md`](../moodle/common.md) |
-| [`ui/quickDrawer.md`](./ui/quickDrawer.md) | `src/features/ui/quickDrawer.ts` | 使う: styleSheet ／ moodle/courseList ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
+| [`ui/quickDrawer.md`](./ui/quickDrawer.md) | `src/features/ui/quickDrawer.ts`、`src/features/ui/DrawerBlock.svelte` | 使う: styleSheet ／ moodle/courseList ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
 | [`ui/breadcrumb.md`](./ui/breadcrumb.md) | `src/features/ui/breadcrumb.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`ui/landingPage.md`](./ui/landingPage.md) | `src/features/ui/landingPage.ts` | 使う: utils/settings ／ ログイン直後の遷移 |
 | [`ui/font.md`](./ui/font.md) | `src/features/ui/font.ts` | 使う: styleSheet ／ utils/settings |

@@ -13,6 +13,7 @@
 - 使う: [`../utils/settings.md`](../utils/settings.md) — 設定の取得。参照するのは entrypoint のみで、機能側は参照しない
 - 参考: [`navbar.md`](./navbar.md) — 同じナビゲーションメニューを対象にするが、あちらは実DOMの属性操作、こちらは Shadow DOM への注入
 - 資料: [`docs/moodle/navbar.md`](../../moodle/navbar.md) — マウント先のアンカー要素
+- 参考: [`drawerClock.md`](./drawerClock.md) — 隠れた件の見張りと、ドロワーのブロック。`layout` と `watch` の使い道
 
 ## 対象ファイル
 
@@ -87,6 +88,10 @@ export function buildCountdownTargets(
 interface Props {
   targets: CountdownTarget[];
   thresholds: CountdownThresholds;
+  // menu は入りきらない件を切って隠す。drawer は渡された件をすべて出す。既定は menu
+  layout?: "menu" | "drawer";
+  // 各件（鍵は対象の id）を見張る attachment を返す
+  watch?: (id: string) => Attachment;
 }
 ```
 
@@ -112,6 +117,8 @@ interface Props {
 3. 先頭に幅0・高さ `h-12` の要素を置く。1行目は少なくとも1つの要素を持つため、この要素が無いと、入りきらない1件目が切れた姿で残る
 
 時計の時限、日付、時刻の消え方は [`clock.md`](./clock.md) にある。
+
+上の切り方は `layout` が `menu` の時だけ当てる。`drawer` では外側の要素を `flex flex-wrap items-end gap-x-3 gap-y-2` にし、高さで切らず、先頭の幅0の要素も置かない。各対象の `h-12`・`pl-3`・`overflow-hidden` も外す。`watch` を受け取った時は、各対象の要素へ `{@attach watch(target.id)}` を付ける。隠れた件をドロワーへ移す流れは [`drawerClock.md`](./drawerClock.md) にある。
 
 ラベルは `wrapLabel` が返す行を1行ずつ置き、折り返しをブラウザに任せない。文字は時計の時限と同じ `text-xs leading-none text-muted-foreground` にする。`text-xs` は行の高さも 16px に決めるため、`leading-none` で詰めないと2行のラベルと残り時間が `h-12` を越える。全文は `title` 属性で読める。残り時間は折り返さない。`授業終了` は残り時間ではなく補助の文字として、ラベルと同じ `text-xs text-muted-foreground` で出す。
 
@@ -179,8 +186,8 @@ interface Props {
 |---|---|
 | `name` | `mimo-countdown-badge` |
 | `position` | `inline` |
-| `anchor` | `#usernavigation` |
-| `append` | `before` |
+| `anchor` | `div.mimo-countdown-slot`（置き場所） |
+| `append` | `last` |
 
 ## 決めごと
 

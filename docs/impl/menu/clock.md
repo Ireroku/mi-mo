@@ -12,6 +12,7 @@ Moodle のナビゲーションメニューに現在時刻を表示する。左�
 - 使う: [`../utils/settings.md`](../utils/settings.md) — 設定の取得。参照するのは entrypoint のみで、機能側は参照しない
 - 使う: [`../utils/periods.md`](../utils/periods.md) — `PeriodSlot` の型と、時刻から時限を引く計算
 - 使う: [`../utils/graphemes.md`](../utils/graphemes.md) — 時限の名前を書記素で数えて切る
+- 参考: [`drawerClock.md`](./drawerClock.md) — 隠れた部分の見張りと、ドロワーのブロック。`layout` と `watch` の使い道
 
 ## 対象ファイル
 
@@ -56,6 +57,10 @@ export function startClockTicker(
 interface Props {
   config: ClockConfig;
   periodTable: PeriodSlot[];
+  // menu は狭い画面で部分を消す。drawer は消さずにすべて出す。既定は menu
+  layout?: "menu" | "drawer";
+  // 狭い画面で消える部分（鍵は clock・period・date）を見張る attachment を返す
+  watch?: (part: string) => Attachment;
 }
 ```
 
@@ -74,8 +79,11 @@ export async function initMenuBadges(
   config: MenuBadgesConfig,
   periods: PeriodSlot[],
   timetable: TimetableConfig,
+  drawer: boolean,
 ): Promise<void>;
 ```
+
+`drawer` は右のドロワーを隠す設定が入っていない時に true を渡す。true でページにドロワーがあれば、メニューで隠れた時計とカウントダウンをドロワーのブロックへ移す。扱いは [`drawerClock.md`](./drawerClock.md) にある。
 
 `timetable` はカウントダウンを時間割に合わせるかどうかの判定にだけ使う。時計は参照しない。扱いは [`countdownBadge.md`](./countdownBadge.md) にある。
 
@@ -84,7 +92,13 @@ export async function initMenuBadges(
 呼び出し側（`src/entrypoints/shared.content.ts`）での使い方:
 
 ```ts
-await initMenuBadges(ctx, badgesConfig, periodTableConfig.periods, timetableConfig);
+await initMenuBadges(
+  ctx,
+  badgesConfig,
+  periodTableConfig.periods,
+  timetableConfig,
+  !quickDrawerConfig.hidden,
+);
 ```
 
 ## 処理の流れ
@@ -141,6 +155,8 @@ await initMenuBadges(ctx, badgesConfig, periodTableConfig.periods, timetableConf
 | `sm`（640px）未満 | 上に加えて、日付 |
 | 360px 未満 | 時計全体 |
 
+消える条件は `layout` が `menu` の時だけ当てる。`drawer` ではどの段も消さず、ルートの高さ（`h-full`）と左右の余白（`px-3`）も外す。`watch` を受け取った時は、ルートと時限と日付の要素へ `{@attach watch(鍵)}` を付ける。消えた部分をドロワーへ移す流れは [`drawerClock.md`](./drawerClock.md) にある。
+
 ### formatPeriodName
 
 1. 名前を書記素で数え、`PERIOD_CHARS_PER_COLUMN × PERIOD_MAX_COLUMNS`（4文字）を超える場合、先頭3文字に「…」を足す（`truncateGraphemes`）
@@ -164,6 +180,7 @@ await initMenuBadges(ctx, badgesConfig, periodTableConfig.periods, timetableConf
 1. `#usernavigation` の直前へ `div.mimo-countdown-slot`（カウントダウンの置き場所）を置く。`ctx.onInvalidated` で取り除く
 2. カウントダウンを置き場所の中へ差し込む
 3. 時計を `#usernavigation` の直前へ差し込む
+4. `drawer` が true でドロワーがあれば、ドロワーのブロックを差し込む（[`drawerClock.md`](./drawerClock.md)）
 
 | 設定 | カウントダウン | 時計 |
 |---|---|---|

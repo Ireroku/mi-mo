@@ -13,6 +13,9 @@ export interface QuickDrawerConfig {
 
 const STYLE_ID = "mimo-ui-quick-drawer";
 
+// ドロワーの中で、ブロックが並ぶ場所。ほかの機能がドロワーへブロックを足す時も使う
+export const DRAWER_REGION_SELECTOR = "#theme_boost-drawers-blocks #block-region-side-pre";
+
 const HIDE_CSS = `
 #theme_boost-drawers-blocks,
 [data-action="toggle"][data-target="theme_boost-drawers-blocks"] {
@@ -34,9 +37,7 @@ export async function initPinnedCourses(
   ctx: ContentScriptContext,
   config: QuickDrawerConfig,
 ): Promise<void> {
-  const target = document.querySelector(
-    "#theme_boost-drawers-blocks #block-region-side-pre",
-  );
+  const target = document.querySelector(DRAWER_REGION_SELECTOR);
   if (!target) {
     return;
   }
@@ -44,7 +45,7 @@ export async function initPinnedCourses(
   const ui = await createShadowRootUi(ctx, {
     name: "mimo-pinned-courses",
     position: "inline",
-    anchor: "#theme_boost-drawers-blocks #block-region-side-pre",
+    anchor: target,
     append: "first",
     onMount: (container) => {
       return mount(PinnedCourses, {
