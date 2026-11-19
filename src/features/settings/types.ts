@@ -88,13 +88,19 @@ export function defineGroup<C extends object>(
       ...setting.fallback,
       ...(await setting.getValue()),
     }) as Record<string, unknown>;
-  const write = async (key: string, value: unknown) => {
-    const current = await setting.getValue();
-    await setting.setValue({
-      ...current,
-      [key]: value,
-    } as C);
+  // ポップアップとオプション画面を同時に開いても、読んでから書くまでの間に他方の書き込みが挟まらないようにする。
+  // ロックは同じオリジンの拡張機能のページ同士で共有される
+  const exclusive = async (task: () => Promise<void>) => {
+    await navigator.locks.request(`mi-mo-settings:${setting.key}`, task);
   };
+  const write = (key: string, value: unknown) =>
+    exclusive(async () => {
+      const current = await setting.getValue();
+      await setting.setValue({
+        ...current,
+        [key]: value,
+      } as C);
+    });
 
   return {
     id: setting.key,
@@ -104,7 +110,7 @@ export function defineGroup<C extends object>(
     ...options,
     read,
     write,
-    replace: (value) => setting.setValue(normalize(value as C)),
+    replace: (value) => exclusive(() => setting.setValue(normalize(value as C))),
   };
 }
 

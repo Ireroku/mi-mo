@@ -286,8 +286,8 @@ pnpm dlx shadcn-svelte@latest add tabs switch input label button select popover 
 
 1. 渡された `fields` を `Record<string, FieldMeta>` として保持する。ここで型引数 `C` を落とす。**代入にはキャストが要る**
 2. `read` は `setting.fallback` の上へ `setting.getValue()` の結果を重ねて返す。重ねるのは最上位のキーだけ。**ここにもキャストが要る**
-3. `write(key, value)` は `setting.getValue()` で現在値を読み、`key` だけを差し替えた値を `setting.setValue()` で書く。ここはキャスト不要
-4. `replace(value)` は、渡された値を `options.normalize` で整えてから、グループ全体を `setting.setValue()` へ書く。`normalize` を省くと値をそのまま書く。バックアップと時間割のファイルの読み込みが使う
+3. `write(key, value)` は `setting.getValue()` で現在値を読み、`key` だけを差し替えた値を `setting.setValue()` で書く。ここはキャスト不要。読んでから書くまでを `navigator.locks.request("mi-mo-settings:<設定のキー>", ...)` で囲む
+4. `replace(value)` は、渡された値を `options.normalize` で整えてから、グループ全体を `setting.setValue()` へ書く。`write` と同じロックの中で書く。`normalize` を省くと値をそのまま書く。バックアップと時間割のファイルの読み込みが使う
 5. `options` の `footer` と `after` は、そのまま `SettingsGroup` へ載せる
 
 時間割のグループは `normalize` に `normalizePeriods`（[`../utils/periods.md`](../utils/periods.md)）を渡し、古いファイルの時限表を読んでも番号が振り直されるようにする。
@@ -495,6 +495,7 @@ CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減ら�
 - **Firefox のポップアップでは、ファイルの読み込みをオプション画面へ移す。** Firefox のポップアップはファイル選択のダイアログを開くと閉じ、選んだファイルを受け取れない（実機で確認）。オプション画面はタブで開くため、ダイアログを開いても閉じない
 - **ファイルの読み込みは、読めたことを確かめてから上書きを尋ねる。** 読めないファイルで確認を出すと、「読み込む」を押した後に失敗を知ることになる。先に読むと、確認が出た時点で上書きできることが決まっている
 - **保存を直列にする。** `write` は読む・差し替える・書くの3手で、同じグループの2項目を続けて変えると、並行した書き込みの後勝ちで先の変更が消える
+- **画面をまたぐ書き込みは `navigator.locks` で順に並べる。** ポップアップとオプション画面を同時に開くと、それぞれの `saveQueue` は互いを知らない。Web Locks は同じオリジンの拡張機能のページで共有され、Chrome・Firefox・Safari のどれも対応する。片方の画面の表示は他方の変更を拾わないが、保存では別の項目の変更が消えない
 - **失敗した保存は手元の値を巻き戻す。** 画面が保存されていない値を出し続けると、利用者は保存されたと受け取る
 - **無効な機能の詳細を描かない。** 効かない項目を並べると、読む量だけが増える。有効にした時点で現れるため、探す手間は増えない
 - **カードの区切りを、見出しの一致という1つの規則で決める。** グループは保存先の単位、カードは見た目の単位で、両者は一致しない場合がある（時限表は時計も使うため別の保存先を持ち、画面では時間割のカードに入る）。`title`・`section`・`after` の3つで、保存先を変えずに見た目だけを組み替える
