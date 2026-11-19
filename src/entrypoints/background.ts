@@ -5,6 +5,11 @@ import {
   type DownloadResponse,
 } from "@/utils/download";
 import { sanitizeFilename } from "@/utils/filename";
+import {
+  GREETING_MESSAGE_TYPE,
+  pickFromAll,
+  type GreetingRequest,
+} from "@/features/home/defaultMessages";
 
 async function startDownloads(items: DownloadItem[]): Promise<DownloadResponse> {
   const results = await Promise.allSettled(
@@ -32,8 +37,23 @@ export default defineBackground(() => {
         return;
       }
 
+      const type = (message as { type?: unknown }).type;
+      if (type === GREETING_MESSAGE_TYPE) {
+        const msg = message as GreetingRequest;
+        const custom = Array.isArray(msg.custom)
+          ? msg.custom.filter((item) => typeof item === "string")
+          : [];
+        pickFromAll({ ...msg, custom, last: String(msg.last ?? "") })
+          .catch((error) => {
+            console.error("[mi-mo] greeting", error);
+            return undefined;
+          })
+          .then(sendResponse);
+        return true;
+      }
+
       const msg = message as Partial<DownloadMessage>;
-      if (msg.type !== DOWNLOAD_MESSAGE_TYPE || !Array.isArray(msg.items)) {
+      if (type !== DOWNLOAD_MESSAGE_TYPE || !Array.isArray(msg.items)) {
         return;
       }
 

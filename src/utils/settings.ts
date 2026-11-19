@@ -149,11 +149,8 @@ export const homeGreetingSetting = defineSetting<GreetingConfig>(
     fallback: {
       enabled: true,
       salutation: "time",
-      messages: [
-        "今日も一日、無理せずいきましょう。",
-        "あんた、宿題やったの！？",
-        "睡眠時間を減らすと効率が落ちるそうですよ。寝ましょう。",
-      ],
+      useDefaultMessages: true,
+      messages: [],
     },
   },
 );

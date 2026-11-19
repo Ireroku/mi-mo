@@ -134,7 +134,7 @@ content script 以外の entrypoint も同じ場所に置く。
 |---|---|
 | `src/entrypoints/popup/` | ツールバーから開く設定画面 |
 | `src/entrypoints/options/` | 拡張機能の管理から開く設定画面。中身はポップアップと同じ |
-| `src/entrypoints/background.ts` | content script から呼べない API を実行する。現状は [`utils/download.md`](./utils/download.md) の保存のみ |
+| `src/entrypoints/background.ts` | content script から呼べない API を実行する。[`utils/download.md`](./utils/download.md) の保存と、[`home/greeting.md`](./home/greeting.md) の既定の一言の選択 |
 
 ### WXT と Svelte の前提
 

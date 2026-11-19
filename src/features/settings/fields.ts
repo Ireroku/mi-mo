@@ -124,9 +124,14 @@ export const settingsGroups: readonly SettingsGroup[] = [
         ],
       },
     },
+    useDefaultMessages: {
+      label: "mi-mo の一言を使う",
+      description: "mi-mo に入っている一言も候補に入れます",
+      control: { kind: "toggle" },
+    },
     messages: {
-      label: "メッセージ",
-      description: "この中から毎回1つ選ばれます",
+      label: "自分の一言",
+      description: "mi-mo の一言と合わせて、毎回1つ選ばれます",
       control: { kind: "custom", component: GreetingMessagesField },
     },
   }),
