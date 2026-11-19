@@ -12,9 +12,16 @@ export const SECTION_ACTION_CLASS = "mimo-section-action";
 const BUTTON_CLASS = `btn btn-link btn-sm text-nowrap ${SECTION_ACTION_CLASS}`;
 
 const CONTAINER_CSS = `
+/* 狭い画面では、タイトルを潰さずに置き場所ごと次の行へ回す */
+body.pagelayout-course .course-section-header:has(> .${CONTAINER_CLASS}) {
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+}
 body.pagelayout-course .course-section-header > .${CONTAINER_CLASS} {
   display: flex;
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
   align-items: center;
   align-self: center;
   gap: 0.5rem;

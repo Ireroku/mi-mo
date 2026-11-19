@@ -44,9 +44,15 @@ export function addSectionAction(
 ### 注入する CSS
 
 ```css
+body.pagelayout-course .course-section-header:has(> .mimo-section-actions) {
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+}
 body.pagelayout-course .course-section-header > .mimo-section-actions {
   display: flex;
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
   align-items: center;
   align-self: center;
   gap: 0.5rem;
@@ -65,5 +71,6 @@ body.pagelayout-course .course-section-header:has(> * > .section-collapsemenu) >
 - **ボタンを1つの置き場所へまとめ、置き場所を `margin-left: auto` で右端へ寄せる。** ヘッダーは `d-flex` の横並びで、タイトルとバッジの後ろに続く。ボタンごとに寄せると2つ目以降の位置が決まらない
 - **寄せる CSS を Bootstrap のクラス（`ml-auto`・`ms-auto`）に頼らず自前で注入する。** Moodle 4.5 は Bootstrap 4 の書き方と 5 の書き方が混在しており（ヘッダーのテンプレートに `me-3` がある）、どちらのクラスが効くかを実機で確かめていない
 - **「すべてを折りたたむ」のある見出しでは、置き場所を上寄せにして上へ 0.5rem 空ける。** Moodle はそのボタンの入れ物へ `align-self-start mt-2` を付けている。中央寄せのままでは、同じ行で 4px 上にずれる（実機で確認）。ほかの見出しはタイトルと同じ高さのため、中央寄せのままにする
+- **狭い画面では、置き場所を見出しの次の行へ折り返す。** 置き場所が縮まないと、長いタイトルが1文字ずつに潰れ、ボタンが画面の右へはみ出す（幅 420px で確認）。見出しに `flex-wrap` を当て、入りきらない時だけ置き場所ごと次の行へ回す。置き場所の中も折り返し、ボタンが1行に収まらない幅でもはみ出さないようにする
 - **置き場所の中の並び順は、呼び出された順にする。** entrypoint が書き出し、一括保存の順に呼ぶかどうかで決まる。このモジュールは順序を持たない
 - **重複の判定は `marker` で行う。** 同じ機能が2度呼ばれても、ボタンが増えない
