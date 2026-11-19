@@ -182,8 +182,11 @@
     setValue(group.id, key, next);
     saveError = "";
 
+    // groupValues は $state のため、そこから組んだ値には Proxy が混ざる。
+    // Firefox の storage は structured clone で値を写し、Proxy を写せずに失敗するため、素の値へ直してから渡す
+    const plain = $state.snapshot(next);
     saveQueue = saveQueue
-      .then(() => group.write(key, next))
+      .then(() => group.write(key, plain))
       .catch((error: unknown) => {
         console.error("[mi-mo] settings", error);
         setValue(group.id, key, previous);
