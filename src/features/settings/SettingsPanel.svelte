@@ -194,7 +194,9 @@
       });
   }
 
-  async function restore(values: Values) {
+  async function restore(incoming: Values) {
+    // 取り込んだ値は今の値（$state）と混ぜて組まれ、Proxy を含む。保存と同じく素の値へ直す
+    const values = $state.snapshot(incoming);
     // 保存の途中の変更が、取り込んだ値を上書きしないよう順番を待つ
     await saveQueue;
     await Promise.all(
