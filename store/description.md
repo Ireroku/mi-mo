@@ -8,9 +8,7 @@ mi-mo
 
 ## 短い説明
 
-Chrome Web Store は 132 文字まで、Firefox Add-ons の概要は 250 文字まで。
-
-三重大学 Moodle 4 を使いやすくする非公式の拡張機能。時間割、時計とカウントダウン、資料の一括保存、出席率の表示などを足します。
+[`package.json`](../package.json) の `description` を写す。WXT がこの値を manifest の `description` へ写し、Chrome Web Store は manifest の値を短い説明として出す。Firefox Add-ons の概要の欄へも同じ文を貼る。
 
 ## 詳しい説明
 

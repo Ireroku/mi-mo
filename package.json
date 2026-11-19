@@ -1,6 +1,6 @@
 {
   "name": "mi-mo",
-  "description": "Modify Mie Univ. Moodle. Add some features.",
+  "description": "三重大学 Moodle 4 の非公式ブラウザ拡張機能",
   "private": true,
   "version": "0.0.0",
   "type": "module",
