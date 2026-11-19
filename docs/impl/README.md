@@ -144,7 +144,7 @@ content script 以外の entrypoint も同じ場所に置く。
 - **entrypoint はビルド時にも読み込まれる。** DOM や `browser` に触る処理はファイルの先頭に書かず、`main` の中か、`main` から呼ぶ関数に置く。[WXT: Entrypoints](https://wxt.dev/guide/essentials/entrypoints.html)
 - **`ctx` が片付けるのは、`ctx` を通して登録したものだけ。** 自前の `MutationObserver` やイベントの登録は、`ctx.onInvalidated` で解除する。拡張機能を更新した後の古い content script が動き続けないようにするため
 - **`shared.content.ts` が import する `global.css` は、Shadow DOM の中だけに効く。** `cssInjectionMode: "ui"` で `createShadowRootUi` の中へ入るため。名前に反して Moodle のページ全体へは効かない。Moodle 側へ当てる CSS は [`utils/styleSheet.md`](./utils/styleSheet.md) の経路を使う。[WXT: Shadow Root](https://wxt.dev/guide/essentials/content-scripts#shadow-root)
-- **manifest は WXT が生成し、Chrome は MV3、Firefox は MV2 になる。** permission の違いは生成物の `manifest.json` で見る。[WXT: Manifest](https://wxt.dev/guide/essentials/config/manifest.html)
+- **manifest は WXT が生成し、`wxt.config.ts` の `manifestVersion: 3` で両方のブラウザを MV3 にそろえる。** WXT の既定では Firefox だけ MV2 になる。Firefox だけに要る項目（拡張機能の ID、対応する最低の版、データ収集の申告）は、`manifest` を関数にして Firefox の時だけ足す。permission の違いは生成物の `manifest.json` で見る。[WXT: Manifest](https://wxt.dev/guide/essentials/config/manifest.html)
 - **`browser` は、実行環境の `browser` か `chrome` を選ぶだけで、足りない API を補わない。** 型があっても、そのブラウザで使えるとは限らない。Safari に `browser.downloads` が無いのがその例になる。[WXT: Extension APIs](https://wxt.dev/guide/essentials/extension-apis.html)
 - **Svelte 5 の runes（`$state`・`$derived`・`$effect`・`$props`）で書く。** 1つのコンポーネントの中で `$props` と `export let` を混ぜない。[Svelte 5 移行ガイド](https://svelte.dev/docs/svelte/v5-migration-guide)
 - **時刻の進みは、状態ではない。** `new Date()` を `$derived` の中で呼んでも、時間が経つだけでは再計算されない。時計のように進む表示は、タイマーで状態へ現在時刻を入れ直し、タイマーの解除関数を `$effect` から返す。[Svelte: $effect](https://svelte.dev/docs/svelte/$effect)

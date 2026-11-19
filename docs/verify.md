@@ -16,7 +16,7 @@ python3 scripts/checkdocs.py   # docs の文体とリンク切れ
 
 `pnpm check` が通ってもビルドが失敗する場合がある。パスエイリアスの解決が型検査とバンドルで別の設定を見るため。理由は [`impl/README.md`](./impl/README.md) の「パスエイリアス」にある。
 
-permission を足した場合は、生成物の `.output/chrome-mv3/manifest.json` に宣言が入ったことを見る。
+permission を足した場合は、生成物の `.output/chrome-mv3/manifest.json` と `.output/firefox-mv3/manifest.json` に宣言が入ったことを見る。
 
 ### 自分の Chrome で確かめる
 
