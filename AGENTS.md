@@ -31,6 +31,7 @@ OS: macOS, Windows
 | 機能がユーザーから見て何をするか | [docs/features/](./docs/features/) |
 | モジュールをどう作るか | [docs/impl/](./docs/impl/) |
 | Moodle の DOM 構造とセレクタ | [docs/moodle/](./docs/moodle/README.md) |
+| Chrome と Firefox で動きが違う点と、その手当て | [docs/browsers.md](./docs/browsers.md)。**ブラウザの API・保存・ポップアップを触る前に読む** |
 | 残っている課題、実機で未確認の項目 | [docs/known-issues.md](./docs/known-issues.md) |
 | 作業を終える前の確認 | [docs/verify.md](./docs/verify.md) |
 
