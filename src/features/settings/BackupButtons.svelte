@@ -2,6 +2,7 @@
   import { Button } from "$lib/components/ui/button";
   import { Download, Upload } from "@lucide/svelte";
   import { saveBlob } from "@/utils/download";
+  import { openFilePicker } from "./filePicker";
   import ConfirmDialog from "./controls/ConfirmDialog.svelte";
   import type { BackupScope } from "./backup.logic";
   import {
@@ -92,7 +93,7 @@
     variant="outline"
     size="sm"
     class="gap-1.5"
-    onclick={() => fileInput.click()}
+    onclick={() => openFilePicker(fileInput)}
   >
     <Upload class="size-4" />
     ファイルから読み込む
