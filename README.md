@@ -26,7 +26,7 @@
 
 ```sh
 # 1. Clone
-git clone https://github.com/<username>/mi-mo.git
+git clone https://github.com/Ireroku/mi-mo.git
 cd mi-mo
 
 # 2. 依存の解決
