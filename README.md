@@ -82,6 +82,7 @@ pnpm dev:firefox
     - [x] 任意のコースのピン留め
   - [x] [ログイン後に初めに表示するページを設定可能に](./docs/features/ui/landing-page.md)
   - [x] [任意のフォントを読み出し設定可能に](./docs/features/ui/font.md)
+  - [ ] [多言語対応](./docs/features/ui/i18n.md)
 
 - ホーム
   - [x] [未ログイン時にログインコンポーネントを表示](./docs/features/home/login-component.md)
