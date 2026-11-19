@@ -2,7 +2,7 @@
   import { Button } from "$lib/components/ui/button";
   import { Download, Upload } from "@lucide/svelte";
   import { saveBlob } from "@/utils/download";
-  import { openFilePicker } from "./filePicker";
+  import { openFilePicker, pickTarget } from "./filePicker";
   import ConfirmDialog from "./controls/ConfirmDialog.svelte";
   import type { BackupScope } from "./backup.logic";
   import {
@@ -94,6 +94,7 @@
     size="sm"
     class="gap-1.5"
     onclick={() => openFilePicker(fileInput)}
+    {@attach pickTarget((text) => (message = { text, failed: false }))}
   >
     <Upload class="size-4" />
     ファイルから読み込む

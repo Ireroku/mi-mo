@@ -25,7 +25,7 @@
 | `src/features/settings/FieldRow.svelte` | 項目1件の描画 |
 | `src/features/settings/backup.logic.ts` | バックアップの組み立てと読み取り |
 | `src/features/settings/BackupButtons.svelte` | バックアップの書き出しと読み込みのボタン。読み込みの前に上書きを尋ねる |
-| `src/features/settings/filePicker.ts` | 読み込むファイルを選ばせる。Firefox のポップアップではオプション画面へ移す |
+| `src/features/settings/filePicker.ts` | 読み込むファイルを選ばせる。Firefox のポップアップではオプション画面へ移し、移った先で読み込みのボタンを示す |
 | `src/utils/settings.ts` | 全体のスイッチ `extensionSetting` を定義する |
 | `src/entrypoints/shared.content.ts` | 全体のスイッチが切れている間は何もせず戻る |
 | `src/entrypoints/early.content.ts` | 同上 |
@@ -375,7 +375,7 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 
 読み込み:
 
-1. 「ファイルから読み込む」が押されたら `openFilePicker(input)` を呼ぶ。Firefox のポップアップの中（`import.meta.env.FIREFOX` で、`location.pathname` が `/popup.html` で終わる）では、`browser.runtime.openOptionsPage()` でオプション画面を開き、`window.close()` でポップアップを閉じる。それ以外では `input.click()` でファイル選択を開く。挨拶のメッセージの読み込みも同じ関数を使う
+1. 「ファイルから読み込む」が押されたら `openFilePicker(input)` を呼ぶ。Firefox のポップアップの中（`import.meta.env.FIREFOX` で、`location.pathname` が `/popup.html` で終わる）では、`browser.tabs.create` で `options.html?pick#<今の hash>` をタブで開き、`window.close()` でポップアップを閉じる。それ以外では `input.click()` でファイル選択を開く。挨拶のメッセージの読み込みも同じ関数を使う。移った先では、読み込みのボタンに付けた `pickTarget(showHint)` が、`pick` の印があり、ボタンが見えている時に一度だけ、ボタンを画面の中ほどへ出し、`focus({ focusVisible: true })` で輪を出し、`showHint` で「ここからファイルを選んでください」を出す。ファイル選択はクリックの直後にしか開けないため、自動では開かない
 2. 選ばれたファイルの文字列を `parseBackup(text, current)` へ渡す
 3. `parseBackup` は、`app` が `"mi-mo"` でないファイルと、JSON として読めないファイルに例外を投げる
 4. 今あるグループとキーのうち、ファイルに値があり、種類（`typeof` と、配列かどうか）が今の値と合うものだけを取り込む。それ以外のキーは今の値を残す。ファイルに無いグループは返さない
@@ -391,7 +391,7 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 #### 保存
 
 1. 変更前の値を控え、手元の値を先に新しい値へ更新する
-2. 新しい値を `$state.snapshot` で素の値へ直す。手元の値（`$state`）から組んだ値には Proxy が混ざり、Firefox の `storage` は structured clone で写すため Proxy を受け取れない（Firefox では時間割の授業などが2件目から保存できなかった。症状は実機で見たもので、原因は Proxy と見ている）
+2. 新しい値を `$state.snapshot` で素の値へ直す。手元の値（`$state`）から組んだ値には Proxy が混ざり、Firefox の `storage` は structured clone で写すため Proxy を受け取れない（Firefox では時間割の授業などが2件目から保存できず、復元では `DataCloneError: Proxy object could not be cloned` が出た。どちらも実機で確認）
 3. 書き込みを1本の `Promise` の鎖（`saveQueue`）の末尾へ足す。前の書き込みが終わってから、2 の値で `group.write(key, value)` を呼ぶ
 4. 書き込みが失敗した場合、`console.error("[mi-mo] settings", error)` を出し、手元の値を控えた値へ戻す。ヘッダの中に「「`<label>`」を保存できませんでした。もう一度操作してください。」を `role="alert"` で出す
 5. 次に何かを操作した時点で、そのメッセージを消す
@@ -491,6 +491,7 @@ CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減ら�
 - **一部だけの出し入れも、バックアップと同じ形式のファイルにする。** 範囲は読む側と書く側が絞る。形式が1つなので、バックアップと時間割のファイルを相互に読める
 - **取り込みの後の読み直しでは、一覧を「読み込み中」へ戻さない。** 戻すと一覧が描き直され、`BackupButtons` が持つ結果の文言が消える
 - **`select` は shadcn の Select で描く。** 利用者が、開閉に動きのあるライブラリの部品を望んだため、ネイティブの `<select>` から移した。選択肢は別の層（portal）へ描かれ、bits-ui が画面に収まる高さ（`--bits-select-content-available-height`）へ縮めてスクロールさせる。高さの限られたポップアップで切れないかは、実機で確かめていない（[`../../known-issues.md`](../../known-issues.md)）
+- **開いているタブと別の画面を、アドレスの hash（`#<タブ>` か `#<タブ>/<行の id>`）に写す。** `SettingsPanel` が `history.replaceState` で書き、読み込んだ時に hash からタブを選び、最初の読み込みの後に行の画面を一度だけ開き直す。Firefox のポップアップからオプション画面へ移った時に、同じ場所を出すため。書く時に検索部分（`?pick`）を落とし、読み直しで再びボタンへ寄せない
 - **Firefox のポップアップでは、ファイルの読み込みをオプション画面へ移す。** Firefox のポップアップはファイル選択のダイアログを開くと閉じ、選んだファイルを受け取れない（実機で確認）。オプション画面はタブで開くため、ダイアログを開いても閉じない
 - **ファイルの読み込みは、読めたことを確かめてから上書きを尋ねる。** 読めないファイルで確認を出すと、「読み込む」を押した後に失敗を知ることになる。先に読むと、確認が出た時点で上書きできることが決まっている
 - **保存を直列にする。** `write` は読む・差し替える・書くの3手で、同じグループの2項目を続けて変えると、並行した書き込みの後勝ちで先の変更が消える

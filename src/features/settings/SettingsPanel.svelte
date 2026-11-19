@@ -65,7 +65,16 @@
   const categories = Object.keys(CATEGORY_LABELS) as SettingsCategory[];
   const allGroups = [extensionGroup, ...settingsGroups];
 
-  let selectedTab = $state<SettingsCategory>(categories[0]!);
+  // 開いている場所を hash（`#<タブ>` か `#<タブ>/<行の id>`）に写す。
+  // Firefox のポップアップからファイルを読み込む時に、移った先のオプション画面が同じ場所を開き直すため
+  const [hashTab = "", hashRow] = location.hash.slice(1).split("/");
+  let rowToReopen = hashRow;
+
+  let selectedTab = $state<SettingsCategory>(
+    categories.includes(hashTab as SettingsCategory)
+      ? (hashTab as SettingsCategory)
+      : categories[0]!,
+  );
   let groupValues = $state<Values>({});
   let status = $state<"loading" | "ready" | "failed">("loading");
   let saveError = $state("");
@@ -159,9 +168,22 @@
       );
       groupValues = Object.fromEntries(entries);
       status = "ready";
+      reopenRow();
     } catch (error) {
       console.error("[mi-mo] settings", error);
       status = "failed";
+    }
+  }
+
+  // hash に残っていた別の画面を、最初の読み込みの後に一度だけ開き直す
+  function reopenRow() {
+    const id = rowToReopen;
+    rowToReopen = undefined;
+    const row = buildSections(selectedTab)
+      .flatMap((section) => section.items)
+      .find((item): item is Row => item.id === id && !("footer" in item));
+    if (row) {
+      openPage(row);
     }
   }
 
@@ -271,6 +293,12 @@
     await tick();
     scroller.scrollTop = scrollBack;
   }
+
+  $effect(() => {
+    const hash = page ? `${selectedTab}/${page.row.id}` : selectedTab;
+    // 検索部分（ポップアップから移った印）はここで落とす。読み直しても同じボタンへ寄せない
+    history.replaceState(null, "", `${location.pathname}#${hash}`);
+  });
 
   onDestroy(() => clearTimeout(switchTimer));
 

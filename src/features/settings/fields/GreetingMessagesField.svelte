@@ -5,7 +5,7 @@
   import { Input } from "$lib/components/ui/input";
   import { Download, Upload } from "@lucide/svelte";
   import { saveBlob } from "@/utils/download";
-  import { openFilePicker } from "../filePicker";
+  import { openFilePicker, pickTarget } from "../filePicker";
   import {
     MESSAGES_FILENAME,
     formatMessages,
@@ -57,6 +57,7 @@
     size="sm"
     class="gap-1.5"
     onclick={() => openFilePicker(fileInput)}
+    {@attach pickTarget((text) => (notice = { text, failed: false }))}
   >
     <Upload class="size-4" />
     ファイルから読み込む
