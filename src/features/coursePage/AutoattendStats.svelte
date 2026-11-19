@@ -20,16 +20,16 @@
   </div>
 
   <div class="flex flex-wrap items-center gap-1.5">
-    <Badge variant="outline" class="text-note">
+    <Badge variant="outline" class="text-sm">
       出席: {stats.present}
     </Badge>
-    <Badge variant="outline" class="text-note">
+    <Badge variant="outline" class="text-sm">
       遅刻: {stats.late}
     </Badge>
-    <Badge variant="outline" class="text-note">
+    <Badge variant="outline" class="text-sm">
       早退: {stats.earlyLeave}
     </Badge>
-    <Badge variant="outline" class="text-note">
+    <Badge variant="outline" class="text-sm">
       欠席: {stats.absent}
     </Badge>
 

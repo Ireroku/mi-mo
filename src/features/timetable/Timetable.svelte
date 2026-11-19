@@ -80,10 +80,10 @@
   </div>
 
   <div class="overflow-x-auto">
-    <table class="w-full border-collapse text-left text-xs">
+    <table class="w-full border-collapse text-left">
       <thead>
         <tr class="border-b">
-          <th class="w-16 p-2 text-center font-medium opacity-75">時限</th>
+          <th class="w-16 p-2 text-center text-xs font-medium opacity-75">時限</th>
           {#each weekDays as day, i}
             {@const isToday = isSameDay(day, today)}
             {@const holiday = isHoliday(day)}
@@ -95,11 +95,11 @@
                 <span class="text-sm font-semibold">
                   {WEEKDAY_NAMES[i]?.label}
                 </span>
-                <span class="text-[10px] opacity-75">
+                <span class="text-xs opacity-75">
                   {day.getMonth() + 1}/{day.getDate()}
                 </span>
                 {#if holiday}
-                  <span class="rounded px-1.5 py-0.2 text-[10px] font-normal bg-destructive/15 text-destructive">
+                  <span class="rounded px-1.5 py-0.2 text-xs font-normal bg-destructive/15 text-destructive">
                     休講
                   </span>
                 {/if}
@@ -112,9 +112,9 @@
         <!-- 行は時限表の並び順。授業は時限の番号で引くため、並べ替えても授業は時限に付いて動く -->
         {#each periods as periodSlot (periodSlot.period)}
           <tr class="border-b last:border-b-0">
-            <td class="p-2 text-center font-mono opacity-75 border-r">
+            <td class="p-2 text-center text-xs font-mono opacity-75 border-r">
               <div class="font-semibold">{periodName(periodSlot)}</div>
-              <div class="text-[9px] opacity-70 leading-tight mt-0.5">
+              <div class="opacity-70 leading-tight mt-0.5">
                 {periodSlot.start}<br />{periodSlot.end}
               </div>
             </td>
@@ -131,16 +131,16 @@
                     {#if occ.slot.url}
                       <a
                         href={occ.slot.url}
-                        class="font-medium hover:underline leading-snug break-words"
+                        class="text-sm font-medium hover:underline leading-snug break-words"
                       >
                         {occ.slot.title}
                       </a>
                     {:else}
-                      <span class="font-medium leading-snug break-words">
+                      <span class="text-sm font-medium leading-snug break-words">
                         {occ.slot.title}
                       </span>
                     {/if}
-                    <span class="text-[10px] opacity-60">
+                    <span class="text-xs opacity-60">
                       第{occ.count}回
                     </span>
                   </div>

@@ -4,6 +4,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Moodle へ差し込む部品（Shadow DOM の中）では、小さい文字の段を、周りの Moodle の文字に対する割合にする。
+   利用者が文字を大きくすると部品も一緒に大きくなる。設定画面には :host が無く、Tailwind の rem のまま。
+   em は親の大きさに掛かるため、text-xs と text-sm は入れ子にせず、文字を持つ要素へ直接付ける */
+:host {
+	--text-xs: 0.8em;
+	--text-sm: 0.9em;
+}
+
 @layer base {
 	* {
 		@apply border-border outline-ring/50;

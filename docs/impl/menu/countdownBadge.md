@@ -120,7 +120,7 @@ interface Props {
 
 上の切り方は `layout` が `menu` の時だけ当てる。`drawer` では外側の要素を `flex flex-wrap items-end gap-x-3 gap-y-2` にし、高さで切らず、先頭の幅0の要素も置かない。各対象の `h-12`・`pl-3`・`overflow-hidden` も外す。`watch` を受け取った時は、各対象の要素へ `{@attach watch(target.id)}` を付ける。隠れた件をドロワーへ移す流れは [`drawerClock.md`](./drawerClock.md) にある。
 
-ラベルは `wrapLabel` が返す行を1行ずつ置き、折り返しをブラウザに任せない。文字は時計の時限と同じ `text-xs leading-none text-muted-foreground` にする。`text-xs` は行の高さも 16px に決めるため、`leading-none` で詰めないと2行のラベルと残り時間が `h-12` を越える。全文は `title` 属性で読める。残り時間は折り返さない。`授業終了` は残り時間ではなく補助の文字として、ラベルと同じ `text-xs text-muted-foreground` で出す。
+ラベルは `wrapLabel` が返す行を1行ずつ置き、折り返しをブラウザに任せない。文字は時計の時限と同じ `text-xs leading-none text-muted-foreground` にする。`text-xs` は行の高さも決めるため、`leading-none` で詰めないと2行のラベルと残り時間が `h-12` を越える。全文は `title` 属性で読める。残り時間は折り返さない。`授業終了` は残り時間ではなく補助の文字として、ラベルと同じ `text-xs text-muted-foreground` で出す。
 
 ### resolvePeriodCountdown
 

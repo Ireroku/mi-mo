@@ -46,7 +46,7 @@ body.pagelayout-course :is(.section-collapsemenu, .mimo-section-action) {
   border: 1px solid var(--secondary, #ced4da);
   border-radius: 0.375rem;
   color: var(--primary, #0f6cbf);
-  font-size: 0.875rem;
+  font-size: 0.9em;
   text-decoration: none;
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }

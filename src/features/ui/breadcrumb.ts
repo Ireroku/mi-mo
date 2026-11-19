@@ -7,7 +7,7 @@ const STYLE_ELEMENT_ID = "mimo-ui-breadcrumb";
 export function applyBreadcrumb(): void {
   const css = `
 #page-header .breadcrumb {
-  font-size: 0.875rem;
+  font-size: 0.9em;
   align-items: center;
 }
 

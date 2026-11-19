@@ -11,7 +11,7 @@ export interface GradeInlineConfig {
 const GRADE_INLINE_CSS = `
 body.pagelayout-course .mimo-grade {
   margin-top: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.9em;
   color: var(--primary, #0f6cbf);
 }
 
@@ -22,7 +22,7 @@ body.pagelayout-course .mimo-grade-percentage {
 
 body.pagelayout-course .mimo-grade-feedback {
   margin: 0.125rem 0 0;
-  font-size: 0.75rem;
+  font-size: 0.9em; /* .mimo-grade の中にあり、その 0.9em に掛かる */
   opacity: 0.85;
 }
 `;

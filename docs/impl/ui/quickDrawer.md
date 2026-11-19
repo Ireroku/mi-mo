@@ -121,7 +121,7 @@ if (!config.hidden && config.pinned.length > 0) {
 ### DrawerBlock.svelte
 
 1. `section` を周囲のブロック（`section.block.card`）に合わせた外枠で置く。Shadow DOM の中には Moodle の `.card` が届かないため、Moodle のブロックを測った値（枠 `rgba(0,0,0,.125)`、角丸 8px、白地、内側の余白 16px、下の間隔 16px）を Tailwind のクラスで書く。Tailwind の `rounded-lg` などはテーマの変数（`--radius`）から決まり、Moodle の値とずれる（実機で 7.2px になった）ため、寸法は px で書く
-2. `title` を見出し（Moodle のブロックの見出しと同じ 16.8px・太字、下の間隔 12px）として出し、その下へ `children` を描く
+2. `title` を見出し（Moodle のブロックの見出しと同じ `1.05rem`（既定で 16.8px）・太字、下の間隔 12px）として出し、その下へ `children` を描く
 
 ## 決めごと
 
