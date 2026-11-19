@@ -1,0 +1,42 @@
+# タグ（v2026.11.19 など）を push すると、Chrome 向けと Firefox 向けの ZIP を作って Release へ添える。
+# 手順と版の番号の決まりは docs/release.md にある。
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: タグと package.json の版が一致するか確かめる
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "タグ $GITHUB_REF_NAME と package.json の版 $version が一致しません"
+            exit 1
+          fi
+
+      - run: pnpm check
+      - run: pnpm test
+      - run: pnpm zip
+      - run: pnpm zip:firefox
+
+      - name: Release を作り ZIP を添える
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" .output/*.zip --title "$GITHUB_REF_NAME" --generate-notes

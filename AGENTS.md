@@ -34,6 +34,7 @@ OS: macOS, Windows
 | Chrome と Firefox で動きが違う点と、その手当て | [docs/browsers.md](./docs/browsers.md)。**ブラウザの API・保存・ポップアップを触る前に読む** |
 | 残っている課題、実機で未確認の項目 | [docs/known-issues.md](./docs/known-issues.md) |
 | 作業を終える前の確認 | [docs/verify.md](./docs/verify.md) |
+| 版の番号とリリースの手順、ストアへ写す文 | [docs/release.md](./docs/release.md) |
 
 既にあるものを再実装しないため、新しくモジュールを作る前に [docs/impl/README.md](./docs/impl/README.md) の「モジュール一覧と関連」を見る。
 
