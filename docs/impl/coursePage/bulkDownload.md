@@ -67,8 +67,8 @@ initBulkDownload();
 ## 決めごと
 
 - **リンクへ `redirect=1` を足してから渡す。** 資料の表示設定が「埋め込み」の場合、`/mod/resource/view.php?id=<id>` は転送せずに表示用のページを返し、そのまま渡すと HTML が保存される。`redirect=1` を付けると、表示設定にかかわらずファイル本体（`pluginfile.php`）へ転送される。実機で確認済み
-- **事前にリダイレクト先を調べない。** `/mod/resource/view.php?id=<id>` はファイル本体へリダイレクトされ、API がそれを追って保存名を決める。資料が記録している「拡張子の判定に1回の往復が要る」という制約は、ファイル名を画面に出す場合の話で、保存するだけなら通らずに済む
-- **保存名が期待と違った場合に、往復して解決する形へ切り替える。** まず往復なしで組み、実機で確かめる。想定と違えば [`../utils/download.md`](../utils/download.md) の `filename` を使う形へ変える
+- **資料は保存の前に転送先を解決し、ファイル名を添えて渡す。** 押された時に、資料の URL ごとに `fetch(url, { method: "HEAD" })` を送り、転送後の `response.url`（`pluginfile.php/.../<ファイル名>`）と、その末尾を `decodeURIComponent` した名前を `DownloadItem` にする。Firefox の `downloads` は転送元の URL から名前を決め、`view.php` で保存する（実機で確認）。転送先の `Content-Disposition` は `inline` のため、Firefox はその名前も使わない。解決に失敗した資料は、元の URL のまま渡す
+- **フォルダは転送先を解決せずに渡す。** `download_folder.php` は `Content-Disposition: attachment` で ZIP の名前を返し、Firefox もその名前で保存する
 - **対象を資料（`modtype_resource`）・フォルダ（`modtype_folder`）・ページ（`modtype_page`）にする。** 課題や小テストは Moodle の画面で、保存しても中身が手に入らない。ページは本文を取得して Markdown にする
 - **フォルダ（`modtype_folder`）は、中身をまとめた ZIP を1件として保存する。** Moodle がフォルダのページに置いている「フォルダをダウンロードする」と同じ保存先を使う。中のファイルを1つずつ集める形は、フォルダごとにページの取得が要る。ZIP なら通信を足さずに済み、フォルダの中の階層も残る
 - **資料が1件も無いセクションにはボタンを置かない。** 押しても何も起きないボタンを並べない

@@ -42,8 +42,6 @@ export interface DownloadResponse {
 
 export function requestDownloads(items: DownloadItem[]): Promise<void>;
 
-export function toTextDataUrl(text: string, mimeType: string): string;
-
 export function saveBlob(blob: Blob, filename: string): void;
 ```
 
@@ -70,11 +68,6 @@ export default defineBackground(() => {
 3. 応答が無い場合、または `failed` が1以上の場合は reject する
 4. それ以外は解決する。解決するのは保存を開始できた時点で、保存の完了は待たない
 
-### toTextDataUrl
-
-1. `text` を `encodeURIComponent` で符号化する
-2. `data:<mimeType>;charset=utf-8,<符号化した文字列>` を返す
-
 ### saveBlob
 
 1. `URL.createObjectURL` で `blob` の URL を作る
@@ -93,11 +86,9 @@ export default defineBackground(() => {
 
 - **`downloads` permission を `wxt.config.ts` の `manifest.permissions` へ宣言する。** WXT は API の使用を自動で検出しない。宣言が無いと実行時に失敗する。生成物の `.output/<target>/manifest.json` を見れば確認できる
 - **保存を background で行う。** `browser.downloads` は content script から呼べない。呼べたとしても、ページの寿命に保存処理が縛られる
-- **テキストを `data:` の URL にして渡し、`blob:` を使わない。** `blob:` の URL は作った文脈に紐づくため、background 側で解決できない場合がある。書き出すテキストはセクション1つ分で、`data:` の長さの上限に収まる
-- **ファイルの保存名を `downloads` に決めさせる。** 資料のリンク（`/mod/resource/view.php?id=<id>`）はリダイレクトされ、その先の URL に元のファイル名と拡張子が入っている。API はリダイレクトを追って名前を決めるため、こちらで調べ直さずに済む
-- **保存名が期待と違った場合は、依頼する側でリダイレクト先を解決してから渡す。** 資料（[`../../moodle/course-page.md`](../../moodle/course-page.md)）が記録している通り、拡張子を知るにはファイルごとに1回の往復が要る。まず往復なしで組み、実機で名前を確かめる
+- **保存名は依頼する側が決めて渡す。** Chrome の `downloads` は転送を追い、`Content-Disposition` から名前を決める。Firefox は転送元の URL から決めるため、資料のリンク（`/mod/resource/view.php?id=<id>`）を渡すと `view.php` の名前で保存される（実機で確認）。転送先の解決は [`../coursePage/bulkDownload.md`](../coursePage/bulkDownload.md) が行う。名前を渡さない項目は、`Content-Disposition: attachment` で名前の付いて返るもの（フォルダの ZIP）に限る
 - **URL の保存にリンクのクリック（`<a download>`）を使わない。** ページから続けて起こす複数の保存は、ブラウザが確認を出して止める。別のオリジンへ転送される URL では `download` 属性の保存名も効かない
-- **content script の中で作った大きなデータは、`saveBlob` で保存する。** `blob:` の URL は background で解決できない場合があり、`data:` の URL は数十MBのデータに向かない。メッセージで中身を background へ送る形は、Chrome では JSON に直されるため、バイナリをそのまま渡せない。リンクのクリックなら、作った文脈の中で保存まで終わる。保存は1回の操作につき1件に限る
+- **content script の中で作ったデータは、大きさにかかわらず `saveBlob` で保存する。** `blob:` の URL は background で解決できない場合がある。`data:` の URL を background へ渡すと、Firefox では応答が返らず、送り手に「Promised response from onMessage listener went out of scope」が届いた（書き出しで実機で確認）。メッセージで中身を background へ送る形は、Chrome では JSON に直されるため、バイナリをそのまま渡せない。リンクのクリックなら、作った文脈の中で保存まで終わる。保存は1回の操作につき1件に限る
 - **`saveBlob` は URL を60秒後に返す。** 保存が始まる前に返すと失敗する。返さないと、ページを開いている間データがメモリに残る
 - **受け口でも保存名を整える。** 依頼する側も名前を整えるが、組み立てに誤りがあると `..` や予約名が混ざり、保存先のフォルダの外や意図しない名前で保存される。受け口は1つで、すべての保存がここを通るため、ここで1回整えれば足りる。保存名は1階層の名前だけを受け取る
 - **保存を開始できたかどうかだけを呼び出し側へ返す。** `browser.downloads.download` は保存を開始した時点で解決するため、待ち時間はファイルの大きさに左右されない。開始に失敗した場合（permission の不足、不正な URL など）は利用者が気付けないため、依頼する側がボタンの文言で知らせる

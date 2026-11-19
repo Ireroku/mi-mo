@@ -104,7 +104,7 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 2. 押されたら、ボタンを `disabled` にする
 3. `fetchPagesZip` を呼ぶ。`onProgress` でボタンの文言を「ページを取得中（2/6）」へ変える
 4. `zip` があれば、`saveBlob` で `<セクション名>.zip` として保存する。セクション名は `.sectionname` のテキストに `sanitizeFilename` を通したもので、取れない場合は「ページ資料」にする
-5. 資料とフォルダの URL を `requestDownloads` へ渡す
+5. 資料とフォルダを `requestDownloads` へ渡す。資料は [`./bulkDownload.md`](./bulkDownload.md) の決めごとの通り、転送先を解決してから渡す
 6. 終わったら `disabled` を外し、文言を元へ戻す。`failed` が1以上の場合は「2件のページに保存できない内容がありました」、途中で例外が出た場合は「保存に失敗しました」にする
 
 ## 決めごと

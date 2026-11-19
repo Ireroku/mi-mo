@@ -41,14 +41,6 @@ export async function requestDownloads(items: DownloadItem[]): Promise<void> {
 }
 
 /**
- * テキストを data: URL に変換する。
- */
-export function toTextDataUrl(text: string, mimeType: string): string {
-  const encoded = encodeURIComponent(text);
-  return `data:${mimeType};charset=utf-8,${encoded}`;
-}
-
-/**
  * content script の中で作ったデータを、1件のファイルとして保存する。
  * リンクのクリックで保存を起こすため、background を通らない。
  */

@@ -96,8 +96,7 @@ if (config.enabled) {
 1. `isCoursePage()` が false なら何もせず戻る
 2. `#region-main div.course-content > div > ul[data-for="course_sectionlist"] > li.section` をすべて取る
 3. 各セクションのヘッダーへ、`addSectionAction(header, "mimo-export-button", "書き出す")` でボタンを足す。`undefined` が返ったセクションは飛ばす
-4. 押されたら、そのセクションについて `readSection` と `formatSection` を設定の出力形式で呼び、`requestDownloads` へ渡す
-5. `requestDownloads` が reject した場合、`console.error("[mi-mo] exportMarkdown", error)` を出し、ボタンの文言を「保存に失敗しました」へ変える
+4. 押されたら、そのセクションについて `readSection` と `formatSection` を設定の出力形式で呼び、文字列を `Blob`（`text/markdown` か `text/plain`、`charset=utf-8`）にして `saveBlob` へ渡す
 
 保存名は `<セクション名>.md`（`text` の場合は `.txt`）にする。ファイル名に使えない文字は `sanitizeFilename` で置き換える。
 

@@ -2,7 +2,7 @@
 
 import { isCoursePage } from "@/moodle/page";
 import { findCourseSectionHeaders } from "@/moodle/courseSections";
-import { requestDownloads, saveBlob } from "@/utils/download";
+import { requestDownloads, saveBlob, type DownloadItem } from "@/utils/download";
 import { sanitizeFilename } from "@/utils/filename";
 import { collectPages, fetchPagesZip } from "./pageSave";
 import { addSectionAction } from "./sectionActions";
@@ -52,6 +52,24 @@ export function collectFolderUrls(section: Element): string[] {
 }
 
 /**
+ * 資料の URL を転送先のファイル本体の URL へ解決し、ファイル名を添える。
+ * Firefox の downloads API は転送元の URL からファイル名を決めるため、解決しないと view.php の名前で保存される。
+ * 解決できなければ元の URL のまま返す。
+ */
+async function resolveResource(url: string): Promise<DownloadItem> {
+  try {
+    const response = await fetch(url, { method: "HEAD" });
+    const name = new URL(response.url).pathname.split("/").pop();
+    if (response.ok && name) {
+      return { url: response.url, filename: decodeURIComponent(name) };
+    }
+  } catch (error) {
+    console.error("[mi-mo] bulkDownload resolve", error);
+  }
+  return { url };
+}
+
+/**
  * コースページの各セクションヘッダーに資料一括保存ボタンを配置する。
  */
 export function initBulkDownload(): void {
@@ -60,16 +78,15 @@ export function initBulkDownload(): void {
   }
 
   for (const { section, header } of findCourseSectionHeaders()) {
-    const urls = [
-      ...collectResourceUrls(section),
-      ...collectFolderUrls(section),
-    ];
+    const resourceUrls = collectResourceUrls(section);
+    const folderUrls = collectFolderUrls(section);
     const pages = collectPages(section);
-    if (urls.length + pages.length === 0) {
+    const count = resourceUrls.length + folderUrls.length + pages.length;
+    if (count === 0) {
       continue;
     }
 
-    const label = `資料を保存（${urls.length + pages.length}件）`;
+    const label = `資料を保存（${count}件）`;
     const button = addSectionAction(header, "mimo-bulk-download-button", label);
     if (!button) {
       continue;
@@ -88,7 +105,8 @@ export function initBulkDownload(): void {
           saveBlob(zip, `${sanitizeFilename(title)}.zip`);
         }
 
-        await requestDownloads(urls.map((url) => ({ url })));
+        const resources = await Promise.all(resourceUrls.map(resolveResource));
+        await requestDownloads([...resources, ...folderUrls.map((url) => ({ url }))]);
         button.textContent =
           failed > 0 ? `${failed}件のページに保存できない内容がありました` : label;
       } catch (error) {

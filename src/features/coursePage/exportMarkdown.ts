@@ -2,7 +2,7 @@
 
 import { isCoursePage } from "@/moodle/page";
 import { findCourseSectionHeaders } from "@/moodle/courseSections";
-import { requestDownloads, toTextDataUrl } from "@/utils/download";
+import { saveBlob } from "@/utils/download";
 import { sanitizeFilename } from "@/utils/filename";
 import {
   formatSection,
@@ -43,11 +43,7 @@ export function initExportMarkdown(config: ExportConfig): void {
       const safeTitle = sanitizeFilename(rawTitle);
       const filename = `${safeTitle}.${ext}`;
 
-      const dataUrl = toTextDataUrl(text, mimeType);
-      requestDownloads([{ url: dataUrl, filename }]).catch((error: unknown) => {
-        console.error("[mi-mo] exportMarkdown", error);
-        button.textContent = "保存に失敗しました";
-      });
+      saveBlob(new Blob([text], { type: `${mimeType};charset=utf-8` }), filename);
     });
   }
 }
