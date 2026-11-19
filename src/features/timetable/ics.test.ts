@@ -72,6 +72,25 @@ describe("buildIcs", () => {
     ]);
   });
 
+  // 利用者の端末が日本時間でなくても、授業の時刻は日本時間として書き出す
+  it.each(["Asia/Tokyo", "UTC", "America/New_York", "Pacific/Kiritimati"])(
+    "端末のタイムゾーンが %s でも同じ時刻になる",
+    (zone) => {
+      const original = process.env.TZ;
+      process.env.TZ = zone;
+      try {
+        const [event] = eventsOf(
+          buildIcs(makeConfig({ holidays: [{ date: "2026-04-13" }] }), periods),
+        );
+        expect(event).toContain("DTSTART:20260405T235000Z");
+        expect(event).toContain("DTEND:20260406T012000Z");
+        expect(event).toContain("EXDATE:20260412T235000Z");
+      } finally {
+        process.env.TZ = original;
+      }
+    },
+  );
+
   it("休講の日を EXDATE に入れ、終わりを後ろへ延ばす", () => {
     const [event] = eventsOf(
       buildIcs(makeConfig({ holidays: [{ date: "2026-04-13" }] }), periods),
