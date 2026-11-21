@@ -64,10 +64,14 @@ export default defineContentScript({
     await runFeature("quickDrawer", () =>
       applyQuickDrawerVisibility(quickDrawerConfig),
     );
+    await runFeature("sectionTitleLink", () => applySectionTitleLink());
+    await runFeature("sectionToggleDesign", () => applySectionToggleDesign());
+    await runFeature("clickableCard", () => applyClickableCard());
+    await runFeature("breadcrumb", () => applyBreadcrumb());
 
-    let redirected = false;
+    // 最初の画面の判定は body を待つことがあるため、CSS を当てるだけの機能より後に置く
     await runFeature("landingPage", async () => {
-      // 切ってある間は body を待たない。後に続く機能を遅らせないため
+      // 切ってある間は body を待たない
       const loggedIn = landingConfig.enabled ? await readLoggedIn() : true;
       const decision = decideLanding(landingConfig, landingPending, loggedIn, window.location);
       if (decision.pending !== landingPending) {
@@ -75,16 +79,7 @@ export default defineContentScript({
       }
       if (decision.redirectTo) {
         window.location.replace(decision.redirectTo);
-        redirected = true;
       }
     });
-    if (redirected) {
-      return;
-    }
-
-    await runFeature("sectionTitleLink", () => applySectionTitleLink());
-    await runFeature("sectionToggleDesign", () => applySectionToggleDesign());
-    await runFeature("clickableCard", () => applyClickableCard());
-    await runFeature("breadcrumb", () => applyBreadcrumb());
   },
 });

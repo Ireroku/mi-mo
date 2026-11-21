@@ -70,7 +70,7 @@ const [config, pending] = await Promise.all([
   uiLandingPendingFlag.getValue(),
 ]);
 
-// 切ってある間は body を待たない。後に続く機能を遅らせないため
+// 切ってある間は body を待たない
 const loggedIn = config.enabled ? await readLoggedIn() : true;
 const decision = decideLanding(config, pending, loggedIn, window.location);
 
@@ -106,3 +106,4 @@ if (decision.redirectTo) {
 - **判断を純粋な計算にし、保存と移動を entrypoint が行う。** ログイン直後という状態は再現しにくく、条件の組み合わせも多い。引数だけで結果が決まる形にしておく
 - **既定で有効にし、移動先をマイコースにする。** ログイン後に上部メニューからマイコースを開く操作を、ほぼ全員が繰り返している（[`../../features/ui/landing-page.md`](../../features/ui/landing-page.md)）。マイコースは誰にでもあるページで、移動しても困る人が少ない
 - **`document_start` で判断し、`body` の開始タグが届くまでだけ待つ。** 既定の遷移先が描かれる前に移動できれば、目に入る時間が短くなる。ログイン状態を読むには `body` が要るが、本文の読み込みまでは待たない。機能を切っている間は待たない
+- **CSS を当てるだけの機能を、この判断より前に呼ぶ。** `body` を待つ間に、見た目を変える CSS の注入を遅らせない
