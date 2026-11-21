@@ -64,6 +64,7 @@ python3 scripts/checkdocs.py   # docs の文体規約とリンク切れの検査
 ## DO NOT DO...
 
 - コミットは適当な単位でやって欲しいです。PushはしなくてOKです！
+- コミットの文は日本語で書いてください。頭の種類と範囲（`feat(menu):`、`docs(known-issues):` など）は今の形のまま残し、その後ろを日本語にします
 - 実機で確認していないものを、確認したことにしないでください。確認できなかった項目は [docs/known-issues.md](./docs/known-issues.md) へ足してください
 
 ## FOLLOW TO...
