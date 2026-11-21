@@ -81,7 +81,7 @@ python3 scripts/checkdocs.py docs/impl  # 一部だけ
 
 自分で書いたモジュール（`src/features/`・`src/moodle/`・`src/utils/`）は import 文を明示的に書く。識別子がどこから来たかを読んで判断できるようにするため。
 
-WXT と Svelte の API（`defineContentScript`・`createShadowRootUi`・`storage`・`onMount` など）は auto-import に任せる。既存のコードがそうなっており、対象の一覧は `.wxt/types/imports.d.ts` に生成される。
+WXT と Svelte の API（`defineContentScript`・`createShadowRootUi`・`storage`・`onMount` など）は auto-import に任せる。既存のコードがそうなっており、対象の一覧は `.wxt/types/imports.d.ts` に生成される。WXT は既定で `src/utils/` などの export も auto-import へ載せるが、[`wxt.config.ts`](../../wxt.config.ts) の `config:resolved` で走査する場所を空にしている。自分のモジュールを import 無しで使うと、型検査で止まる。
 
 ## コードの書式
 

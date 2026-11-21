@@ -143,7 +143,6 @@ export const uiFloatingHintSetting = defineSetting<FloatingHintConfig>(
   { fallback: { hidden: true } },
 );
 
-// 1行目を `{` で終えると、auto-import の走査が fallback のキーを export と取り違える
 export const uiFontSetting = defineSetting<FontConfig>(
   "local:ui.font",
   { fallback: { enabled: false, family: "", scope: "all" } },

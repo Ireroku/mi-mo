@@ -88,7 +88,6 @@ const config = await homeHideElementsSetting.getValue();
 ## 決めごと
 
 - **`wxt.config.ts` の `manifest.permissions` に `"storage"` を宣言する。** WXT は storage API の使用を自動で検出しないため、宣言が無いと `browser.storage` へアクセスできず `getValue()` が失敗する。生成物の `.output/<target>/manifest.json` を見れば宣言されたか確認できる
-- **`defineSetting(` の引数は、キーとオプションを別の行に書く。** `defineSetting<T>("キー", {` のように1行目を `{` で終えると、WXT の auto-import の走査が `fallback` のキー（`scope` など）を export と取り違える。同じ名前の変数を使う別のモジュールへ、存在しない import が差し込まれ、ビルドが `MISSING_EXPORT` で止まる
 - **設定の型は機能側が持ち、`settings.ts` が import する。** 逆向きにすると `src/features/` が設定モジュールへ依存し、機能が設定の出所を知らないという方針が崩れる
 - **キーは機能ごとに分け、`local:<機能>.<設定名>` の形にする。** 全設定を1つのキーにまとめると、`document_start` で動く entrypoint が使わない設定まで読み込む
 - **ストレージ領域は `local:` を使う。** `sync:` は1項目 8KB・全体 100KB の制限があり、時間割のような大きい設定が収まらない

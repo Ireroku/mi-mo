@@ -22,6 +22,12 @@ export default defineConfig({
     sizes: [128, 96, 48, 32, 16],
   },
   hooks: {
+    // 自分のモジュールは import を書いて使う（docs/impl/README.md の「import の書き方」）。
+    // WXT は既定で src/utils などの export をすべて auto-import へ載せる。
+    // imports.dirs は既定と連結されて空にできないため、決まった後で空にする
+    'config:resolved': (wxt) => {
+      wxt.config.imports.dirs = [];
+    },
     // WXT は cssInjectionMode: "ui" の CSS へ use_dynamic_url を付けるが、Firefox はこの項目を知らず警告する。
     // Firefox は moz-extension:// の UUID がインストールごとに違うため、付けなくても同じ働きになる
     'build:manifestGenerated': (wxt, manifest) => {
