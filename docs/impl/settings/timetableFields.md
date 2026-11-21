@@ -141,14 +141,14 @@ defineGroup(
 
 ### TimetableFooter
 
-上から、ファイルの出し入れ、`IcsExportButton` の順に並べる。説明文は置かない。上書きは読み込みの前の確認が伝える。
+上から、ファイルの出し入れ、`IcsExportButton` の順に、区切り線（`divide-y`）を挟んだ行で並べる。説明文は置かない。上書きは読み込みの前の確認が伝える。
 
 1. `BackupButtons` へ、受け取った `values` と `onRestore`、`filename`（`TIMETABLE_FILENAME`）、`scope`（`SCOPE`）、`noun`（「時間割」）を渡す。書き出しと読み込みの手順は [`./panel.md`](./panel.md) の「バックアップ」が持つ
 2. 時限表を持たない古いファイルを読んだ場合、`parseScopedBackup` は時間割のグループだけを返し、時限表は今の値を残す
 
 ### IcsExportButton
 
-ボタンの文言は「カレンダー予定ファイルとして書き出す (.ics)」。
+`ActionRow`（[`./controls.md`](./controls.md)）の青い行に `Download` のアイコンを添えて描く。文言は「カレンダー予定ファイルとして書き出す (.ics)」。
 
 1. `timetableSetting` と `periodTableSetting` を読む
 2. `buildIcs(config, periodTable.periods)` で文字列を作る

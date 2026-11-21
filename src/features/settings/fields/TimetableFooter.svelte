@@ -27,7 +27,8 @@
   let { values, onRestore }: FooterProps = $props();
 </script>
 
-<div class="space-y-4 pt-2">
+<!-- 外のカードの中で、行ボタンを区切り線で分けて並べる -->
+<div class="divide-y divide-border">
   <BackupButtons
     {values}
     {onRestore}

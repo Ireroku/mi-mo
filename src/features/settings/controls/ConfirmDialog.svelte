@@ -7,9 +7,16 @@
     title: string; // 尋ねる文
     confirmLabel: string; // 続けるボタンの文言
     onConfirm: () => void;
+    destructive?: boolean; // 元に戻せない操作。続けるボタンを赤にする
   }
 
-  let { open = $bindable(), title, confirmLabel, onConfirm }: Props = $props();
+  let {
+    open = $bindable(),
+    title,
+    confirmLabel,
+    onConfirm,
+    destructive = false,
+  }: Props = $props();
 </script>
 
 <AlertDialog.Root bind:open>
@@ -21,6 +28,7 @@
       <AlertDialog.Cancel>キャンセル</AlertDialog.Cancel>
       <!-- bits-ui の Action は押しても閉じないため、ここで閉じる -->
       <AlertDialog.Action
+        variant={destructive ? "destructive" : "default"}
         onclick={() => {
           open = false;
           onConfirm();

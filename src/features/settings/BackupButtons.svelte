@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { Button } from "$lib/components/ui/button";
   import { Download, Upload } from "@lucide/svelte";
   import { saveBlob } from "@/utils/download";
   import { openFilePicker, pickTarget } from "./filePicker";
   import ConfirmDialog from "./controls/ConfirmDialog.svelte";
+  import ActionRow from "./controls/ActionRow.svelte";
   import type { BackupScope } from "./backup.logic";
   import {
     BACKUP_FILENAME,
@@ -83,39 +83,31 @@
   }
 </script>
 
-<div class="flex flex-wrap gap-2">
-  <Button type="button" variant="outline" size="sm" class="gap-1.5" onclick={handleExport}>
-    <Download class="size-4" />
-    ファイルへ書き出す
-  </Button>
-  <Button
-    type="button"
-    variant="outline"
-    size="sm"
-    class="gap-1.5"
-    onclick={() => openFilePicker(fileInput)}
-    {@attach pickTarget((text) => (message = { text, failed: false }))}
-  >
-    <Upload class="size-4" />
-    ファイルから読み込む
-  </Button>
-  <input
-    bind:this={fileInput}
-    type="file"
-    accept="application/json,.json"
-    class="hidden"
-    onchange={handleFile}
-  />
-</div>
+<!-- 行はカードの区切り線で分けるため、外側の要素で包まない。隠れた要素は区切り線が付かない先頭に置く -->
+<input
+  bind:this={fileInput}
+  type="file"
+  accept="application/json,.json"
+  class="hidden"
+  onchange={handleFile}
+/>
 <ConfirmDialog
   bind:open={confirming}
   title="現在の設定が上書きされます。よろしいですか？"
   confirmLabel="読み込む"
+  destructive
   onConfirm={restore}
+/>
+<ActionRow label="ファイルへ書き出す" icon={Download} onclick={handleExport} />
+<ActionRow
+  label="ファイルから読み込む"
+  icon={Upload}
+  onclick={() => openFilePicker(fileInput)}
+  {@attach pickTarget((text) => (message = { text, failed: false }))}
 />
 {#if message}
   <p
-    class={["mt-2 text-note", message.failed ? "text-destructive" : "text-muted-foreground"]}
+    class={["py-2.5 pr-4 text-note", message.failed ? "text-destructive" : "text-muted-foreground"]}
     role="status"
   >
     {message.text}

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button } from "$lib/components/ui/button";
+  import ActionRow from "../controls/ActionRow.svelte";
   import { timetableSetting, periodTableSetting } from "@/utils/settings";
   import { buildIcs, ICS_FILENAME } from "@/features/timetable/ics";
   import { saveBlob } from "@/utils/download";
@@ -19,13 +19,8 @@
   }
 </script>
 
-<Button
-  type="button"
-  variant="outline"
-  size="sm"
-  class="gap-1.5"
+<ActionRow
+  label="カレンダー予定ファイルとして書き出す (.ics)"
+  icon={Download}
   onclick={handleExport}
->
-  <Download class="size-4" />
-  カレンダー予定ファイルとして書き出す (.ics)
-</Button>
+/>

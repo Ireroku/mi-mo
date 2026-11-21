@@ -2,12 +2,12 @@
 
 ## 概要
 
-設定画面の各 Fields が共通して使う入力部品を置く。時刻・日付の選択、候補つきの入力欄、続けるかの確かめ、関係する入力欄の積み重ねの5つ。どれも値を自分で保存せず、`onChange` や `onConfirm` で呼び出し側へ返す。
+設定画面の各 Fields が共通して使う入力部品を置く。時刻・日付の選択、候補つきの入力欄、続けるかの確かめ、関係する入力欄の積み重ね、カードの中の操作の行と別の画面へ進む行。どれも値を自分で保存せず、`onChange` や `onConfirm` で呼び出し側へ返す。
 
 ## 関連
 
 - 使う: [`panel.md`](./panel.md) — shadcn-svelte の部品（`popover`、`calendar`、`alert-dialog`、`input-group`、`input`）と、`global.css` の動きの長さ ／ bits-ui の `Combobox`
-- 使われる: [`panel.md`](./panel.md) の `FieldRow` と `BackupButtons` ／ [`menuFields.md`](./menuFields.md) の `PeriodTableField` ／ [`menuFields.md`](./menuFields.md) の `HiddenMenuItemsField`・`NewMenuItemsField`・`CountdownListField` ／ [`timetableFields.md`](./timetableFields.md) の `TimetableGridField`・`HolidayListField`・`SubstituteListField`
+- 使われる: [`panel.md`](./panel.md) の `FieldRow`・`BackupButtons`・`ResetRows` ／ [`timetableFields.md`](./timetableFields.md) の `IcsExportButton` ／ [`menuFields.md`](./menuFields.md) の `PeriodTableField` ／ [`menuFields.md`](./menuFields.md) の `HiddenMenuItemsField`・`NewMenuItemsField`・`CountdownListField` ／ [`timetableFields.md`](./timetableFields.md) の `TimetableGridField`・`HolidayListField`・`SubstituteListField`
 - 資料: [bits-ui の AlertDialog](https://bits-ui.com/docs/components/alert-dialog) ／ [shadcn-svelte の Date Picker](https://shadcn-svelte.com/docs/components/date-picker) ／ [bits-ui の Combobox](https://bits-ui.com/docs/components/combobox)
 
 ## 対象ファイル
@@ -21,6 +21,8 @@
 | `src/features/settings/controls/time.logic.test.ts` | `normalizeTime` の単体テスト |
 | `src/features/settings/controls/DatePicker.svelte` | 日本語の暦から日付を選ぶ |
 | `src/features/settings/controls/ConfirmDialog.svelte` | 取り消せない操作の前に続けるかを尋ねる |
+| `src/features/settings/controls/ActionRow.svelte` | カードの中で横いっぱいに広がる、押すと操作を始める行 |
+| `src/features/settings/controls/OpenRow.svelte` | 押すと別の画面へ進む行 |
 
 ## インターフェース
 
@@ -63,7 +65,24 @@ interface Props {
   open: boolean; // $bindable
   title: string; // 尋ねる文
   confirmLabel: string; // 続けるボタンの文言
+  destructive?: boolean; // 元に戻せない操作。続けるボタンを赤にする
   onConfirm: () => void;
+}
+
+// ActionRow.svelte。残りの属性は button へそのまま渡す
+interface Props extends Omit<HTMLButtonAttributes, "children"> {
+  label: string;
+  icon?: Component<{ class?: string }>; // 左に添えるアイコン
+  danger?: boolean; // 範囲の大きい破壊的な操作。文字を赤にする
+}
+
+// OpenRow.svelte
+interface Props {
+  label: string;
+  description?: string;
+  count?: number; // 一覧の件数。「6件」の形で右に出す
+  class?: ClassValue; // 置き場所に合わせた余白
+  onclick: () => void;
 }
 ```
 
@@ -119,6 +138,18 @@ interface Props {
 1. `open` が真の間、`AlertDialog` に `title` と「キャンセル」「`confirmLabel`」を出す
 2. 「キャンセル」と Esc は閉じるだけにする
 3. 続けるボタンを押すと、閉じてから `onConfirm` を呼ぶ
+4. `destructive` の間は、続けるボタンを `variant="destructive"`（赤）にする
+
+### ActionRow
+
+1. `min-h-12 w-full` の `button` に、左寄せで `icon` と `label` を並べる。枠と背景は持たず、カードの区切り線の間に収まる
+2. 文字は `text-primary`（青）、`danger` の間は `text-destructive`（赤）にする
+3. 押している間は `active:opacity-60` で薄くする
+
+### OpenRow
+
+1. 左に `label` と `description`、右に `count` と右向きの山形を置く
+2. 余白は置き場所ごとに違うため、`class` で受け取る。`FieldRow` は行の余白を打ち消す負の余白を、`ResetRows` は `min-h-12 w-full` を渡す
 
 ## 決めごと
 
@@ -131,6 +162,9 @@ interface Props {
 - **`normalizeTime` を `.logic.ts` に分ける。** 打ち方の揺れは組み合わせが多く、画面を開かずに単体テストで確かめるため
 - **日付の暦は `locale="ja"` にする。** 曜日と月の名前を日本語で出す。週の始まりも日本の暦に合う
 - **`ConfirmDialog` の続けるボタンは、自分で閉じる。** bits-ui v2 の `AlertDialog.Action` は押しても閉じない。閉じてから `onConfirm` を呼び、呼んだ先の処理が長くても画面が残らないようにする
+- **カードの中の操作は、枠つきのボタンではなく `ActionRow` の行にする。** 行の高さと区切り線が設定の行と揃い、カードの中で別の形が混ざらない。押せることは色で示す
+- **`ActionRow` の赤は、範囲の大きい操作だけに使う。** 個別のリセットや読み込みは行を青にし、確認のボタンだけを赤にする。色の段階は [`../../ui-principles.md`](../../ui-principles.md) に従う
+- **`OpenRow` を `FieldRow` から分ける。** リセットの階層も同じ形の行で進むため。形を1箇所に置き、別の画面へ進む行の見た目が揃う
 - **`StackedInputs` の中の部品は枠を外し、枠の側でフォーカスを示す。** 名前と URL、日付と理由のように組になる欄を1つのまとまりに見せる。中の部品にもフォーカスの輪を残すと、輪が二重になる
 - **`StackedInputs` は中の部品を `data-slot` で見分ける。** shadcn の部品は自分の `data-slot` を持つ。DatePicker の開くボタンは `popover-trigger` になるため、`button` とは別に並べる
 - **`StackedInputs` の中は文字を `text-sm` に揃える。** shadcn の `Input` は幅 768px 未満で `text-base` になり、ボタンや Select の `text-sm` と1つの枠の中で大きさが食い違う

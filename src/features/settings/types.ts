@@ -74,6 +74,18 @@ export function rowId(groupId: string, key: string): string {
   return `${groupId}.${key}`;
 }
 
+/**
+ * 1つの保存項目を、読んでから書き終えるまで他の書き込みと重ならないように扱う。
+ * ポップアップとオプション画面を同時に開いても、間に他方の書き込みが挟まらない。
+ * ロックは同じオリジンの拡張機能のページ同士で共有される。
+ */
+export async function withSettingLock(
+  key: string,
+  task: () => Promise<void>,
+): Promise<void> {
+  await navigator.locks.request(`mi-mo-settings:${key}`, task);
+}
+
 export function defineGroup<C extends object>(
   category: SettingsCategory,
   title: string,
@@ -88,11 +100,7 @@ export function defineGroup<C extends object>(
       ...setting.fallback,
       ...(await setting.getValue()),
     }) as Record<string, unknown>;
-  // ポップアップとオプション画面を同時に開いても、読んでから書くまでの間に他方の書き込みが挟まらないようにする。
-  // ロックは同じオリジンの拡張機能のページ同士で共有される
-  const exclusive = async (task: () => Promise<void>) => {
-    await navigator.locks.request(`mi-mo-settings:${setting.key}`, task);
-  };
+  const exclusive = (task: () => Promise<void>) => withSettingLock(setting.key, task);
   const write = (key: string, value: unknown) =>
     exclusive(async () => {
       const current = await setting.getValue();

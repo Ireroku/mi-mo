@@ -5,7 +5,7 @@
   import { Label } from "$lib/components/ui/label";
   import * as Select from "$lib/components/ui/select";
   import DatePicker from "./controls/DatePicker.svelte";
-  import { ChevronRight } from "@lucide/svelte";
+  import OpenRow from "./controls/OpenRow.svelte";
 
   interface Props {
     meta: FieldMeta;
@@ -119,23 +119,12 @@
 
   {:else}
     <!-- 入れ子の項目と、一覧や表の編集は別の画面で開く。行には件数だけを先に見せる -->
-    <button
-      type="button"
-      class="-my-3 -mr-4 flex cursor-pointer items-center justify-between gap-4 py-3 pr-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-      onclick={onOpen}
-    >
-      <span class="flex min-w-0 flex-col gap-0.5">
-        <span class="text-row">{meta.label}</span>
-        {#if meta.description}
-          <span class="text-note text-muted-foreground">{meta.description}</span>
-        {/if}
-      </span>
-      <span class="flex shrink-0 items-center gap-1 text-note text-muted-foreground">
-        {#if Array.isArray(value)}
-          {value.length}件
-        {/if}
-        <ChevronRight class="size-4" />
-      </span>
-    </button>
+    <OpenRow
+      class="-my-3 -mr-4"
+      label={meta.label}
+      description={meta.description}
+      count={Array.isArray(value) ? value.length : undefined}
+      onclick={() => onOpen?.()}
+    />
   {/if}
 </div>

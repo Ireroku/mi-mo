@@ -13,6 +13,15 @@
   } from "./types";
   import FieldRow from "./FieldRow.svelte";
   import BackupButtons from "./BackupButtons.svelte";
+  import ResetRows from "./ResetRows.svelte";
+  import {
+    resetEntries,
+    resetEverything,
+    resetMenus,
+    runReset,
+    type ResetAction,
+    type ResetMenu,
+  } from "./reset";
   import {
     Tabs,
     TabsList,
@@ -48,11 +57,8 @@
     items: (Row | Footer)[];
   }
 
-  // 別の画面で開いている行と、そこまでの道筋
-  interface Page {
-    row: Row;
-    trail: string[];
-  }
+  // 別の画面で開いている行（設定の行か、リセットのまとまり）と、そこまでの道筋
+  type Page = { trail: string[] } & ({ row: Row } | { reset: ResetMenu });
 
   // 入れ子の項目の1つの枠。title が空なら見出しを出さない
   interface NestedBlock {
@@ -93,7 +99,10 @@
 
   // 別の画面の部品が、残りの高さに収まる形を求めているか
   let pageFills = $derived(
-    page?.row.meta.control.kind === "custom" && Boolean(page.row.meta.control.fill),
+    page !== null &&
+      "row" in page &&
+      page.row.meta.control.kind === "custom" &&
+      Boolean(page.row.meta.control.fill),
   );
 
   let extensionEnabled = $derived(
@@ -179,6 +188,11 @@
   function reopenRow() {
     const id = rowToReopen;
     rowToReopen = undefined;
+    const menu = resetMenus.find((item) => item.id === id);
+    if (menu && selectedTab === "general") {
+      openResetMenu(menu);
+      return;
+    }
     const row = buildSections(selectedTab)
       .flatMap((section) => section.items)
       .find((item): item is Row => item.id === id && !("footer" in item));
@@ -229,6 +243,15 @@
     await load();
   }
 
+  async function handleReset(action: ResetAction) {
+    saveError = "";
+    // 保存の途中の変更と混ざらないよう、書き込みの列に並べる
+    const task = saveQueue.then(() => runReset(action));
+    saveQueue = task.catch(() => {});
+    await task;
+    await load();
+  }
+
   // 入れ子の項目を、section が変わる所で区切る。続く行の section が同じなら1つの枠に入れる
   function nestedBlocks(fields: Record<string, FieldMeta>): NestedBlock[] {
     const blocks: NestedBlock[] = [];
@@ -258,14 +281,19 @@
     }, SWITCH_LOCK_MS);
   }
 
-  function openPage(row: Row) {
+  function showPage(next: Page) {
     scrollBack = scroller.scrollTop;
-    page = {
-      row,
-      trail: [CATEGORY_LABELS[selectedTab], row.section, row.meta.label],
-    };
+    page = next;
     lockSwitch();
     scroller.scrollTop = 0;
+  }
+
+  function openPage(row: Row) {
+    showPage({ row, trail: [CATEGORY_LABELS[selectedTab], row.section, row.meta.label] });
+  }
+
+  function openResetMenu(reset: ResetMenu) {
+    showPage({ reset, trail: [CATEGORY_LABELS[selectedTab], "リセット", reset.label] });
   }
 
   // 閉じる前に、部品の決めた形へ値を整える。変わった時だけ保存する
@@ -283,7 +311,7 @@
   }
 
   async function closePage() {
-    if (page) {
+    if (page && "row" in page) {
       pruneValue(page.row);
     }
 
@@ -295,7 +323,8 @@
   }
 
   $effect(() => {
-    const hash = page ? `${selectedTab}/${page.row.id}` : selectedTab;
+    const pageId = page && ("row" in page ? page.row.id : page.reset.id);
+    const hash = pageId ? `${selectedTab}/${pageId}` : selectedTab;
     // 検索部分（ポップアップから移った印）はここで落とす。読み直しても同じボタンへ寄せない
     history.replaceState(null, "", `${location.pathname}#${hash}`);
   });
@@ -408,6 +437,12 @@
         <p class="text-row">設定を読み込めませんでした。</p>
         <Button type="button" variant="outline" onclick={load}>再試行</Button>
       </div>
+    {:else if page && "reset" in page}
+      <div
+        class="px-4 pt-1 pb-8 duration-200 animate-in fade-in slide-in-from-right-4 motion-reduce:animate-none"
+      >
+        <ResetRows entries={page.reset.actions} onReset={handleReset} />
+      </div>
     {:else if page}
       {@const { row } = page}
       {@const value = groupValues[row.group.id]?.[row.key]}
@@ -482,9 +517,7 @@
                   <div transition:slide={{ duration: 150 }}>
                     {#if "footer" in item}
                       {@const FooterComponent = item.footer}
-                      <div class="py-3 pr-4">
-                        <FooterComponent values={groupValues} onRestore={restore} />
-                      </div>
+                      <FooterComponent values={groupValues} onRestore={restore} />
                     {:else}
                       <FieldRow
                         meta={item.meta}
@@ -509,10 +542,18 @@
           {#if cat === "general"}
             <section>
               <h2 class="mb-1.5 px-4 text-row font-semibold">バックアップ</h2>
-              <div class="rounded-xl bg-card p-4 text-card-foreground">
+              <div
+                class="divide-y divide-border rounded-xl bg-card pl-4 text-card-foreground"
+              >
                 <BackupButtons values={groupValues} onRestore={restore} />
               </div>
             </section>
+            <section>
+              <h2 class="mb-1.5 px-4 text-row font-semibold">リセット</h2>
+              <ResetRows entries={resetEntries} onOpen={openResetMenu} onReset={handleReset} />
+            </section>
+            <!-- すべてを消す操作は、押し間違えないよう他のリセットから離す -->
+            <ResetRows entries={[resetEverything]} onReset={handleReset} />
           {/if}
         </TabsContent>
       {/each}

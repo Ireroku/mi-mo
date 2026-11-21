@@ -11,7 +11,7 @@
 - 使う: [`./menuFields.md`](./menuFields.md) — 時限表・カウントダウン・メニュー項目の専用エディタ
 - 使う: [`./timetableFields.md`](./timetableFields.md) — 時間割の専用エディタと、`footer` に置くファイルの出し入れと `.ics` の書き出しボタン
 - 使う: [`../utils/download.md`](../utils/download.md) — バックアップのファイルを保存する `saveBlob`
-- 使う: [`./controls.md`](./controls.md) — `date` の `DatePicker` と、読み込みの前の `ConfirmDialog`
+- 使う: [`./controls.md`](./controls.md) — `date` の `DatePicker`、読み込みとリセットの前の `ConfirmDialog`、操作の行の `ActionRow`、別の画面へ進む行の `OpenRow`
 - 資料: [`../../features/ui/settings.md`](../../features/ui/settings.md) — 画面の目的と、ポップアップで兼ねる方針
 - 参考: [`../README.md`](../README.md) — スタイリングの節。shadcn のコンポーネントを入れて組み合わせる
 
@@ -25,6 +25,8 @@
 | `src/features/settings/FieldRow.svelte` | 項目1件の描画 |
 | `src/features/settings/backup.logic.ts` | バックアップの組み立てと読み取り |
 | `src/features/settings/BackupButtons.svelte` | バックアップの書き出しと読み込みのボタン。読み込みの前に上書きを尋ねる |
+| `src/features/settings/reset.ts` | リセットの操作の一覧と、既定値へ戻す処理 |
+| `src/features/settings/ResetRows.svelte` | リセットの行を1枚のカードへ並べ、確認を挟んで実行する |
 | `src/features/settings/filePicker.ts` | 読み込むファイルを選ばせる。Firefox のポップアップではオプション画面へ移し、移った先で読み込みのボタンを示す |
 | `src/utils/settings.ts` | 全体のスイッチ `extensionSetting` を定義する |
 | `src/entrypoints/shared.content.ts` | 全体のスイッチが切れている間は何もせず戻る |
@@ -113,6 +115,9 @@ export interface GroupOptions<C = Record<string, unknown>> {
 // 行の id。`<グループの id>.<キー>` の形になる
 export function rowId(groupId: string, key: string): string;
 
+// 設定のキーごとのロックの中で task を走らせる。画面をまたいで書き込みを順に並べる
+export function withSettingLock(key: string, task: () => Promise<void>): Promise<void>;
+
 export function defineGroup<C extends object>(
   category: SettingsCategory,
   title: string,
@@ -188,6 +193,49 @@ export function parseScopedBackup(
     filename?: string; // 既定は BACKUP_FILENAME
     scope?: BackupScope; // 省くと、すべての設定を出し入れする
     noun?: string; // 結果の文言で、読み込んだものを指す名前。既定は「設定」
+  }
+</script>
+```
+
+リセット:
+
+```ts
+// src/features/settings/reset.ts
+// 戻す対象。keys を省くと項目の全体を、あればそのキーだけを既定値へ戻す
+interface ResetTarget {
+  item: WxtStorageItem<any, any>;
+  keys?: readonly string[];
+}
+
+export interface ResetAction {
+  label: string; // 「〜をリセット」の形にする
+  broad?: boolean; // 範囲の大きい操作。行を赤にする
+  targets: readonly ResetTarget[] | "all"; // "all" は保存領域を丸ごと空にする
+}
+
+// 押すと別の画面へ進み、中の操作を並べる
+export interface ResetMenu {
+  id: string; // 開いている場所を hash へ写す時の名前
+  label: string;
+  actions: readonly ResetAction[];
+}
+
+export type ResetEntry = ResetAction | ResetMenu;
+
+export const resetEntries: readonly ResetEntry[]; // 「リセット」のカードに並べる順
+export const resetEverything: ResetAction; // 「すべての設定をリセット」。別のカードに置く
+export const resetMenus: readonly ResetMenu[]; // resetEntries のうちの ResetMenu
+
+export function runReset(action: ResetAction): Promise<void>;
+```
+
+```svelte
+<!-- src/features/settings/ResetRows.svelte -->
+<script lang="ts">
+  interface Props {
+    entries: readonly ResetEntry[];
+    onOpen?: (menu: ResetMenu) => void; // ResetMenu の行が押された時
+    onReset: (action: ResetAction) => Promise<void>; // 確認で「リセット」が押された時
   }
 </script>
 ```
@@ -286,7 +334,7 @@ pnpm dlx shadcn-svelte@latest add tabs switch input label button select popover 
 
 1. 渡された `fields` を `Record<string, FieldMeta>` として保持する。ここで型引数 `C` を落とす。**代入にはキャストが要る**
 2. `read` は `setting.fallback` の上へ `setting.getValue()` の結果を重ねて返す。重ねるのは最上位のキーだけ。**ここにもキャストが要る**
-3. `write(key, value)` は `setting.getValue()` で現在値を読み、`key` だけを差し替えた値を `setting.setValue()` で書く。ここはキャスト不要。読んでから書くまでを `navigator.locks.request("mi-mo-settings:<設定のキー>", ...)` で囲む
+3. `write(key, value)` は `setting.getValue()` で現在値を読み、`key` だけを差し替えた値を `setting.setValue()` で書く。ここはキャスト不要。読んでから書くまでを `withSettingLock(setting.key, ...)`（中で `navigator.locks.request("mi-mo-settings:<設定のキー>", ...)` を呼ぶ）で囲む
 4. `replace(value)` は、渡された値を `options.normalize` で整えてから、グループ全体を `setting.setValue()` へ書く。`write` と同じロックの中で書く。`normalize` を省くと値をそのまま書く。バックアップと時間割のファイルの読み込みが使う
 5. `options` の `footer` と `after` は、そのまま `SettingsGroup` へ載せる
 
@@ -311,9 +359,9 @@ const read = async () =>
 2. 読み込みに失敗した場合は、メッセージと「再試行」ボタンを `role="alert"` の中に出す。ボタンは手順1をやり直す
 3. `CATEGORY_LABELS` のキー順にタブを作る（ホーム・コース・全体）
 4. 各タブへ、そのカテゴリに属するグループを `fields.ts` に並べた順で置く。置き方は下の「カードの区切り」に従う
-5. 「全体」タブの末尾へ、見出し「バックアップ」のカードを置き、`BackupButtons` を入れる
+5. 「全体」タブの末尾へ、見出し「バックアップ」のカードを置き、`BackupButtons` を入れる。その下へ見出し「リセット」と `ResetRows`（`resetEntries`）のカードを置き、さらにその下へ見出しの無い `ResetRows`（`resetEverything` だけ）のカードを置く
 6. `FieldRow` から変更が届いたら、下の「保存」に従って書き込む
-7. `FieldRow` から `onOpen` が届いたら、下の「別の画面」に従ってその行を開く
+7. `FieldRow` から `onOpen` が届いたら、下の「別の画面」に従ってその行を開く。`ResetRows` から `onOpen` が届いた場合も同じ
 
 #### カードの区切り
 
@@ -353,7 +401,7 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 
 #### 別の画面
 
-`nested` と `custom` の行は、押すとその項目だけを出す画面へ進む。
+`nested` と `custom` の行は、押すとその項目だけを出す画面へ進む。リセットの `ResetMenu` の行も同じ仕組みで進み、中身に `ResetRows`（`menu.actions`）を描く。道筋は「全体」「リセット」`menu.label` になる。
 
 1. 今のスクロール位置を控え、開く行と、そこまでの道筋（タブの名前・カードの見出し・項目の `label`）を持つ
 2. タブの中身の代わりに、その項目の中身を描く。`nested` は子の項目を `FieldRow` の行として並べ、`custom` は `meta.control.component` を `value` と `onChange` を渡して1枚のカードで描く
@@ -388,6 +436,33 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 - 書き出し: `narrowValues(values, scope)` の結果を `buildBackup` へ渡し、`filename` で保存する
 - 読み込み: `parseScopedBackup(text, current, scope)` を使う。`narrowValues(current, scope)` を今の値として `parseBackup` を呼び、返ったグループを今のグループの値へ重ねる。ファイルに範囲のグループが1つも無い場合は例外を投げる。一部のグループだけがある場合は、あるグループだけを返し、無いグループは今の値を残す
 
+バックアップのカードの中では、書き出しと読み込みを `ActionRow`（[`./controls.md`](./controls.md)）の行で並べる。どちらも青で、今のアイコン（`Download`・`Upload`）を左に付ける。読み込みの確認は `destructive` にする。
+
+#### リセット
+
+1. `ResetRows` は `entries` を1枚のカードへ並べる。`ResetMenu` は `OpenRow`、`ResetAction` は `ActionRow` で描く。`broad` の行だけを赤（`danger`）にし、アイコンは付けない
+2. `ResetAction` の行が押されたら、`ConfirmDialog` を `destructive` で開く。文は「`<label>`します。元に戻せません。よろしいですか？」、続けるボタンは「リセット」
+3. 「リセット」が押された時だけ `onReset(action)` を呼ぶ。`SettingsPanel` は、進行中の保存（`saveQueue`）の末尾へ `runReset(action)` を足して待ち、全グループを読み直す
+4. `runReset` は、`targets` が `"all"` なら `storage.clear("local")` で保存領域を丸ごと空にする。それ以外は対象ごとに `withSettingLock(item.key, ...)` の中で、`keys` が無ければ `item.removeValue()`、あれば今の値へ `item.fallback` のそのキーだけを重ねて書く。対象どうしは `Promise.all` で並べる
+5. 結果をカードの末尾の `role="status"` に出す。成功は「`<label>`しました」、失敗は `console.error("[mi-mo] settings", error)` を出して「`<label>`できませんでした」
+
+| 行 | 戻すもの |
+|---|---|
+| 時間割 › 時限をリセット | `periodTableSetting` の全体 |
+| 時間割 › 授業科目をリセット | `timetableSetting` の `grid` |
+| 時間割 › 休講日をリセット | `timetableSetting` の `holidays` |
+| 時間割 › 振替日をリセット | `timetableSetting` の `substitutes` |
+| 時間割 › 時間割をすべてリセット（赤） | `timetableSetting` と `periodTableSetting` の全体 |
+| 挨拶 › 自分の一言をリセット | `homeGreetingSetting` の `messages` |
+| 挨拶 › 挨拶をすべてリセット（赤） | `homeGreetingSetting` と `homeGreetingLastMessage` の全体 |
+| ホームで非表示にする項目をリセット | `homeHideElementsSetting` の全体 |
+| コース設定をすべてリセット（赤） | 「コース」タブの全項目（`myCoursesTodayOrderSetting` と `coursePage*Setting`） |
+| 上部メニュー › 隠す項目をリセット | `menuSetting` の `hidden` |
+| 上部メニュー › 追加する項目をリセット | `menuSetting` の `items` |
+| 上部メニュー › 上部メニューをすべてリセット（赤） | `menuSetting` と `menuLogoSetting` の全体。時計とカウントダウンは含めない |
+| カウントダウンをリセット | `menuBadgesSetting` の `countdowns` |
+| すべての設定をリセット（赤、別のカード） | `storage.local` の全体。内部の控え（コース一覧やメニュー名）も消える |
+
 #### 保存
 
 1. 変更前の値を控え、手元の値を先に新しい値へ更新する
@@ -407,7 +482,7 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 | `text` | shadcn の Input |
 | `date` | `DatePicker`（[`./controls.md`](./controls.md)）。値は `YYYY-MM-DD` の文字列 |
 | `select` | shadcn の Select（`type="single"`）。トリガーには選んだ選択肢の `label` を出し、幅は `max-w-48` までにする。選択肢の層は右端へ揃える（`align="end"`） |
-| `nested`、`custom` | 行全体を1つのボタンにする。左に `label` と `description`、右に値が配列の場合の件数（「6件」）と右向きの山形を出す。押されたら `onOpen` を呼ぶ。中身は描かない |
+| `nested`、`custom` | `OpenRow`（[`./controls.md`](./controls.md)）で行全体を1つのボタンにする。左に `label` と `description`、右に値が配列の場合の件数（「6件」）と右向きの山形を出す。押されたら `onOpen` を呼ぶ。中身は描かない |
 
 `nested` と `custom` の中身は、`SettingsPanel` が別の画面に描く。
 
@@ -491,7 +566,7 @@ CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減ら�
 - **一部だけの出し入れも、バックアップと同じ形式のファイルにする。** 範囲は読む側と書く側が絞る。形式が1つなので、バックアップと時間割のファイルを相互に読める
 - **取り込みの後の読み直しでは、一覧を「読み込み中」へ戻さない。** 戻すと一覧が描き直され、`BackupButtons` が持つ結果の文言が消える
 - **`select` は shadcn の Select で描く。** 利用者が、開閉に動きのあるライブラリの部品を望んだため、ネイティブの `<select>` から移した。選択肢は別の層（portal）へ描かれ、bits-ui が画面に収まる高さ（`--bits-select-content-available-height`）へ縮めてスクロールさせる。高さの限られたポップアップで切れないかは、実機で確かめていない（[`../../known-issues.md`](../../known-issues.md)）
-- **開いているタブと別の画面を、アドレスの hash（`#<タブ>` か `#<タブ>/<行の id>`）に写す。** `SettingsPanel` が `history.replaceState` で書き、読み込んだ時に hash からタブを選び、最初の読み込みの後に行の画面を一度だけ開き直す。Firefox のポップアップからオプション画面へ移った時に、同じ場所を出すため。書く時に検索部分（`?pick`）を落とし、読み直しで再びボタンへ寄せない
+- **開いているタブと別の画面を、アドレスの hash（`#<タブ>` か `#<タブ>/<行の id か ResetMenu の id>`）に写す。** `SettingsPanel` が `history.replaceState` で書き、読み込んだ時に hash からタブを選び、最初の読み込みの後に行の画面を一度だけ開き直す。Firefox のポップアップからオプション画面へ移った時に、同じ場所を出すため。書く時に検索部分（`?pick`）を落とし、読み直しで再びボタンへ寄せない
 - **Firefox のポップアップでは、ファイルの読み込みをオプション画面へ移す。** Firefox のポップアップはファイル選択のダイアログを開くと閉じ、選んだファイルを受け取れない（実機で確認）。オプション画面はタブで開くため、ダイアログを開いても閉じない
 - **ファイルの読み込みは、読めたことを確かめてから上書きを尋ねる。** 読めないファイルで確認を出すと、「読み込む」を押した後に失敗を知ることになる。先に読むと、確認が出た時点で上書きできることが決まっている
 - **保存を直列にする。** `write` は読む・差し替える・書くの3手で、同じグループの2項目を続けて変えると、並行した書き込みの後勝ちで先の変更が消える
@@ -508,6 +583,11 @@ CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減ら�
 - **バックアップを持つ。** 拡張機能の入れ直しや別のブラウザへの移行で、時間割や時限表を打ち直さずに済む
 - **バックアップの読み込みは、今あるグループとキーで、値の種類が合うものだけを取り込む。** 古い版や手で書き換えたファイルを読んでも、知らないキーや形の違う値が保存先へ入らない
 - **バックアップのカードはグループの外に置く。** 保存項目を持たない操作で、`fields` のキーに対応しない
+- **リセットは既定値へ戻し、一覧を空にはしない。** 保存値を消せば、読む側の `fallback` がそのまま既定値になる。既定値を2箇所に書かずに済む
+- **リセットの対象は、保存項目とキーの組で `reset.ts` に書く。** 行の文言と戻す範囲を1箇所に並べ、確認と結果の文言は `label` から作る
+- **リセットも `withSettingLock` の中で書く。** 別の画面が同じ項目を書いている途中で戻すと、後から書かれた値でリセットが消える
+- **「すべての設定をリセット」は保存領域を丸ごと空にする。** 項目を1つずつ並べると、後から足した項目や内部の控えが残る
+- **リセットの行の色は、範囲の大きい「すべて」の操作だけを赤にし、確認のボタンはどれも赤にする。** 3段階の色の使い分けは [`../../ui-principles.md`](../../ui-principles.md) に従う
 - **値の整え方は、部品ではなく `fields.ts` の `prune` と `normalize` に書き、`SettingsPanel` が呼ぶ。** 部品が閉じる時の後始末を自分で持つと、別の画面を閉じる経路ごとに呼び忘れが起きる。整える規則は値の形を知る側に置き、呼ぶ時機は画面の入れ替えを知る側に置く
 - **`prune` は「戻る」でだけ呼ぶ。** 書きかけの行を入力の途中で消すと、追加した直後の空行も消える。画面を離れる時点なら書き終えている
 - **`normalize` は `replace` でだけ呼ぶ。** 画面の操作で書く値は部品が今の形で作る。形が古い値が入り得るのは、ファイルから取り込む時だけ
