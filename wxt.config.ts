@@ -5,7 +5,13 @@ import tailwindcss from '@tailwindcss/vite';
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   srcDir: 'src',
-  modules: ['@wxt-dev/module-svelte'],
+  modules: ['@wxt-dev/module-svelte', '@wxt-dev/auto-icons'],
+  // 元の絵1枚から、ビルドのたびに各サイズの PNG を作る。開発版は灰色になる
+  autoIcons: {
+    baseIconPath: 'assets/icon.svg',
+    // 既定の 128・48・32・16 に、Firefox の高解像度の画面で使う 96 を足す
+    sizes: [96],
+  },
   vite: () => ({
     plugins: [tailwindcss()],
     resolve: {
