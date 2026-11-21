@@ -10,9 +10,25 @@ import IndexToggle from "./IndexToggle.svelte";
 export type IndexState = "allExpanded" | "allCollapsed" | "mixed";
 
 const STYLE_ID = "mimo-course-page-index-toggle";
-const HIDE_DEFAULT_CSS = `
+// 位置はブラウザが描いた結果へ合わせる。右端は一覧の項目の右端（スクロールバーの有無も含む）、
+// 縦は閉じるボタンの中心。対応しないブラウザでは @supports の中が無視され、ヘッダの右端に並ぶ
+const STYLE_CSS = `
 body.pagelayout-course #courseindexdrawercontrolsmenubutton {
   display: none !important;
+}
+@supports (anchor-name: --a) {
+  #course-index .courseindex-section-title {
+    anchor-name: --mimo-index-item;
+  }
+  #theme_boost-drawers-courseindex .drawertoggle {
+    anchor-name: --mimo-index-close;
+  }
+  mimo-index-toggle {
+    position: absolute;
+    position-anchor: --mimo-index-close;
+    align-self: anchor-center;
+    right: anchor(--mimo-index-item right);
+  }
 }
 `;
 
@@ -56,14 +72,18 @@ export async function initIndexToggle(ctx: ContentScriptContext): Promise<void> 
     return;
   }
 
-  applyStyleSheet(STYLE_ID, HIDE_DEFAULT_CSS);
+  applyStyleSheet(STYLE_ID, STYLE_CSS);
 
   let componentInstance: { setState?: (next: IndexState) => void } | undefined;
   const ui = await createShadowRootUi(ctx, {
     name: "mimo-index-toggle",
     position: "inline",
-    anchor: "#courseindexdrawercontrolsmenubutton",
-    append: "after",
+    // ヘッダの直下に置き、位置の基準をドロワーにする。.dropdown の中は position: relative のため、
+    // そこに置くと一覧の項目をアンカーとして参照できない
+    anchor: "#theme_boost-drawers-courseindex .drawerheader",
+    append: "last",
+    // WXT の既定は :host へ all: initial !important を当て、外から書いた位置の指定を打ち消す
+    inheritStyles: true,
     onMount: (container) => {
       const instance = mount(IndexToggle, {
         target: container,
