@@ -158,6 +158,8 @@ entrypoint が [`utils/settings.md`](./utils/settings.md) 経由で設定を読�
 
 設定の型は機能側が定義して export し、`src/utils/settings.ts` がそれを import する。逆向きにすると機能が設定モジュールへ依存する。
 
+`early.content.ts` だけは、`storage.local` を待つ前に [`utils/pageCache.md`](./utils/pageCache.md) の写しで CSS を当て、正本を読んだ後に当て直す。待つ間に最初の描画が済み、隠す要素が一瞬見えるため。`early.content.ts` へ機能を足す時は、その設定を写しの型（`EarlySettings`）へ足し、呼び出しを `applyEarly` の中へ置く。各指示書の呼び出し例は `getValue` から直接渡す形で書いてあり、写しを通す形はここが決める。
+
 1つの entrypoint が複数の設定を読む場合、`main()` の先頭の1つの `Promise.all` でまとめて待つ。全体のスイッチ（`extensionSetting`）と、機能の途中で読む保存値も同じ所で読む。指示書はモジュールごとに分かれているため、各指示書の呼び出し例をそのまま並べると直列になる。entrypoint 全体の形は個々の指示書では決まらず、ここで決める。
 
 ### Moodle の DOM 操作は Adapter パターンで抽象化する
@@ -348,6 +350,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`utils/periods.md`](./utils/periods.md) | `src/utils/periods.ts` | 使う: menu/clock ／ menu/countdownBadge ／ timetable |
 | [`utils/graphemes.md`](./utils/graphemes.md) | `src/utils/graphemes.ts` | 使う: menu/clock ／ menu/countdownBadge |
 | [`utils/styleSheet.md`](./utils/styleSheet.md) | `src/utils/styleSheet.ts` | 参考: [`home/hideElements.md`](./home/hideElements.md) |
+| [`utils/pageCache.md`](./utils/pageCache.md) | `src/utils/pageCache.ts` | 使う: `early.content.ts` ／ 描画前に読む設定の写し |
 | [`utils/theme.md`](./utils/theme.md) | `src/utils/theme.ts` | 資料: [`../../src/assets/global.css`](../../src/assets/global.css) |
 | [`utils/filename.md`](./utils/filename.md) | `src/utils/filename.ts` | 参考: coursePage/exportMarkdown ／ coursePage/pageSave |
 | [`utils/url.md`](./utils/url.md) | `src/utils/url.ts` | 使う: moodle/courseList ／ myCourses/todayOrder ／ coursePage の gradeInline・bulkDownload・pageSave |

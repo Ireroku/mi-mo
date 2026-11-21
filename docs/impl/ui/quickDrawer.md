@@ -38,7 +38,8 @@ export interface QuickDrawerConfig {
 // ドロワーの中でブロックが並ぶ場所。ほかの機能がドロワーへブロックを足す時も使う
 export const DRAWER_REGION_SELECTOR = "#theme_boost-drawers-blocks #block-region-side-pre";
 
-export function applyQuickDrawerVisibility(config: QuickDrawerConfig): void;
+// early.content.ts はページの localStorage へ写した hidden だけを渡す
+export function applyQuickDrawerVisibility(config: Pick<QuickDrawerConfig, "hidden">): void;
 
 export async function initPinnedCourses(
   ctx: ContentScriptContext,
@@ -76,7 +77,7 @@ entrypoint からの呼び出し。2つの entrypoint に分かれます。ど�
 ```ts
 // src/entrypoints/early.content.ts
 const config = await uiQuickDrawerSetting.getValue();
-applyQuickDrawerVisibility(config);
+applyQuickDrawerVisibility({ hidden: config.hidden });
 ```
 
 ```ts

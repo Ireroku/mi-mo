@@ -26,7 +26,7 @@ const HIDE_CSS = `
 /**
  * 右ブロックドロワーの表示・非表示を切り替える。
  */
-export function applyQuickDrawerVisibility(config: QuickDrawerConfig): void {
+export function applyQuickDrawerVisibility(config: Pick<QuickDrawerConfig, "hidden">): void {
   applyStyleSheet(STYLE_ID, config.hidden ? HIDE_CSS : "");
 }
 
