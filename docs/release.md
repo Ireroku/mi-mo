@@ -13,10 +13,23 @@
 ## 手順
 
 1. `package.json` の `version` を、上の決まりで書き換える
-2. [`verify.md`](./verify.md) の確認を通し、`chore: release <版>` でコミットする
-3. 版と同じ名前のタグ（`v2026.11.19`）を付け、GitHub へ push する
-4. GitHub Actions（`.github/workflows/release.yml`）が、タグと `version` が一致することを確かめ、単体テストを通し、Chrome 向けと Firefox 向けの ZIP を作って GitHub の Release へ添える
+2. [`verify.md`](./verify.md) の確認を通し、`chore: <版> をリリース` でコミットする
+3. 版と同じ名前の注釈付きタグ（`git tag -a v2026.11.19`）を付け、注釈に[変更の一覧](#変更の一覧)を書く。main とタグを GitHub へ push する
+4. GitHub Actions（`.github/workflows/release.yml`）が、タグと `version` が一致することを確かめ、単体テストを通し、Chrome 向けと Firefox 向けの ZIP を作って GitHub の Release へ添える。タグの注釈が Release の本文になる
 5. Release の ZIP を、Chrome Web Store と Firefox Add-ons へ上げる。Firefox には、`-sources.zip` を審査用のソースコードとして添える
+
+## 変更の一覧
+
+タグの注釈には、利用者から見た変更を1行に1つずつ書く。行の頭に種類を付ける。
+
+```
+- [追加] 設定のリセット機能を追加
+- [改善] 再読み込み時にメニューがチラつくのを軽減
+- [修正] 複数の意図通りでない表示を調整
+- [変更] デフォルトの設定を変更
+```
+
+種類は `[追加]`（新しい機能）、`[改善]`（既存の機能が良くなった）、`[修正]`（不具合を直した）、`[変更]`（挙動や既定値が変わった）の4つ。`-a` を付けずに軽量タグにすると、注釈の代わりにコミットの文が本文になる。
 
 ## ストアへ写す文
 
@@ -31,4 +44,5 @@
 ## 決めごと
 
 - **版の番号を日付にする。** 利用者にとって意味があるのは「いつの版か」で、互換性の区切りを番号で伝える相手がいない
+- **Release の本文はタグの注釈から作る。** GitHub の自動生成は PR しか拾わず、main へ直接コミットする運用では1行しか出ない。本文をタグに書けば、Release の画面で後から書き直す手間と書き忘れがなくなる
 - **ZIP は GitHub Actions で作り、ストアへは手で上げる。** ストアの API の鍵を GitHub に預けずに済む。自動で上げる場合は WXT の `wxt submit` を使う

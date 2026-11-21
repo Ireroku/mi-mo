@@ -36,7 +36,10 @@ jobs:
       - run: pnpm zip
       - run: pnpm zip:firefox
 
+      # 注釈付きタグの本文を Release の本文に使う。checkout が注釈を落とす場合に備え、タグを取り直す
       - name: Release を作り ZIP を添える
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" .output/*.zip --title "$GITHUB_REF_NAME" --generate-notes
+        run: |
+          git fetch --depth=1 --force origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
+          gh release create "$GITHUB_REF_NAME" .output/*.zip --title "$GITHUB_REF_NAME" --notes-from-tag
