@@ -23,7 +23,11 @@
 
   let now = $state(new Date());
 
+  // 数える対象が無い間は、毎秒の更新を動かさない
   $effect(() => {
+    if (targets.length === 0) {
+      return;
+    }
     return startClockTicker((tick) => {
       now = tick;
     }, "second");

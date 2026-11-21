@@ -101,7 +101,7 @@ interface Props {
 
 ### 表示の更新
 
-1. `countdownBadge.svelte` が `$effect` の中で `startClockTicker` を粒度 `"second"` で呼ぶ
+1. `countdownBadge.svelte` が `$effect` の中で `startClockTicker` を粒度 `"second"` で呼ぶ。`targets` が空の間は呼ばない
 2. tick のたびに `now` を更新し、各 target について `target.resolve(now)` を呼ぶ。時限の区切りは tick ごとに求め直す
 3. `counting` なら、`wrapLabel(label)` の行と `formatRemaining(target − now, thresholds)` を出す。`classesOver` なら `授業終了` を1行だけ出す
 4. `{#each}` のキーには `target.id` を使う
