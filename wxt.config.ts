@@ -8,9 +8,11 @@ export default defineConfig({
   modules: ['@wxt-dev/module-svelte', '@wxt-dev/auto-icons'],
   // 元の絵1枚から、ビルドのたびに各サイズの PNG を作る。開発版は灰色になる
   autoIcons: {
+    // 絵は 16×16 のマス目の内側 12×12 に収める。128px で周りに 16px の余白が空き、
+    // Chrome Web Store のガイドライン（絵は 96×96、余白は 16px）に沿う
     baseIconPath: 'assets/icon.svg',
-    // 既定の 128・48・32・16 に、Firefox の高解像度の画面で使う 96 を足す
-    sizes: [96],
+    // 96 は Firefox の高解像度の画面で使う。版によって既定へ足すか置き換えるかが違うため、すべて書く
+    sizes: [128, 96, 48, 32, 16],
   },
   vite: () => ({
     plugins: [tailwindcss()],
