@@ -14,6 +14,7 @@ Chrome と Firefox で動きが分かれ、実装で手当てした点の一覧�
 | `downloads.download` の保存名 | 転送を追い、`Content-Disposition` から名前を決める | 転送元の URL から名前を決める。資料のリンク（`view.php`）が `view.php` の名前で保存される | 保存の前に `HEAD` で転送先を解決し、名前を添えて渡す | [download.md](./impl/utils/download.md)、[bulkDownload.md](./impl/coursePage/bulkDownload.md) |
 | content script で作ったデータの保存 | `data:` の URL を background へ送って保存できる | 同じ形で、送り手に「Promised response from onMessage listener went out of scope」が届き保存されない | content script の中で `saveBlob`（リンクのクリック）で保存する | [download.md](./impl/utils/download.md) |
 | `onMessage` のリスナーの応答 | リスナーから返した `Promise` を無視し、送信側へ `undefined` が届く | `Promise` を応答として扱う | 両方で `sendResponse` と `return true` で返す | [download.md](./impl/utils/download.md) |
+| `web_accessible_resources` の `use_dynamic_url` | WXT が `cssInjectionMode: "ui"` の CSS に付け、そのまま使える | 項目を知らず、拡張機能の管理画面に「An unexpected property was found」の警告が出る | Firefox のビルドでだけ、[wxt.config.ts](../wxt.config.ts) のフックで外す。Firefox の拡張機能の URL はインストールごとに違うため、外しても働きは同じ | [wxt.config.ts](../wxt.config.ts) |
 | `focus({ focusVisible: true })` | 対応せず、スクリプトから当てたフォーカスに輪が出ない | 対応し、輪が出る | Firefox だけが通る経路でだけ使う | [panel.md](./impl/settings/panel.md) |
 
 ## 両方に共通する制約

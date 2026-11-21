@@ -22,6 +22,14 @@ export default defineConfig({
     sizes: [128, 96, 48, 32, 16],
   },
   hooks: {
+    // WXT は cssInjectionMode: "ui" の CSS へ use_dynamic_url を付けるが、Firefox はこの項目を知らず警告する。
+    // Firefox は moz-extension:// の UUID がインストールごとに違うため、付けなくても同じ働きになる
+    'build:manifestGenerated': (wxt, manifest) => {
+      if (wxt.config.browser !== 'firefox') return;
+      for (const entry of manifest.web_accessible_resources ?? []) {
+        if (typeof entry === 'object') delete entry.use_dynamic_url;
+      }
+    },
     // ツールバーのアイコンは別の絵にする。上の余白付きの絵は、16px の欄では細く小さく見える
     'build:done': async (wxt, output) => {
       for (const size of toolbarIconSizes) {
