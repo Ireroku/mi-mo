@@ -7,9 +7,10 @@
 ## 関連
 
 - 使う: [`../moodle/page.md`](../moodle/page.md) — コースページかどうかの判定
-- 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索
+- 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索、セクションのタイトルと活動のリンクの読み取り
 - 使う: [`./sectionActions.md`](./sectionActions.md) — ヘッダーの右端へのボタンの追加と、その見た目
 - 使う: [`../utils/download.md`](../utils/download.md) — 保存の依頼
+- 使う: [`../utils/url.md`](../utils/url.md) — フォルダの `id` と、転送先のファイル名の読み取り
 - 使う: [`./pageSave.md`](./pageSave.md) — ページ資料の収集と取得。ボタンを押した後の流れはそちらが持つ
 - 資料: [`../../moodle/course-page.md`](../../moodle/course-page.md) — 「ファイルリンクと拡張子判定」節。ファイル名がリダイレクト先にしか無い事情。フォルダの ZIP の保存先
 - 参考: [`./exportMarkdown.md`](./exportMarkdown.md) — 同じくセクションごとにボタンを置く機能
@@ -46,13 +47,13 @@ initBulkDownload();
 ### collectResourceUrls
 
 1. セクション内の `li.activity.modtype_resource` をすべて取る
-2. 各要素の `.activityname a` の `href` を集める
+2. 各要素の `activityLink`（`.activityname a`）の `href` を集める
 3. 同じ URL が重複していれば1つに絞る
 
 ### collectFolderUrls
 
 1. セクション内の `li.activity.modtype_folder` をすべて取る
-2. 各要素の `.activityname a` の `href` から `id` を読む。リンクの無いものは飛ばす
+2. 各要素の `activityLink`（`.activityname a`）の `href` から `readIdParam` で `id` を読む。リンクの無いものは飛ばす
 3. `/mod/folder/download_folder.php?id=<id>` を集める。重複していれば1つに絞る
 
 ### initBulkDownload
@@ -67,7 +68,7 @@ initBulkDownload();
 ## 決めごと
 
 - **リンクへ `redirect=1` を足してから渡す。** 資料の表示設定が「埋め込み」の場合、`/mod/resource/view.php?id=<id>` は転送せずに表示用のページを返し、そのまま渡すと HTML が保存される。`redirect=1` を付けると、表示設定にかかわらずファイル本体（`pluginfile.php`）へ転送される。実機で確認済み
-- **資料は保存の前に転送先を解決し、ファイル名を添えて渡す。** 押された時に、資料の URL ごとに `fetch(url, { method: "HEAD" })` を送り、転送後の `response.url`（`pluginfile.php/.../<ファイル名>`）と、その末尾を `decodeURIComponent` した名前を `DownloadItem` にする。Firefox の `downloads` は転送元の URL から名前を決め、`view.php` で保存する（実機で確認）。転送先の `Content-Disposition` は `inline` のため、Firefox はその名前も使わない。解決に失敗した資料は、元の URL のまま渡す
+- **資料は保存の前に転送先を解決し、ファイル名を添えて渡す。** 押された時に、資料の URL ごとに `fetch(url, { method: "HEAD" })` を送り、転送後の `response.url`（`pluginfile.php/.../<ファイル名>`）と、その末尾を `lastPathSegment` でデコードした名前を `DownloadItem` にする。Firefox の `downloads` は転送元の URL から名前を決め、`view.php` で保存する（実機で確認）。転送先の `Content-Disposition` は `inline` のため、Firefox はその名前も使わない。解決に失敗した資料は、元の URL のまま渡す
 - **フォルダは転送先を解決せずに渡す。** `download_folder.php` は `Content-Disposition: attachment` で ZIP の名前を返し、Firefox もその名前で保存する
 - **対象を資料（`modtype_resource`）・フォルダ（`modtype_folder`）・ページ（`modtype_page`）にする。** 課題や小テストは Moodle の画面で、保存しても中身が手に入らない。ページは本文を取得して Markdown にする
 - **フォルダ（`modtype_folder`）は、中身をまとめた ZIP を1件として保存する。** Moodle がフォルダのページに置いている「フォルダをダウンロードする」と同じ保存先を使う。中のファイルを1つずつ集める形は、フォルダごとにページの取得が要る。ZIP なら通信を足さずに済み、フォルダの中の階層も残る

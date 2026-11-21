@@ -10,6 +10,8 @@
 - 使う: [`../utils/download.md`](../utils/download.md) — `saveBlob`
 - 使う: [`../utils/markdown.md`](../utils/markdown.md) — HTML から Markdown への変換
 - 使う: [`../utils/filename.md`](../utils/filename.md) — ファイル名に使えない文字の置き換え
+- 使う: [courseSections](../moodle/courseSections.md) — 活動のリンクと活動名、セクションのタイトルの読み取り
+- 使う: [`../utils/url.md`](../utils/url.md) — URL の末尾のファイル名の読み取り
 - 資料: [`../../moodle/mod-page.md`](../../moodle/mod-page.md) — ページ本体の構造、埋め込まれたファイルの URL
 - 資料: [`../../features/course-page/page-save.md`](../../features/course-page/page-save.md) — 保存される ZIP の中の形
 - 資料: [fflate](https://github.com/101arrowz/fflate) — ZIP の組み立て
@@ -72,7 +74,7 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 ### collectPages
 
 1. `section` の中の `li.activity.modtype_page` をすべて取る
-2. それぞれの `.activityname a` から `href` を取る。ページ名は `export.logic.ts` の `readSection` と同じく、活動の要素が持つ `data-activityname` 属性から取る。`.instancename` の文字列は末尾に種別の語（「ページ」）を含むため使わない
+2. それぞれの `activityLink`（`.activityname a`）から `href` を取る。ページ名は `export.logic.ts` の `readSection` と同じく `readActivityName` で読み、活動の要素が持つ `data-activityname` 属性を使う。`.instancename` の文字列は末尾に種別の語（「ページ」）を含むため使わない
 3. リンクの無いもの（利用できない活動）は飛ばす
 4. 同じセクションの中でページ名が重なる場合、2件目以降の末尾へ ` (2)` ` (3)` を足す
 
@@ -83,7 +85,7 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 3. 複製の中から、`img[src]`・`source[src]`・`audio[src]`・`video[src]`・`a[href]` を文書の順に取り、URL を `source.url` を基準に絶対 URL へ直す。`pluginfile.php` を指すものを保存の対象にする。それ以外は、絶対 URL を属性へ書き戻して終える
 4. 集めた URL ごとに保存名を決める。同じ URL は同じ保存名にする
    - 画像（`img`）は、出現順の3桁の連番と元の拡張子にする（`001.PNG`）
-   - それ以外は、URL の末尾の元のファイル名をデコードし、`sanitizeFilename` を通して使う
+   - それ以外は、URL の末尾の元のファイル名を `lastPathSegment` でデコードし、`sanitizeFilename` を通して使う
 5. 複製の中の `src` と `href` を、決めた保存名（相対パス）へ書き換える。空白や括弧で Markdown のリンクが切れないよう、`encodeURI` を通す
 6. 複製を `htmlToMarkdown` で Markdown にする。先頭へ `# <ページ名>` と、元のページの URL を1行足す
 7. `folder` を `sanitizeFilename(source.name)` とし、Markdown と、手順4の URL と保存名の一覧を返す
@@ -103,7 +105,7 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 1. ボタンの件数は、資料・フォルダ・ページの件数を足した数にする。すべて0件のセクションにはボタンを足さない
 2. 押されたら、ボタンを `disabled` にする
 3. `fetchPagesZip` を呼ぶ。`onProgress` でボタンの文言を「ページを取得中（2/6）」へ変える
-4. `zip` があれば、`saveBlob` で `<セクション名>.zip` として保存する。セクション名は `.sectionname` のテキストに `sanitizeFilename` を通したもので、取れない場合は「ページ資料」にする
+4. `zip` があれば、`saveBlob` で `<セクション名>.zip` として保存する。セクション名は `readSectionTitle` で読んだ `.sectionname` のテキストに `sanitizeFilename` を通したもので、取れない場合は「ページ資料」にする
 5. 資料とフォルダを `requestDownloads` へ渡す。資料は [`./bulkDownload.md`](./bulkDownload.md) の決めごとの通り、転送先を解決してから渡す
 6. 終わったら `disabled` を外し、文言を元へ戻す。`failed` が1以上の場合は「2件のページに保存できない内容がありました」、途中で例外が出た場合は「保存に失敗しました」にする
 

@@ -7,7 +7,7 @@
 ## 関連
 
 - 使う: [`../moodle/page.md`](../moodle/page.md) — コースページかどうかの判定
-- 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索
+- 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索、セクションのタイトル・活動名・活動のリンクの読み取り
 - 使う: [`./sectionActions.md`](./sectionActions.md) — ヘッダーの右端へのボタンの追加と、その見た目
 - 使う: [`../utils/download.md`](../utils/download.md) — 書き出したテキストの保存
 - 使う: [`../utils/filename.md`](../utils/filename.md) — ファイル名に使えない文字の置き換え
@@ -102,7 +102,7 @@ if (config.enabled) {
 
 ### readSection
 
-1. セクションの `.sectionname` のテキストを `title` にする
+1. セクションの `.sectionname` のテキストを `readSectionTitle` で読み、`title` にする
 2. セクションの `.summarytext` の文章を `summary` にする。無いか、空の場合は `undefined`
 3. セクション内の `li.activity` をすべて取り、順に読む。`.summarytext` の中にあるものは飛ばす
 4. 各活動について次を読む
@@ -110,8 +110,8 @@ if (config.enabled) {
 | 項目 | 読み取り元 |
 |---|---|
 | `kind` | `modtype_` で始まるクラスの、その後ろの部分 |
-| `name` | `.activity-item` の `data-activityname` |
-| `url` | `.activityname a` の `href` |
+| `name` | `readActivityName` で読む `.activity-item` の `data-activityname`。空ならリンクの文字列、それも空なら活動の要素の文字列 |
+| `url` | `activityLink`（`.activityname a`）の `href` |
 | `dates` | `[data-region="activity-dates"]` の各行のテキスト |
 | `body` | `.activity-altcontent` の文章（ラベルの場合） |
 

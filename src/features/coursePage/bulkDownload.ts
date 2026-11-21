@@ -1,9 +1,14 @@
 // コースセクション内の資料（modtype_resource）・フォルダ（modtype_folder）・ページ（modtype_page）を一括で保存するボタンを追加する。
 
 import { isCoursePage } from "@/moodle/page";
-import { findCourseSectionHeaders } from "@/moodle/courseSections";
+import {
+  activityLink,
+  findCourseSectionHeaders,
+  readSectionTitle,
+} from "@/moodle/courseSections";
 import { requestDownloads, saveBlob, type DownloadItem } from "@/utils/download";
 import { sanitizeFilename } from "@/utils/filename";
+import { lastPathSegment, readIdParam } from "@/utils/url";
 import { collectPages, fetchPagesZip } from "./pageSave";
 import { addSectionAction } from "./sectionActions";
 
@@ -16,7 +21,7 @@ export function collectResourceUrls(section: Element): string[] {
   );
   const urls: string[] = [];
   for (const el of resourceEls) {
-    const anchor = el.querySelector<HTMLAnchorElement>(".activityname a");
+    const anchor = activityLink(el);
     if (!anchor?.href) {
       continue;
     }
@@ -37,8 +42,8 @@ export function collectResourceUrls(section: Element): string[] {
 export function collectFolderUrls(section: Element): string[] {
   const urls: string[] = [];
   for (const el of section.querySelectorAll("li.activity.modtype_folder")) {
-    const anchor = el.querySelector<HTMLAnchorElement>(".activityname a");
-    const id = anchor?.href && new URL(anchor.href).searchParams.get("id");
+    const anchor = activityLink(el);
+    const id = anchor?.href && readIdParam(anchor.href);
     if (!id) {
       continue;
     }
@@ -59,9 +64,9 @@ export function collectFolderUrls(section: Element): string[] {
 async function resolveResource(url: string): Promise<DownloadItem> {
   try {
     const response = await fetch(url, { method: "HEAD" });
-    const name = new URL(response.url).pathname.split("/").pop();
+    const name = lastPathSegment(new URL(response.url));
     if (response.ok && name) {
-      return { url: response.url, filename: decodeURIComponent(name) };
+      return { url: response.url, filename: name };
     }
   } catch (error) {
     console.error("[mi-mo] bulkDownload resolve", error);
@@ -99,9 +104,7 @@ export function initBulkDownload(): void {
           button.textContent = `ページを取得中（${done}/${total}）`;
         });
         if (zip) {
-          const title =
-            section.querySelector(".sectionname")?.textContent?.trim() ||
-            "ページ資料";
+          const title = readSectionTitle(section) || "ページ資料";
           saveBlob(zip, `${sanitizeFilename(title)}.zip`);
         }
 

@@ -1,5 +1,10 @@
 // コースセクションのアクティビティを読み取り、Markdown またはプレーンテキストに整形する。
 
+import {
+  activityLink,
+  readActivityName,
+  readSectionTitle,
+} from "@/moodle/courseSections";
 import { htmlToMarkdown, htmlToPlainText } from "@/utils/markdown";
 
 export type ExportFormat = "markdown" | "text";
@@ -58,8 +63,7 @@ export function readSection(
   section: Element,
   format: ExportFormat,
 ): ExportedSection {
-  const titleEl = section.querySelector(".sectionname");
-  const title = titleEl?.textContent?.trim() || "セクション";
+  const title = readSectionTitle(section) || "セクション";
 
   const summaryEl = section.querySelector<HTMLElement>(".summarytext");
   const summary = readText(summaryEl, format);
@@ -80,15 +84,8 @@ export function readSection(
       }
     }
 
-    const itemEl = actEl.querySelector<HTMLElement>(".activity-item");
-    let name = itemEl?.getAttribute("data-activityname")?.trim() || "";
-    if (!name) {
-      const linkEl = actEl.querySelector<HTMLElement>(".activityname a");
-      name = linkEl?.textContent?.trim() || actEl.textContent?.trim() || "";
-    }
-
-    const anchorEl = actEl.querySelector<HTMLAnchorElement>(".activityname a");
-    const url = anchorEl?.href || undefined;
+    const name = readActivityName(actEl) || actEl.textContent?.trim() || "";
+    const url = activityLink(actEl)?.href || undefined;
 
     let dates: string[] | undefined;
     const datesEl = actEl.querySelector('[data-region="activity-dates"]');

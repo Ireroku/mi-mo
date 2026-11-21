@@ -330,13 +330,13 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`coursePage/indexToggle.md`](./coursePage/indexToggle.md) | `src/features/coursePage/indexToggle.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
 | [`coursePage/gradeInline.md`](./coursePage/gradeInline.md) | `src/features/coursePage/gradeInline.*` | 使う: moodle/page ／ styleSheet ／ 資料: [`../moodle/grade.md`](../moodle/grade.md) |
 | [`coursePage/exportMarkdown.md`](./coursePage/exportMarkdown.md) | `src/features/coursePage/exportMarkdown.*` | 使う: moodle/page ／ [moodle/courseSections](./moodle/courseSections.md) ／ utils/download ／ utils/markdown |
-| [`coursePage/pageSave.md`](./coursePage/pageSave.md) | `src/features/coursePage/pageSave.*` | 使う: coursePage/bulkDownload ／ utils/download ／ utils/filename ／ utils/markdown ／ 資料: [`../moodle/mod-page.md`](../moodle/mod-page.md) |
-| [`coursePage/bulkDownload.md`](./coursePage/bulkDownload.md) | `src/features/coursePage/bulkDownload.ts` | 使う: moodle/page ／ [moodle/courseSections](./moodle/courseSections.md) ／ utils/download |
+| [`coursePage/pageSave.md`](./coursePage/pageSave.md) | `src/features/coursePage/pageSave.*` | 使う: coursePage/bulkDownload ／ [moodle/courseSections](./moodle/courseSections.md) ／ utils/url ／ utils/download ／ utils/filename ／ utils/markdown ／ 資料: [`../moodle/mod-page.md`](../moodle/mod-page.md) |
+| [`coursePage/bulkDownload.md`](./coursePage/bulkDownload.md) | `src/features/coursePage/bulkDownload.ts` | 使う: moodle/page ／ [moodle/courseSections](./moodle/courseSections.md) ／ utils/download ／ utils/url |
 | [`coursePage/sectionActions.md`](./coursePage/sectionActions.md) | `src/features/coursePage/sectionActions.ts` | 使う: styleSheet ／ coursePage/sectionToggleDesign の見た目 ／ セクションヘッダー右端のボタンの置き場所 |
-| [moodle/courseSections](./moodle/courseSections.md) | `src/moodle/courseSections.ts` | コースセクションとヘッダーの共有探索 |
+| [moodle/courseSections](./moodle/courseSections.md) | `src/moodle/courseSections.ts` | コースセクションとヘッダーの共有探索 ／ セクションのタイトル、活動名、活動のリンクの読み取り |
 | [`myCourses/clickableCard.md`](./myCourses/clickableCard.md) | `src/features/myCourses/clickableCard.ts` | 使う: styleSheet ／ 資料: [`../moodle/my-courses.md`](../moodle/my-courses.md) |
 | [`myCourses/incrementalSearch.md`](./myCourses/incrementalSearch.md) | `src/features/myCourses/incrementalSearch.ts` | 使う: moodle/page ／ styleSheet |
-| [`myCourses/todayOrder.md`](./myCourses/todayOrder.md) | `src/features/myCourses/todayOrder.ts` | 使う: moodle/page ／ timetable/schedule |
+| [`myCourses/todayOrder.md`](./myCourses/todayOrder.md) | `src/features/myCourses/todayOrder.ts` | 使う: moodle/page ／ timetable/schedule ／ utils/url |
 | [`timetable/schedule.md`](./timetable/schedule.md) | `src/features/timetable/schedule.logic.ts` | 使う: utils/periods ／ 実日程と回数の計算 |
 | [`timetable/panel.md`](./timetable/panel.md) | `src/features/timetable/` | 使う: timetable/schedule ／ moodle/page |
 | [`timetable/ics.md`](./timetable/ics.md) | `src/features/timetable/ics.ts` | 使う: timetable/schedule ／ utils/periods |
@@ -350,12 +350,13 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`utils/styleSheet.md`](./utils/styleSheet.md) | `src/utils/styleSheet.ts` | 参考: [`home/hideElements.md`](./home/hideElements.md) |
 | [`utils/theme.md`](./utils/theme.md) | `src/utils/theme.ts` | 資料: [`../../src/assets/global.css`](../../src/assets/global.css) |
 | [`utils/filename.md`](./utils/filename.md) | `src/utils/filename.ts` | 参考: coursePage/exportMarkdown ／ coursePage/pageSave |
+| [`utils/url.md`](./utils/url.md) | `src/utils/url.ts` | 使う: moodle/courseList ／ myCourses/todayOrder ／ coursePage の gradeInline・bulkDownload・pageSave |
 | [`utils/markdown.md`](./utils/markdown.md) | `src/utils/markdown.ts` | 参考: coursePage/exportMarkdown ／ coursePage/pageSave |
 | [`utils/download.md`](./utils/download.md) | `src/utils/download.ts` ／ `src/entrypoints/background.ts` | 使う: coursePage の書き出しと一括保存 ／ settings/panel のバックアップ |
 | [`utils/runFeature.md`](./utils/runFeature.md) | `src/utils/runFeature.ts` | 使う: content script の entrypoint 2本 |
 | [`utils/mountShadowUi.md`](./utils/mountShadowUi.md) | `src/utils/mountShadowUi.ts` | 使う: Shadow DOM で部品を足す各機能（menu のバッジ、home/greeting、timetable、ui/quickDrawer、coursePage の autoattend と indexToggle） |
 | [`moodle/page.md`](./moodle/page.md) | `src/moodle/page.ts` | 資料: [`../moodle/`](../moodle/) の各ページ |
-| [`moodle/courseList.md`](./moodle/courseList.md) | `src/moodle/courseList.ts` | 資料: [`../moodle/drawer.md`](../moodle/drawer.md) ／ 使う: utils/settings |
+| [`moodle/courseList.md`](./moodle/courseList.md) | `src/moodle/courseList.ts` | 資料: [`../moodle/drawer.md`](../moodle/drawer.md) ／ 使う: utils/settings ／ utils/url |
 | [`moodle/menuItems.md`](./moodle/menuItems.md) | `src/moodle/menuItems.ts` | 資料: [`../moodle/navbar.md`](../moodle/navbar.md) ／ 使う: utils/settings |
 | [`moodle/user.md`](./moodle/user.md) | `src/moodle/user.ts` | 資料: [`../moodle/navbar.md`](../moodle/navbar.md) |
 

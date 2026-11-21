@@ -122,9 +122,14 @@ export default defineContentScript({
       );
     }
 
+    // メニューの項目名と同じく、一覧が前と同じなら書き込まない
     await runFeature("courseListCache", async () => {
       const courses = readCourseList();
-      if (courses.length > 0) {
+      const cached = await courseListCacheSetting.getValue();
+      if (
+        courses.length > 0 &&
+        JSON.stringify(courses) !== JSON.stringify(cached.courses)
+      ) {
         await courseListCacheSetting.setValue({
           courses,
           updatedAt: new Date().toISOString(),

@@ -1,6 +1,7 @@
 // コースセクション内のページ資料（modtype_page）を集め、本文と画像を取得して ZIP にまとめる。
 
 import { strToU8, zipSync } from "fflate";
+import { activityLink, readActivityName } from "@/moodle/courseSections";
 import { buildPageFiles, type PageSource } from "./pageSave.logic";
 
 /**
@@ -11,18 +12,12 @@ export function collectPages(section: Element): PageSource[] {
   const nameCounts = new Map<string, number>();
 
   for (const el of section.querySelectorAll("li.activity.modtype_page")) {
-    const anchor = el.querySelector<HTMLAnchorElement>(".activityname a");
+    const anchor = activityLink(el);
     if (!anchor?.href) {
       continue;
     }
 
-    const baseName =
-      el
-        .querySelector(".activity-item")
-        ?.getAttribute("data-activityname")
-        ?.trim() ||
-      anchor.textContent?.trim() ||
-      "ページ";
+    const baseName = readActivityName(el) || "ページ";
     const count = (nameCounts.get(baseName) ?? 0) + 1;
     nameCounts.set(baseName, count);
 

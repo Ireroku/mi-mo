@@ -8,6 +8,7 @@
 
 - 使う: [`../moodle/page.md`](../moodle/page.md) — マイコースかどうかの判定
 - 使う: [`../timetable/schedule.md`](../timetable/schedule.md) — 今日のコマと、コマに結び付いた URL
+- 使う: [`../utils/url.md`](../utils/url.md) — URL のクエリの `id` の読み取り
 - 使う: [`../utils/settings.md`](../utils/settings.md) — 時間割の設定と、この機能の設定
 - 資料: [`../../moodle/my-courses.md`](../../moodle/my-courses.md) — コース1件を表す属性と、一覧が描き直される場面
 - 参考: [`./incrementalSearch.md`](./incrementalSearch.md) — 同じ一覧を対象にし、描き直しを監視する機能
@@ -74,7 +75,7 @@ if (config.enabled) {
 
 1. `isMyCourses()` が false なら何もせず戻る
 2. 今日のコマを時限の順に集める。`buildSchedule` の結果から今日の分を取り、`slot.url` を持つものだけを残す
-3. 各コマの `slot.url` からコースIDを読む。`/course/view.php?id=<id>` のクエリを使う
+3. 各コマの `slot.url` から `readIdParam` でコースIDを読む。`/course/view.php?id=<id>` のクエリを使う
 4. コースIDの並びを、今日の授業順として持つ
 5. 一覧を並べ替える
 6. `.block-myoverview` へ `MutationObserver` を `{ childList: true, subtree: true }` で張り、変化があれば並べ替え直す。`ctx.onInvalidated` で `disconnect` する

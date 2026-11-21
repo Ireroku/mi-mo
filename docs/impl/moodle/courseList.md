@@ -8,6 +8,7 @@ Moodle のページに出ている履修コースの一覧を読み取る。設�
 
 - 資料: [`../../moodle/drawer.md`](../../moodle/drawer.md) — コース一覧の出どころと、コースIDが `href` にしか無い事情
 - 使う: [`../utils/settings.md`](../utils/settings.md) — 控えを置くストレージ項目
+- 使う: [`../utils/url.md`](../utils/url.md) — `href` のクエリの `id` の読み取り
 - 参考: [`./page.md`](./page.md) — 複数の機能が共有する Moodle 操作の置き方
 
 ## 対象ファイル
@@ -56,7 +57,11 @@ import { readCourseList } from "@/moodle/courseList";
 import { courseListCacheSetting } from "@/utils/settings";
 
 const courses = readCourseList();
-if (courses.length > 0) {
+const cached = await courseListCacheSetting.getValue();
+if (
+  courses.length > 0 &&
+  JSON.stringify(courses) !== JSON.stringify(cached.courses)
+) {
   await courseListCacheSetting.setValue({
     courses,
     updatedAt: new Date().toISOString(),
@@ -69,13 +74,14 @@ if (courses.length > 0) {
 ### readCourseList
 
 1. `#theme_boost-drawers-blocks section[data-block="course_list"] ul.unlist li a[href]` をすべて取る
-2. 各要素の `href` を `URL` で解き、クエリの `id` を取る。取れない場合はその要素を飛ばす
+2. 各要素の `href` から `readIdParam` でクエリの `id` を取る。取れない場合はその要素を飛ばす
 3. `title` は要素の `textContent` の前後の空白を除いたもの
 4. `url` は `href` をそのまま使う
 5. 同じ `id` が複数あれば最初の1つだけを残す
 
 ## 決めごと
 
+- **一覧が前と同じなら書き込まない。** ページを開くたびに書くと、保存の書き込みと、設定画面の候補を見張る `watch` の呼び出しが毎回起こる。比べる対象は `courses` だけで、`updatedAt` は最後に一覧が変わった日時になる
 - **コースIDを `href` のクエリから読む。** 一覧の `li` にも `a` にも、コースを指す専用の属性が無い。`title` 属性はコースの短縮名で、IDとして使えない
 - **表示名は `textContent` から取り、`title` 属性を使わない。** `title` は短縮名で、画面に出ている名前と違う
 - **読めなかった場合に控えを上書きしない。** ドロワーの無いページや、ブロックが出ていない場面では空の配列が返る。それで控えを潰すと、設定画面から候補が消える

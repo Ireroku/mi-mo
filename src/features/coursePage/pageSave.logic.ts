@@ -2,6 +2,7 @@
 
 import { sanitizeFilename } from "@/utils/filename";
 import { htmlToMarkdown } from "@/utils/markdown";
+import { lastPathSegment } from "@/utils/url";
 
 export interface PageSource {
   name: string; // ページ名。フォルダ名とファイル名に使う
@@ -17,15 +18,6 @@ export interface PageFiles {
 const CONTENT_SELECTOR = "#region-main .generalbox > .no-overflow";
 const EMBEDDED_SELECTOR =
   "img[src], source[src], audio[src], video[src], a[href]";
-
-function lastSegment(url: URL): string {
-  const segment = url.pathname.split("/").pop() ?? "";
-  try {
-    return decodeURIComponent(segment);
-  } catch {
-    return segment;
-  }
-}
 
 /**
  * 取得したページの文書から、本文の Markdown と、埋め込まれたファイルの一覧を作る。
@@ -60,7 +52,7 @@ export function buildPageFiles(
 
     let savedName = savedNames.get(url.href);
     if (!savedName) {
-      const original = sanitizeFilename(lastSegment(url));
+      const original = sanitizeFilename(lastPathSegment(url));
       if (el.tagName === "IMG") {
         imageCount += 1;
         const dot = original.lastIndexOf(".");

@@ -234,7 +234,7 @@ li.activity.modtype_folder[data-id="<cmid>"]
 </li>
 ```
 
-リンクテキスト（`.activityname a` の textContent）には、教員が付けた活動名に続けて種別のラベル（「ファイル」「フォーラム」等）がアクセシビリティ用に付与されている。表示用に使う場合はこのラベル部分を取り除く必要がある。
+リンクテキスト（`.activityname a` の textContent）には、教員が付けた活動名に続けて種別のラベル（「ファイル」「フォーラム」等）がアクセシビリティ用に付与されている。表示用に使う場合はこのラベル部分を取り除く必要がある。活動名は `.activity-item` の `data-activityname` から読む。活動名とリンク、セクションのタイトルを読む処理は [courseSections](../impl/moodle/courseSections.md) にまとめてある。
 
 ### 課題の日時表示
 

@@ -3,20 +3,12 @@
 import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { isMyCourses } from "@/moodle/page";
 import type { PeriodSlot } from "@/utils/periods";
+import { readIdParam } from "@/utils/url";
 import type { TimetableConfig } from "@/features/timetable/types";
 import { buildSchedule, lessonsOn } from "@/features/timetable/schedule.logic";
 
 export interface TodayOrderConfig {
   enabled: boolean;
-}
-
-function parseCourseIdFromUrl(urlStr: string): string | null {
-  try {
-    const url = new URL(urlStr, "https://dummy.example");
-    return url.searchParams.get("id");
-  } catch {
-    return null;
-  }
 }
 
 interface CourseItem {
@@ -74,7 +66,7 @@ export function initTodayOrder(
       continue;
     }
 
-    const id = parseCourseIdFromUrl(lesson.slot.url);
+    const id = readIdParam(lesson.slot.url);
     if (id && !todayCourseIds.includes(id)) {
       todayCourseIds.push(id);
     }

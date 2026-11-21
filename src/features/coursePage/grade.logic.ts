@@ -1,5 +1,7 @@
 // 評定ページの HTML から各活動の得点・範囲・パーセンテージ・フィードバックを抽出する。
 
+import { readIdParam } from "@/utils/url";
+
 export interface GradeEntry {
   cmid: string;
   grade: string;
@@ -24,13 +26,7 @@ export function parseGradeReport(html: string): GradeEntry[] {
       continue;
     }
 
-    let cmid: string | null = null;
-    try {
-      const url = new URL(itemLink.href, "https://dummy.example");
-      cmid = url.searchParams.get("id");
-    } catch {
-      // ignore parse error
-    }
+    const cmid = readIdParam(itemLink.href);
     if (!cmid) {
       continue;
     }
