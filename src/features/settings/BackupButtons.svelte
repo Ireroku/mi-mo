@@ -4,7 +4,9 @@
   import { openFilePicker, pickTarget } from "./filePicker";
   import ConfirmDialog from "./controls/ConfirmDialog.svelte";
   import ActionRow from "./controls/ActionRow.svelte";
+  import StatusText from "./controls/StatusText.svelte";
   import type { BackupScope } from "./backup.logic";
+  import type { SettingsValues } from "./types";
   import {
     BACKUP_FILENAME,
     buildBackup,
@@ -13,11 +15,9 @@
     parseScopedBackup,
   } from "./backup.logic";
 
-  type Values = Record<string, Record<string, unknown>>;
-
   interface Props {
-    values: Values;
-    onRestore: (values: Values) => Promise<void>;
+    values: SettingsValues;
+    onRestore: (values: SettingsValues) => Promise<void>;
     filename?: string;
     scope?: BackupScope; // 省くと、すべての設定を出し入れする
     noun?: string; // 結果の文言で、読み込んだものを指す名前
@@ -34,7 +34,7 @@
   let fileInput: HTMLInputElement;
   let message = $state<{ text: string; failed: boolean } | null>(null);
   // 読み込んだファイルの値。確認で「読み込む」を押すまで反映しない
-  let pending = $state<Values | null>(null);
+  let pending = $state<SettingsValues | null>(null);
   let confirming = $state(false);
 
   function handleExport() {
@@ -106,10 +106,5 @@
   {@attach pickTarget((text) => (message = { text, failed: false }))}
 />
 {#if message}
-  <p
-    class={["py-2.5 pr-4 text-note", message.failed ? "text-destructive" : "text-muted-foreground"]}
-    role="status"
-  >
-    {message.text}
-  </p>
+  <StatusText class="py-2.5 pr-4" text={message.text} failed={message.failed} />
 {/if}

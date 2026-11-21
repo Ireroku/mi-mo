@@ -16,7 +16,8 @@
 
   let { meta, value, onChange, onOpen }: Props = $props();
 
-  const id = `field-${crypto.randomUUID().slice(0, 8)}`;
+  const uid = $props.id();
+  const id = `field-${uid}`;
 </script>
 
 {#snippet inputHeading(clickable = false)}

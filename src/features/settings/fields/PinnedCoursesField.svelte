@@ -6,26 +6,24 @@
 
   let { value, onChange }: CustomFieldProps<CourseRef[]> = $props();
 
+  let pinned = $derived(value || []);
   let availableCourses = $state<CourseRef[]>([]);
 
-  $effect(() => {
-    courseListCacheSetting.getValue().then((cache) => {
-      availableCourses = cache.courses;
-    });
+  courseListCacheSetting.getValue().then((cache) => {
+    availableCourses = cache.courses;
   });
 
   function isPinned(course: CourseRef): boolean {
-    return (value || []).some((c) => c.id === course.id);
+    return pinned.some((c) => c.id === course.id);
   }
 
   function toggleCourse(course: CourseRef, checked: boolean) {
-    const current = value || [];
     if (checked) {
-      if (!current.some((c) => c.id === course.id)) {
-        onChange([...current, course]);
+      if (!pinned.some((c) => c.id === course.id)) {
+        onChange([...pinned, course]);
       }
     } else {
-      onChange(current.filter((c) => c.id !== course.id));
+      onChange(pinned.filter((c) => c.id !== course.id));
     }
   }
 </script>

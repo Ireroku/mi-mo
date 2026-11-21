@@ -10,10 +10,12 @@
     type FooterProps,
     type SettingsCategory,
     type SettingsGroup,
+    type SettingsValues,
   } from "./types";
   import FieldRow from "./FieldRow.svelte";
   import BackupButtons from "./BackupButtons.svelte";
   import ResetRows from "./ResetRows.svelte";
+  import SectionCard from "./controls/SectionCard.svelte";
   import {
     resetEntries,
     resetEverything,
@@ -52,21 +54,14 @@
     footer: Component<FooterProps>;
   }
 
-  interface Section {
+  // 見出しが同じで隣り合う項目の並び。title が空なら見出しを出さない
+  interface Block<T> {
     title: string;
-    items: (Row | Footer)[];
+    items: T[];
   }
 
   // 別の画面で開いている行（設定の行か、リセットのまとまり）と、そこまでの道筋
   type Page = { trail: string[] } & ({ row: Row } | { reset: ResetMenu });
-
-  // 入れ子の項目の1つの枠。title が空なら見出しを出さない
-  interface NestedBlock {
-    title: string;
-    entries: [string, FieldMeta][];
-  }
-
-  type Values = Record<string, Record<string, unknown>>;
 
   const categories = Object.keys(CATEGORY_LABELS) as SettingsCategory[];
   const allGroups = [extensionGroup, ...settingsGroups];
@@ -81,7 +76,7 @@
       ? (hashTab as SettingsCategory)
       : categories[0]!,
   );
-  let groupValues = $state<Values>({});
+  let groupValues = $state<SettingsValues>({});
   let status = $state<"loading" | "ready" | "failed">("loading");
   let saveError = $state("");
   let page = $state<Page | null>(null);
@@ -145,24 +140,27 @@
     return items;
   }
 
-  // 見出しが同じで隣り合う行を、1枚のカードへまとめる
-  function buildSections(category: SettingsCategory): Section[] {
-    const sections: Section[] = [];
-    for (const group of settingsGroups) {
-      if (group.category !== category || group.after) {
-        continue;
-      }
-
-      for (const item of groupItems(group)) {
-        const last = sections.at(-1);
-        if (last?.title === item.section) {
-          last.items.push(item);
-        } else {
-          sections.push({ title: item.section, items: [item] });
-        }
+  // 見出しが同じで隣り合う項目を、1つの並びへまとめる
+  function groupAdjacent<T>(items: Iterable<T>, titleOf: (item: T) => string): Block<T>[] {
+    const blocks: Block<T>[] = [];
+    for (const item of items) {
+      const title = titleOf(item);
+      const last = blocks.at(-1);
+      if (last?.title === title) {
+        last.items.push(item);
+      } else {
+        blocks.push({ title, items: [item] });
       }
     }
-    return sections;
+    return blocks;
+  }
+
+  // 見出しが同じで隣り合う行を、1枚のカードへまとめる
+  function buildSections(category: SettingsCategory): Block<Row | Footer>[] {
+    const items = settingsGroups
+      .filter((group) => group.category === category && !group.after)
+      .flatMap(groupItems);
+    return groupAdjacent(items, (item) => item.section);
   }
 
   async function load() {
@@ -230,7 +228,7 @@
       });
   }
 
-  async function restore(incoming: Values) {
+  async function restore(incoming: SettingsValues) {
     // 取り込んだ値は今の値（$state）と混ぜて組まれ、Proxy を含む。保存と同じく素の値へ直す
     const values = $state.snapshot(incoming);
     // 保存の途中の変更が、取り込んだ値を上書きしないよう順番を待つ
@@ -253,18 +251,8 @@
   }
 
   // 入れ子の項目を、section が変わる所で区切る。続く行の section が同じなら1つの枠に入れる
-  function nestedBlocks(fields: Record<string, FieldMeta>): NestedBlock[] {
-    const blocks: NestedBlock[] = [];
-    for (const [key, meta] of Object.entries(fields)) {
-      const title = meta.section ?? "";
-      const last = blocks.at(-1);
-      if (last?.title === title) {
-        last.entries.push([key, meta]);
-      } else {
-        blocks.push({ title, entries: [[key, meta]] });
-      }
-    }
-    return blocks;
+  function nestedBlocks(fields: Record<string, FieldMeta>): Block<[string, FieldMeta]>[] {
+    return groupAdjacent(Object.entries(fields), ([, meta]) => meta.section ?? "");
   }
 
   // 画面が入れ替わる動きの間は「有効」を押せなくする。戻るの連打が、出てきたスイッチに当たらないように
@@ -457,28 +445,21 @@
           {@const fields = row.meta.control.fields as unknown as Record<string, FieldMeta>}
           <div class="flex flex-col gap-6">
             {#each nestedBlocks(fields) as block, i (i)}
-              <section>
-                {#if block.title}
-                  <h2 class="mb-1.5 px-4 text-row font-semibold">{block.title}</h2>
-                {/if}
-                <div
-                  class="divide-y divide-border rounded-xl bg-card pl-4 text-card-foreground"
-                >
-                  {#each block.entries as [key, subMeta] (key)}
-                    <FieldRow
-                      meta={subMeta}
-                      value={objValue[key]}
-                      onChange={(next) =>
-                        handleFieldChange(
-                          row.group,
-                          row.key,
-                          { ...objValue, [key]: next },
-                          row.meta.label,
-                        )}
-                    />
-                  {/each}
-                </div>
-              </section>
+              <SectionCard title={block.title}>
+                {#each block.items as [key, subMeta] (key)}
+                  <FieldRow
+                    meta={subMeta}
+                    value={objValue[key]}
+                    onChange={(next) =>
+                      handleFieldChange(
+                        row.group,
+                        row.key,
+                        { ...objValue, [key]: next },
+                        row.meta.label,
+                      )}
+                  />
+                {/each}
+              </SectionCard>
             {/each}
           </div>
         {:else if row.meta.control.kind === "custom"}
@@ -508,50 +489,42 @@
           ]}
         >
           {#each buildSections(cat) as section (section.title)}
-            <section>
-              <h2 class="mb-1.5 px-4 text-row font-semibold">{section.title}</h2>
-              <div
-                class="divide-y divide-border rounded-xl bg-card pl-4 text-card-foreground"
-              >
-                {#each section.items as item (item.id)}
-                  <div transition:slide={{ duration: 150 }}>
-                    {#if "footer" in item}
-                      {@const FooterComponent = item.footer}
-                      <FooterComponent values={groupValues} onRestore={restore} />
-                    {:else}
-                      <FieldRow
-                        meta={item.meta}
-                        value={groupValues[item.group.id]?.[item.key]}
-                        onChange={(next) =>
-                          handleFieldChange(
-                            item.group,
-                            item.key,
-                            next,
-                            item.meta.label,
-                          )}
-                        onOpen={() => openPage(item)}
-                      />
-                    {/if}
-                  </div>
-                {/each}
-              </div>
-            </section>
+            <SectionCard title={section.title}>
+              {#each section.items as item (item.id)}
+                <div transition:slide={{ duration: 150 }}>
+                  {#if "footer" in item}
+                    {@const FooterComponent = item.footer}
+                    <FooterComponent values={groupValues} onRestore={restore} />
+                  {:else}
+                    <FieldRow
+                      meta={item.meta}
+                      value={groupValues[item.group.id]?.[item.key]}
+                      onChange={(next) =>
+                        handleFieldChange(
+                          item.group,
+                          item.key,
+                          next,
+                          item.meta.label,
+                        )}
+                      onOpen={() => openPage(item)}
+                    />
+                  {/if}
+                </div>
+              {/each}
+            </SectionCard>
           {/each}
 
           <!-- 保存項目を持たない操作のため、グループの外に置く -->
           {#if cat === "general"}
-            <section>
-              <h2 class="mb-1.5 px-4 text-row font-semibold">バックアップ</h2>
-              <div
-                class="divide-y divide-border rounded-xl bg-card pl-4 text-card-foreground"
-              >
-                <BackupButtons values={groupValues} onRestore={restore} />
-              </div>
-            </section>
-            <section>
-              <h2 class="mb-1.5 px-4 text-row font-semibold">リセット</h2>
-              <ResetRows entries={resetEntries} onOpen={openResetMenu} onReset={handleReset} />
-            </section>
+            <SectionCard title="バックアップ">
+              <BackupButtons values={groupValues} onRestore={restore} />
+            </SectionCard>
+            <ResetRows
+              title="リセット"
+              entries={resetEntries}
+              onOpen={openResetMenu}
+              onReset={handleReset}
+            />
             <!-- すべてを消す操作は、押し間違えないよう他のリセットから離す -->
             <ResetRows entries={[resetEverything]} onReset={handleReset} />
           {/if}

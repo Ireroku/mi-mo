@@ -79,14 +79,14 @@ defineGroup("general", "時計", menuBadgesSetting, {
     label: "時計のオプション",
     control: {
       kind: "nested",
-      // 子の section が変わる所でカードを分ける。空の section は見出しを出さずに区切る
+      // 子の section が変わる所でカードを分ける。section を省いた子は、見出しの無いカードにまとまる
       fields: {
         hour12: { label: "12時間表記", section: "時間表記", control: { kind: "toggle" } },
-        showYear: { label: "年", section: "", control: { kind: "toggle" } },
-        showDate: { label: "日付", section: "", control: { kind: "toggle" } },
-        showWeekday: { label: "曜日", section: "", control: { kind: "toggle" } },
-        showSeconds: { label: "秒", section: "", control: { kind: "toggle" } },
-        showPeriod: { label: "時限", section: "", control: { kind: "toggle" } },
+        showYear: { label: "年", control: { kind: "toggle" } },
+        showDate: { label: "日付", control: { kind: "toggle" } },
+        showWeekday: { label: "曜日", control: { kind: "toggle" } },
+        showSeconds: { label: "秒", control: { kind: "toggle" } },
+        showPeriod: { label: "時限", control: { kind: "toggle" } },
       },
     },
   },

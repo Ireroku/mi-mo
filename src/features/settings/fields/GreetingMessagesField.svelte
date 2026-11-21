@@ -6,6 +6,7 @@
   import { Download, Upload } from "@lucide/svelte";
   import { saveBlob } from "@/utils/download";
   import { openFilePicker, pickTarget } from "../filePicker";
+  import StatusText from "../controls/StatusText.svelte";
   import {
     MESSAGES_FILENAME,
     formatMessages,
@@ -71,12 +72,11 @@
     onchange={handleFile}
   />
 </div>
-<p
-  class={["mb-2 text-note", notice?.failed ? "text-destructive" : "text-muted-foreground"]}
-  role="status"
->
-  {notice?.text ?? "ファイルは1行に1件です。読み込むと、今の一覧と入れ替わります"}
-</p>
+<StatusText
+  class="mb-2"
+  text={notice?.text ?? "ファイルは1行に1件です。読み込むと、今の一覧と入れ替わります"}
+  failed={notice?.failed}
+/>
 
 <ListField
   {items}

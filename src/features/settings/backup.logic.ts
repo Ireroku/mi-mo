@@ -1,19 +1,19 @@
 // 設定のバックアップファイルを組み立て、読み込んだファイルから取り込む値を選ぶ。
 
+import type { SettingsValues } from "./types";
+
 export const BACKUP_FILENAME = "mi-mo-settings.json";
 
 const APP_NAME = "mi-mo";
 const VERSION = 1;
 
-type Values = Record<string, Record<string, unknown>>;
-
 export interface BackupFile {
   app: typeof APP_NAME;
   version: number;
-  settings: Values;
+  settings: SettingsValues;
 }
 
-export function buildBackup(values: Values): BackupFile {
+export function buildBackup(values: SettingsValues): BackupFile {
   return { app: APP_NAME, version: VERSION, settings: values };
 }
 
@@ -30,13 +30,13 @@ function sameKind(a: unknown, b: unknown): boolean {
  * 今ある項目と同じ種類の値だけを取り込み、それ以外は今の値を残す。ファイルに無いグループは返さない。
  * mi-mo のバックアップでない場合は例外を投げる。
  */
-export function parseBackup(text: string, current: Values): Values {
+export function parseBackup(text: string, current: SettingsValues): SettingsValues {
   const file: unknown = JSON.parse(text);
   if (!isRecord(file) || file.app !== APP_NAME || !isRecord(file.settings)) {
     throw new Error("mi-mo のバックアップではありません");
   }
 
-  const restored: Values = {};
+  const restored: SettingsValues = {};
   for (const [id, now] of Object.entries(current)) {
     const saved = file.settings[id];
     if (!isRecord(saved)) {
@@ -59,7 +59,7 @@ export type BackupScope = Readonly<Record<string, readonly string[]>>;
 /**
  * 範囲に入るグループとキーだけを残して返す。
  */
-export function narrowValues(values: Values, scope: BackupScope): Values {
+export function narrowValues(values: SettingsValues, scope: BackupScope): SettingsValues {
   return Object.fromEntries(
     Object.entries(scope).map(([groupId, keys]) => {
       const group = values[groupId] ?? {};
@@ -80,9 +80,9 @@ export function narrowValues(values: Values, scope: BackupScope): Values {
  */
 export function parseScopedBackup(
   text: string,
-  current: Values,
+  current: SettingsValues,
   scope: BackupScope,
-): Values {
+): SettingsValues {
   const restored = parseBackup(text, narrowValues(current, scope));
   if (Object.keys(restored).length === 0) {
     throw new Error("このファイルには対象の設定がありません");

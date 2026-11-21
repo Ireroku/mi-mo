@@ -3,15 +3,18 @@
   import ActionRow from "./controls/ActionRow.svelte";
   import OpenRow from "./controls/OpenRow.svelte";
   import ConfirmDialog from "./controls/ConfirmDialog.svelte";
+  import SectionCard from "./controls/SectionCard.svelte";
+  import StatusText from "./controls/StatusText.svelte";
   import type { ResetAction, ResetEntry, ResetMenu } from "./reset";
 
   interface Props {
+    title?: string; // カードの見出し。省くと見出しを出さない
     entries: readonly ResetEntry[];
     onOpen?: (menu: ResetMenu) => void;
     onReset: (action: ResetAction) => Promise<void>;
   }
 
-  let { entries, onOpen, onReset }: Props = $props();
+  let { title, entries, onOpen, onReset }: Props = $props();
 
   // 確認で尋ねている操作。閉じる動きの間も文言を残すため、次に尋ねるまで持ち続ける
   let asking = $state<ResetAction | null>(null);
@@ -40,7 +43,7 @@
   }
 </script>
 
-<div class="divide-y divide-border rounded-xl bg-card pl-4 text-card-foreground">
+<SectionCard {title}>
   {#each entries as entry (entry.label)}
     {#if "actions" in entry}
       <OpenRow class="min-h-12 w-full" label={entry.label} onclick={() => onOpen?.(entry)} />
@@ -49,14 +52,9 @@
     {/if}
   {/each}
   {#if message}
-    <p
-      class={["py-2.5 pr-4 text-note", message.failed ? "text-destructive" : "text-muted-foreground"]}
-      role="status"
-    >
-      {message.text}
-    </p>
+    <StatusText class="py-2.5 pr-4" text={message.text} failed={message.failed} />
   {/if}
-</div>
+</SectionCard>
 <ConfirmDialog
   bind:open={confirming}
   title={`${asking?.label ?? ""}します。元に戻せません。よろしいですか？`}

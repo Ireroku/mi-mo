@@ -11,7 +11,7 @@
 - 使う: [`./menuFields.md`](./menuFields.md) — 時限表・カウントダウン・メニュー項目の専用エディタ
 - 使う: [`./timetableFields.md`](./timetableFields.md) — 時間割の専用エディタと、`footer` に置くファイルの出し入れと `.ics` の書き出しボタン
 - 使う: [`../utils/download.md`](../utils/download.md) — バックアップのファイルを保存する `saveBlob`
-- 使う: [`./controls.md`](./controls.md) — `date` の `DatePicker`、読み込みとリセットの前の `ConfirmDialog`、操作の行の `ActionRow`、別の画面へ進む行の `OpenRow`
+- 使う: [`./controls.md`](./controls.md) — `date` の `DatePicker`、読み込みとリセットの前の `ConfirmDialog`、操作の行の `ActionRow`、別の画面へ進む行の `OpenRow`、見出しつきのカードの `SectionCard`、結果の文言の `StatusText`
 - 資料: [`../../features/ui/settings.md`](../../features/ui/settings.md) — 画面の目的と、ポップアップで兼ねる方針
 - 参考: [`../README.md`](../README.md) — スタイリングの節。shadcn のコンポーネントを入れて組み合わせる
 
@@ -99,10 +99,13 @@ export interface SettingsGroup {
   replace: (value: Record<string, unknown>) => Promise<void>;
 }
 
+// 全グループの今の値。グループの id → そのグループの値
+export type SettingsValues = Record<string, Record<string, unknown>>;
+
 // footer が受け取る、全グループの今の値と、値を取り込む手段
 export interface FooterProps {
-  values: Record<string, Record<string, unknown>>;
-  onRestore: (values: Record<string, Record<string, unknown>>) => Promise<void>;
+  values: SettingsValues;
+  onRestore: (values: SettingsValues) => Promise<void>;
 }
 
 export interface GroupOptions<C = Record<string, unknown>> {
@@ -117,6 +120,9 @@ export function rowId(groupId: string, key: string): string;
 
 // 設定のキーごとのロックの中で task を走らせる。画面をまたいで書き込みを順に並べる
 export function withSettingLock(key: string, task: () => Promise<void>): Promise<void>;
+
+// 保存済みの値へ patch のキーだけを重ねて書く。読んでから書くまでを withSettingLock で囲む
+export function patchSetting<C>(setting: WxtStorageItem<C, any>, patch: Partial<C>): Promise<void>;
 
 export function defineGroup<C extends object>(
   category: SettingsCategory,
@@ -154,42 +160,41 @@ if (!(await extensionSetting.getValue()).enabled) {
 
 ```ts
 // src/features/settings/backup.logic.ts
-// グループの id → そのグループの値
-type Values = Record<string, Record<string, unknown>>;
+// 値の形は types.ts の SettingsValues を使う
 
 export const BACKUP_FILENAME = "mi-mo-settings.json";
 
 export interface BackupFile {
   app: "mi-mo";
   version: number;
-  settings: Values;
+  settings: SettingsValues;
 }
 
-export function buildBackup(values: Values): BackupFile;
+export function buildBackup(values: SettingsValues): BackupFile;
 
 // current は今の値。ファイルにあるグループだけを、取り込んだ後の値にして返す
-export function parseBackup(text: string, current: Values): Values;
+export function parseBackup(text: string, current: SettingsValues): SettingsValues;
 
 // 出し入れする範囲。グループの保存キーと、そのグループの中で対象にするキーの組。複数のグループを持てる
 export type BackupScope = Readonly<Record<string, readonly string[]>>;
 
 // 範囲に入るグループとキーだけを残して返す
-export function narrowValues(values: Values, scope: BackupScope): Values;
+export function narrowValues(values: SettingsValues, scope: BackupScope): SettingsValues;
 
 // 範囲に入る値だけを取り込み、範囲の外のキーは今の値を残して、グループ全体の値を返す
 export function parseScopedBackup(
   text: string,
-  current: Values,
+  current: SettingsValues,
   scope: BackupScope,
-): Values;
+): SettingsValues;
 ```
 
 ```svelte
 <!-- src/features/settings/BackupButtons.svelte -->
 <script lang="ts">
   interface Props {
-    values: Values;
-    onRestore: (values: Values) => Promise<void>;
+    values: SettingsValues;
+    onRestore: (values: SettingsValues) => Promise<void>;
     filename?: string; // 既定は BACKUP_FILENAME
     scope?: BackupScope; // 省くと、すべての設定を出し入れする
     noun?: string; // 結果の文言で、読み込んだものを指す名前。既定は「設定」
@@ -233,6 +238,7 @@ export function runReset(action: ResetAction): Promise<void>;
 <!-- src/features/settings/ResetRows.svelte -->
 <script lang="ts">
   interface Props {
+    title?: string; // カードの見出し。省くと見出しを出さない
     entries: readonly ResetEntry[];
     onOpen?: (menu: ResetMenu) => void; // ResetMenu の行が押された時
     onReset: (action: ResetAction) => Promise<void>; // 確認で「リセット」が押された時
@@ -333,8 +339,8 @@ pnpm dlx shadcn-svelte@latest add tabs switch input label button select popover 
 グループの `id` は WXT の保存項目が持つ `setting.key` から取得する。表示文言を変えても識別は変わらず、別の ID 定義を増やさない。保存先のキーやデータ形式の変更は伴わない。
 
 1. 渡された `fields` を `Record<string, FieldMeta>` として保持する。ここで型引数 `C` を落とす。**代入にはキャストが要る**
-2. `read` は `setting.fallback` の上へ `setting.getValue()` の結果を重ねて返す。重ねるのは最上位のキーだけ。**ここにもキャストが要る**
-3. `write(key, value)` は `setting.getValue()` で現在値を読み、`key` だけを差し替えた値を `setting.setValue()` で書く。ここはキャスト不要。読んでから書くまでを `withSettingLock(setting.key, ...)`（中で `navigator.locks.request("mi-mo-settings:<設定のキー>", ...)` を呼ぶ）で囲む
+2. `read` は `setting.getValue()` の結果をそのまま返す。欠けたキーは `defineSetting`（[`../utils/settings.md`](../utils/settings.md)）の `getValue` が入れ子まで既定値で補う。**ここにもキャストが要る**
+3. `write(key, value)` は `patchSetting(setting, { [key]: value })` を呼ぶ。`patchSetting` は `withSettingLock(setting.key, ...)`（中で `navigator.locks.request("mi-mo-settings:<設定のキー>", ...)` を呼ぶ）の中で現在値を読み、`patch` のキーだけを重ねて `setting.setValue()` で書く
 4. `replace(value)` は、渡された値を `options.normalize` で整えてから、グループ全体を `setting.setValue()` へ書く。`write` と同じロックの中で書く。`normalize` を省くと値をそのまま書く。バックアップと時間割のファイルの読み込みが使う
 5. `options` の `footer` と `after` は、そのまま `SettingsGroup` へ載せる
 
@@ -344,11 +350,7 @@ pnpm dlx shadcn-svelte@latest add tabs switch input label button select popover 
 
 ```ts
 const erasedFields = fields as Record<string, FieldMeta>;
-const read = async () =>
-  ({
-    ...setting.fallback,
-    ...(await setting.getValue()),
-  }) as Record<string, unknown>;
+const read = async () => (await setting.getValue()) as Record<string, unknown>;
 ```
 
 キャストが避けられない理由は下の決めごとに書く。
@@ -359,7 +361,7 @@ const read = async () =>
 2. 読み込みに失敗した場合は、メッセージと「再試行」ボタンを `role="alert"` の中に出す。ボタンは手順1をやり直す
 3. `CATEGORY_LABELS` のキー順にタブを作る（ホーム・コース・全体）
 4. 各タブへ、そのカテゴリに属するグループを `fields.ts` に並べた順で置く。置き方は下の「カードの区切り」に従う
-5. 「全体」タブの末尾へ、見出し「バックアップ」のカードを置き、`BackupButtons` を入れる。その下へ見出し「リセット」と `ResetRows`（`resetEntries`）のカードを置き、さらにその下へ見出しの無い `ResetRows`（`resetEverything` だけ）のカードを置く
+5. 「全体」タブの末尾へ、見出し「バックアップ」のカードを置き、`BackupButtons` を入れる。その下へ `ResetRows`（`title="リセット"`、`resetEntries`）のカードを置き、さらにその下へ見出しの無い `ResetRows`（`resetEverything` だけ）のカードを置く
 6. `FieldRow` から変更が届いたら、下の「保存」に従って書き込む
 7. `FieldRow` から `onOpen` が届いたら、下の「別の画面」に従ってその行を開く。`ResetRows` から `onOpen` が届いた場合も同じ
 
@@ -367,7 +369,7 @@ const read = async () =>
 
 グループの項目を、`fields` に書いた順で行にする。行はそれぞれ見出しを1つ持つ。見出しは項目の `section`、省いた場合はグループの `title`。
 
-**見出しが同じで隣り合う行を、1枚のカード（角丸の白い面）へまとめる。** カードの上へ見出しを出す。項目はカードの中へ1行ずつ並べ、行の間を線で区切る。線は左端だけを行の文字の位置へ揃え、右端はカードの端まで引く。
+**見出しが同じで隣り合う行を、1枚のカード（角丸の白い面）へまとめる。** カードの上へ見出しを出す。カードと見出しは `SectionCard`（[`./controls.md`](./controls.md)）で描く。隣り合う項目を見出しでまとめる処理は、`nested` の子の枠分けと同じ関数を使う。項目はカードの中へ1行ずつ並べ、行の間を線で区切る。線は左端だけを行の文字の位置へ揃え、右端はカードの端まで引く。
 
 この規則1つから、次の置き方がすべて出る。
 
@@ -408,7 +410,7 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 3. ヘッダの「有効」スイッチとタブの代わりに、「戻る」ボタンと道筋（パンくず）を出す。道筋の最後の要素が今いる場所で、`aria-current="page"` を付ける
 4. 「戻る」が押されたら、`custom` が `prune` を持つ場合は今の値を `prune` へ通し、値が変わった時だけ下の「保存」の手順で書く。そのあと一覧へ戻し、控えたスクロール位置へ戻す
 
-`nested` の子は、子の `section` が変わる所でカードを分ける。続く子の `section` が同じなら1枚のカードに入れる。`section` が空文字のカードは見出しを出さず、カードの間の隙間だけで区切る。`section` を省いた子は空文字と同じに扱う。
+`nested` の子は、子の `section` が変わる所でカードを分ける。続く子の `section` が同じなら1枚のカードに入れる。`section` を省いた子のカードは見出しを出さず、カードの間の隙間だけで区切る。
 
 `custom` が `fill` を持つ場合は、別の画面を残りの高さ（`h-full`）に収める。部品は渡された高さまで伸び、はみ出す分を部品の中でスクロールさせる。画面全体はスクロールしない。
 
@@ -429,7 +431,7 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 4. 今あるグループとキーのうち、ファイルに値があり、種類（`typeof` と、配列かどうか）が今の値と合うものだけを取り込む。それ以外のキーは今の値を残す。ファイルに無いグループは返さない
 5. 読めた場合だけ、`ConfirmDialog`（[`./controls.md`](./controls.md)）で「現在の設定が上書きされます。よろしいですか？」と尋ねる。ボタンは「キャンセル」と「読み込む」。読めなかった場合は尋ねずに手順7の失敗の文言を出す
 6. 「読み込む」が押された時だけ `onRestore` を呼ぶ。`SettingsPanel` は、受け取った値を `$state.snapshot` で素の値へ直し（読み込んだ値は今の値と混ぜて組まれ Proxy を含むため。Firefox ではそのまま渡すと `DataCloneError` で失敗する）、進行中の保存（`saveQueue`）を待ってから、返ったグループごとに `group.replace(value)` を呼び、全グループを読み直す。読み直す間も一覧は描いたまま残す
-7. 結果を `role="status"` の中に出す。成功は「設定を読み込みました」、ファイルが読めない場合は「このファイルは読み込めません」、`onRestore` が失敗した場合は「設定を保存できませんでした」。「設定」の部分は `noun` で差し替わる
+7. 結果を `StatusText`（`role="status"`）で出す。成功は「設定を読み込みました」、ファイルが読めない場合は「このファイルは読み込めません」、`onRestore` が失敗した場合は「設定を保存できませんでした」。「設定」の部分は `noun` で差し替わる
 
 `scope` を渡した場合は、範囲のグループとキーだけを出し入れする。範囲は複数のグループにまたがってよい。時間割のファイル（[`./timetableFields.md`](./timetableFields.md)）が使う。
 
@@ -440,11 +442,11 @@ false の間も、タブとカードは操作できるまま残し、タブの�
 
 #### リセット
 
-1. `ResetRows` は `entries` を1枚のカードへ並べる。`ResetMenu` は `OpenRow`、`ResetAction` は `ActionRow` で描く。`broad` の行だけを赤（`danger`）にし、アイコンは付けない
+1. `ResetRows` は `entries` を `SectionCard` の1枚のカードへ並べる。`title` を渡すとカードの上へ見出しを出す。`ResetMenu` は `OpenRow`、`ResetAction` は `ActionRow` で描く。`broad` の行だけを赤（`danger`）にし、アイコンは付けない
 2. `ResetAction` の行が押されたら、`ConfirmDialog` を `destructive` で開く。文は「`<label>`します。元に戻せません。よろしいですか？」、続けるボタンは「リセット」
 3. 「リセット」が押された時だけ `onReset(action)` を呼ぶ。`SettingsPanel` は、進行中の保存（`saveQueue`）の末尾へ `runReset(action)` を足して待ち、全グループを読み直す
-4. `runReset` は、`targets` が `"all"` なら `storage.clear("local")` で保存領域を丸ごと空にする。それ以外は対象ごとに `withSettingLock(item.key, ...)` の中で、`keys` が無ければ `item.removeValue()`、あれば今の値へ `item.fallback` のそのキーだけを重ねて書く。対象どうしは `Promise.all` で並べる
-5. 結果をカードの末尾の `role="status"` に出す。成功は「`<label>`しました」、失敗は `console.error("[mi-mo] settings", error)` を出して「`<label>`できませんでした」
+4. `runReset` は、`targets` が `"all"` なら `storage.clear("local")` で保存領域を丸ごと空にする。それ以外は対象ごとに、`keys` が無ければ `withSettingLock(item.key, ...)` の中で `item.removeValue()` を呼び、あれば `item.fallback` のそのキーだけを `patchSetting` で今の値へ重ねて書く。対象どうしは `Promise.all` で並べる
+5. 結果をカードの末尾の `StatusText`（`role="status"`）に出す。成功は「`<label>`しました」、失敗は `console.error("[mi-mo] settings", error)` を出して「`<label>`できませんでした」
 
 | 行 | 戻すもの |
 |---|---|
@@ -549,7 +551,7 @@ CSS の動きには `motion-reduce:` の指定を添え、OS が動きを減ら�
 - **`FieldsOf<C>` で全キー分の `FieldMeta` を要求する。** 機能側の Config にキーを足すと `fields.ts` がコンパイルエラーになり、書き忘れが型で止まる
 - **`defineGroup` の戻り値は型引数を落とした `SettingsGroup` にする。** 型の違うグループを1つの配列へ並べるため。読み書きは `defineGroup` の中で型が閉じており、描画側は `unknown` だけを見る
 - **型を落とす2箇所はキャストで書く。安全性を手放す境界がここだと決める。** `FieldsOf<C>` から `Record<string, FieldMeta>` への代入は、`kind: "custom"` の `Component<CustomFieldProps<V>>` が `V` について不変（`value` と `onChange` の両方で `V` を使うため）で、`Component` 自体も Props に対して反変になるため、キャスト無しでは通らない。`setting.getValue()` の `Promise<C>` も、`C extends object` の制約だけでは `Promise<Record<string, unknown>>` へ代入できない。どちらも `tsc --strict` で確認済み
-- **`read` は既定値の上へ保存済みの値を重ねる。** `fallback` は何も保存されていない時にだけ効く。項目を後から足した設定では、保存済みの値に新しいキーが無く、そのままでは `select` が何も選ばれていない状態で出る。重ねておくと、バックアップの読み込みも新しいキーを取り込める
+- **`read` は欠けたキーを補った値を返す。** WXT の `fallback` は何も保存されていない時にだけ効く。項目を後から足した設定では、保存済みの値に新しいキーが無く、そのままでは `select` が何も選ばれていない状態で出る。補うのは `defineSetting` の `getValue` の役目で、`read` では重ねない。補った値を返すため、バックアップの読み込みも新しいキーを取り込める
 - **キャストは `defineGroup` の中だけに閉じる。** 呼び出し側（`fields.ts`）は型が効いた状態で書き、描画側は `unknown` しか見ない。境界を1つの関数へ集めることで、型が緩む範囲をそこだけに限る
 - **値の型と `control` の種類の整合は型で縛らない。** `boolean` のキーに `kind: "number"` を書いても型は通る。完全に縛ると `FieldControl` が条件型だらけになり、読めなくなるほうの害が大きい
 - **保存は操作した瞬間に行う。** 保存ボタンを置かない。ポップアップは外側をクリックすると閉じるため、未保存の状態を抱えると消える

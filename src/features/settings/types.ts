@@ -57,10 +57,13 @@ export interface SettingsGroup {
   replace: (value: Record<string, unknown>) => Promise<void>;
 }
 
+// 全グループの今の値。グループの id から、そのグループの値を引く
+export type SettingsValues = Record<string, Record<string, unknown>>;
+
 // footer が受け取る、全グループの今の値と、値を取り込む手段
 export interface FooterProps {
-  values: Record<string, Record<string, unknown>>;
-  onRestore: (values: Record<string, Record<string, unknown>>) => Promise<void>;
+  values: SettingsValues;
+  onRestore: (values: SettingsValues) => Promise<void>;
 }
 
 export interface GroupOptions<C = Record<string, unknown>> {
@@ -86,6 +89,19 @@ export async function withSettingLock(
   await navigator.locks.request(`mi-mo-settings:${key}`, task);
 }
 
+/**
+ * 保存済みの値へ patch のキーだけを重ねて書く。読んでから書くまでを withSettingLock で囲む。
+ */
+export async function patchSetting<C>(
+  setting: WxtStorageItem<C, any>,
+  patch: Partial<C>,
+): Promise<void> {
+  await withSettingLock(setting.key, async () => {
+    const current = await setting.getValue();
+    await setting.setValue({ ...current, ...patch });
+  });
+}
+
 export function defineGroup<C extends object>(
   category: SettingsCategory,
   title: string,
@@ -94,21 +110,10 @@ export function defineGroup<C extends object>(
   { normalize = (value) => value, ...options }: GroupOptions<C> = {},
 ): SettingsGroup {
   const erasedFields = fields as unknown as Record<string, FieldMeta>;
-  // 項目が後から増えた設定では、保存済みの値に新しいキーが無い。既定値で埋めて返す
-  const read = async () =>
-    ({
-      ...setting.fallback,
-      ...(await setting.getValue()),
-    }) as Record<string, unknown>;
-  const exclusive = (task: () => Promise<void>) => withSettingLock(setting.key, task);
+  // 欠けたキーは defineSetting の getValue が既定値から補う
+  const read = async () => (await setting.getValue()) as Record<string, unknown>;
   const write = (key: string, value: unknown) =>
-    exclusive(async () => {
-      const current = await setting.getValue();
-      await setting.setValue({
-        ...current,
-        [key]: value,
-      } as C);
-    });
+    patchSetting(setting, { [key]: value } as Partial<C>);
 
   return {
     id: setting.key,
@@ -118,7 +123,8 @@ export function defineGroup<C extends object>(
     ...options,
     read,
     write,
-    replace: (value) => exclusive(() => setting.setValue(normalize(value as C))),
+    replace: (value) =>
+      withSettingLock(setting.key, () => setting.setValue(normalize(value as C))),
   };
 }
 

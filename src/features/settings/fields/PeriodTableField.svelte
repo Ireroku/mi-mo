@@ -40,12 +40,10 @@
   // 時間割は別の画面で直すため、開いた時に一度だけ読む
   let taken: number[] = [];
 
-  $effect(() => {
-    timetableSetting.getValue().then((table) => {
-      taken = Object.values(table.grid).flatMap((column) =>
-        column.flatMap((slot, index) => (slot ? [index + 1] : [])),
-      );
-    });
+  timetableSetting.getValue().then((table) => {
+    taken = Object.values(table.grid).flatMap((column) =>
+      column.flatMap((slot, index) => (slot ? [index + 1] : [])),
+    );
   });
 
   function add() {

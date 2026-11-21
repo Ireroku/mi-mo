@@ -253,18 +253,18 @@ export const settingsGroups: readonly SettingsGroup[] = [
       label: "時計のオプション",
       control: {
         kind: "nested",
-        // section が変わる所で枠を分ける。空の section は見出しを出さずに区切る
+        // section が変わる所で枠を分ける。section を省いた行は、見出しの無い枠にまとまる
         fields: {
           hour12: {
             label: "12時間表記",
             section: "時間表記",
             control: { kind: "toggle" },
           },
-          showYear: { label: "年", section: "", control: { kind: "toggle" } },
-          showDate: { label: "日付", section: "", control: { kind: "toggle" } },
-          showWeekday: { label: "曜日", section: "", control: { kind: "toggle" } },
-          showSeconds: { label: "秒", section: "", control: { kind: "toggle" } },
-          showPeriod: { label: "時限", section: "", control: { kind: "toggle" } },
+          showYear: { label: "年", control: { kind: "toggle" } },
+          showDate: { label: "日付", control: { kind: "toggle" } },
+          showWeekday: { label: "曜日", control: { kind: "toggle" } },
+          showSeconds: { label: "秒", control: { kind: "toggle" } },
+          showPeriod: { label: "時限", control: { kind: "toggle" } },
         },
       },
     },

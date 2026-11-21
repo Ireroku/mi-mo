@@ -11,10 +11,8 @@
   // Moodle を開いたときに控えた項目名。まだ一度も開いていなければ空で、そのときは自由に書くだけになる
   let knownNames = $state<string[]>([]);
 
-  $effect(() => {
-    menuItemsCacheSetting.getValue().then((cache) => {
-      knownNames = cache.names;
-    });
+  menuItemsCacheSetting.getValue().then((cache) => {
+    knownNames = cache.names;
   });
 
   // 他の行で隠すと決めた名前は候補から外す。その行の名前は残し、選んだ状態として見せる

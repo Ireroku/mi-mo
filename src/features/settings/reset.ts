@@ -18,7 +18,7 @@ import {
   periodTableSetting,
   timetableSetting,
 } from "@/utils/settings";
-import { withSettingLock } from "./types";
+import { patchSetting, withSettingLock } from "./types";
 
 // 値の形は項目ごとに違う。キーで引くために any で受ける
 type AnyItem = WxtStorageItem<any, any>;
@@ -127,16 +127,14 @@ export const resetMenus = resetEntries.filter(
 );
 
 async function resetTarget({ item, keys }: ResetTarget): Promise<void> {
-  await withSettingLock(item.key, async () => {
-    if (!keys) {
-      // 保存値を消すと、読む側は既定値を受け取る
-      await item.removeValue();
-      return;
-    }
-    const current = await item.getValue();
-    const restored = Object.fromEntries(keys.map((key) => [key, item.fallback[key]]));
-    await item.setValue({ ...current, ...restored });
-  });
+  if (!keys) {
+    // 保存値を消すと、読む側は既定値を受け取る
+    await withSettingLock(item.key, () => item.removeValue());
+    return;
+  }
+
+  const restored = Object.fromEntries(keys.map((key) => [key, item.fallback[key]]));
+  await patchSetting(item, restored);
 }
 
 /**

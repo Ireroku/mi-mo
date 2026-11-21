@@ -2,12 +2,12 @@
 
 ## 概要
 
-設定画面の各 Fields が共通して使う入力部品を置く。時刻・日付の選択、候補つきの入力欄、続けるかの確かめ、関係する入力欄の積み重ね、カードの中の操作の行と別の画面へ進む行。どれも値を自分で保存せず、`onChange` や `onConfirm` で呼び出し側へ返す。
+設定画面の各 Fields が共通して使う入力部品を置く。時刻・日付の選択、候補つきの入力欄、続けるかの確かめ、関係する入力欄の積み重ね、カードの中の操作の行と別の画面へ進む行、見出しつきのカード、操作の結果の文言。どれも値を自分で保存せず、`onChange` や `onConfirm` で呼び出し側へ返す。
 
 ## 関連
 
 - 使う: [`panel.md`](./panel.md) — shadcn-svelte の部品（`popover`、`calendar`、`alert-dialog`、`input-group`、`input`）と、`global.css` の動きの長さ ／ bits-ui の `Combobox`
-- 使われる: [`panel.md`](./panel.md) の `FieldRow`・`BackupButtons`・`ResetRows` ／ [`timetableFields.md`](./timetableFields.md) の `IcsExportButton` ／ [`menuFields.md`](./menuFields.md) の `PeriodTableField` ／ [`menuFields.md`](./menuFields.md) の `HiddenMenuItemsField`・`NewMenuItemsField`・`CountdownListField` ／ [`timetableFields.md`](./timetableFields.md) の `TimetableGridField`・`HolidayListField`・`SubstituteListField`
+- 使われる: [`panel.md`](./panel.md) の `SettingsPanel`・`FieldRow`・`BackupButtons`・`ResetRows` ／ [`../home/greeting.md`](../home/greeting.md) の `GreetingMessagesField` ／ [`timetableFields.md`](./timetableFields.md) の `IcsExportButton` ／ [`menuFields.md`](./menuFields.md) の `PeriodTableField` ／ [`menuFields.md`](./menuFields.md) の `HiddenMenuItemsField`・`NewMenuItemsField`・`CountdownListField` ／ [`timetableFields.md`](./timetableFields.md) の `TimetableGridField`・`HolidayListField`・`SubstituteListField`
 - 資料: [bits-ui の AlertDialog](https://bits-ui.com/docs/components/alert-dialog) ／ [shadcn-svelte の Date Picker](https://shadcn-svelte.com/docs/components/date-picker) ／ [bits-ui の Combobox](https://bits-ui.com/docs/components/combobox)
 
 ## 対象ファイル
@@ -23,6 +23,8 @@
 | `src/features/settings/controls/ConfirmDialog.svelte` | 取り消せない操作の前に続けるかを尋ねる |
 | `src/features/settings/controls/ActionRow.svelte` | カードの中で横いっぱいに広がる、押すと操作を始める行 |
 | `src/features/settings/controls/OpenRow.svelte` | 押すと別の画面へ進む行 |
+| `src/features/settings/controls/SectionCard.svelte` | 見出しと、区切り線で行を並べるカードの組 |
+| `src/features/settings/controls/StatusText.svelte` | 操作の結果を知らせる1行の文 |
 
 ## インターフェース
 
@@ -83,6 +85,19 @@ interface Props {
   count?: number; // 一覧の件数。「6件」の形で右に出す
   class?: ClassValue; // 置き場所に合わせた余白
   onclick: () => void;
+}
+
+// SectionCard.svelte
+interface Props {
+  title?: string; // 省くと見出しを出さない
+  children: Snippet; // カードの中の行
+}
+
+// StatusText.svelte
+interface Props {
+  text: string;
+  failed?: boolean; // 失敗の文言。文字を赤にする
+  class?: ClassValue; // 置き場所に合わせた余白
 }
 ```
 
@@ -151,6 +166,16 @@ interface Props {
 1. 左に `label` と `description`、右に `count` と右向きの山形を置く
 2. 余白は置き場所ごとに違うため、`class` で受け取る。`FieldRow` は行の余白を打ち消す負の余白を、`ResetRows` は `min-h-12 w-full` を渡す
 
+### SectionCard
+
+1. `section` の中に、`title` があれば `h2` の見出しを置く
+2. その下へ、角丸の白い面に区切り線で行を並べるカードを置き、`children` を描く。区切り線は左端だけを行の文字の位置へ揃える
+
+### StatusText
+
+1. `role="status"` の `p` に `text` を出す。文字は `text-note` で、`failed` の間は `text-destructive`（赤）、それ以外は `text-muted-foreground` にする
+2. 余白は置き場所ごとに違うため、`class` で受け取る。カードの末尾では `py-2.5 pr-4`、`GreetingMessagesField` では `mb-2` を渡す
+
 ## 決めごと
 
 - **部品は `src/features/settings/controls/` に置き、`src/lib/components/ui/` には置かない。** `ui/` は shadcn-svelte の CLI が書き換える場所で、手で作った部品を混ぜると CLI での追加の時に上書きされる
@@ -164,6 +189,7 @@ interface Props {
 - **`ConfirmDialog` の続けるボタンは、自分で閉じる。** bits-ui v2 の `AlertDialog.Action` は押しても閉じない。閉じてから `onConfirm` を呼び、呼んだ先の処理が長くても画面が残らないようにする
 - **カードの中の操作は、枠つきのボタンではなく `ActionRow` の行にする。** 行の高さと区切り線が設定の行と揃い、カードの中で別の形が混ざらない。押せることは色で示す
 - **`ActionRow` の赤は、範囲の大きい操作だけに使う。** 個別のリセットや読み込みは行を青にし、確認のボタンだけを赤にする。色の段階は [`../../ui-principles.md`](../../ui-principles.md) に従う
+- **見出しつきのカードを `SectionCard` の1箇所に置く。** 設定の一覧、`nested` の子、バックアップ、リセットが同じ形のカードを使う。形を1箇所に置き、カードの見た目が揃う
 - **`OpenRow` を `FieldRow` から分ける。** リセットの階層も同じ形の行で進むため。形を1箇所に置き、別の画面へ進む行の見た目が揃う
 - **`StackedInputs` の中の部品は枠を外し、枠の側でフォーカスを示す。** 名前と URL、日付と理由のように組になる欄を1つのまとまりに見せる。中の部品にもフォーカスの輪を残すと、輪が二重になる
 - **`StackedInputs` は中の部品を `data-slot` で見分ける。** shadcn の部品は自分の `data-slot` を持つ。DatePicker の開くボタンは `popover-trigger` になるため、`button` とは別に並べる
