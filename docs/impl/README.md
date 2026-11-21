@@ -110,10 +110,10 @@ UIロジックを entrypoint 本体に書かない。`src/features/<機能名>/`
 
 ### 機能の初期化は runFeature で包む
 
-content script の entrypoint は、機能の初期化を1つずつ [`utils/runFeature.md`](./utils/runFeature.md) の `runFeature` で包んで呼ぶ。1つの機能が例外を投げても、後に続く機能を止めないため。
+content script の entrypoint は、機能の初期化を1つずつ [`utils/runFeature.md`](./utils/runFeature.md) の `runFeature` で包んで呼ぶ。1つの機能が例外を投げても、後に続く機能を止めないため。`shared.content.ts` は機能を並べて始め、最後にまとめて待つ。待ち方と、順に待つ例外は runFeature の指示書が決める。
 
 ```ts
-await runFeature("menu", () => initMenu(menuConfig));
+features.push(runFeature("menu", () => initMenu(menuConfig)));
 ```
 
 各指示書の「インターフェース」に載る呼び出し例は、この包みを省いて書く。entrypoint へ足す時に包む。

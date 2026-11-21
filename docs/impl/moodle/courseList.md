@@ -56,11 +56,11 @@ entrypoint からの呼び出し。`main()` の中でこのモジュールが担
 import { readCourseList } from "@/moodle/courseList";
 import { courseListCacheSetting } from "@/utils/settings";
 
+// courseListCache は他の設定と一緒に main() の先頭で読んだ値
 const courses = readCourseList();
-const cached = await courseListCacheSetting.getValue();
 if (
   courses.length > 0 &&
-  JSON.stringify(courses) !== JSON.stringify(cached.courses)
+  JSON.stringify(courses) !== JSON.stringify(courseListCache.courses)
 ) {
   await courseListCacheSetting.setValue({
     courses,

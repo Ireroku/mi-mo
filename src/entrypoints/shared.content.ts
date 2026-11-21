@@ -56,6 +56,7 @@ export default defineContentScript({
       todayOrderConfig,
       menuItemsCache,
       greetingLastMessage,
+      courseListCache,
     ] = await Promise.all([
       extensionSetting.getValue(),
       menuSetting.getValue(),
@@ -71,6 +72,7 @@ export default defineContentScript({
       myCoursesTodayOrderSetting.getValue(),
       menuItemsCacheSetting.getValue(),
       homeGreetingLastMessage.getValue(),
+      courseListCacheSetting.getValue(),
     ]);
 
     // 全体のスイッチが切られている間は、どの機能も動かさない
@@ -82,100 +84,124 @@ export default defineContentScript({
     const loggedIn = isLoggedIn();
 
     // 機能は互いに独立している。1つが失敗しても残りを動かす。
+    // 待ち合わせずに並べて始め、最後にまとめて待つ。
+    // 成績の取得などを待つ機能が、他の機能の表示を遅らせないため
+    const features: Promise<void>[] = [];
+
     // 隠す前の項目名を控える。隠した後や、足した項目の入った後では、元の名前がそろわない。
+    // 名前を読む所は最初の await より前にあり、initMenu より先に終わる。
     // 未ログインのメニューは項目が少ないため控えない。名前が前と同じなら書き込まない
-    await runFeature("menuItemsCache", async () => {
-      if (!loggedIn) {
-        return;
-      }
-      const names = readMenuItemNames();
-      if (
-        names.length > 0 &&
-        names.join("\n") !== menuItemsCache.names.join("\n")
-      ) {
-        await menuItemsCacheSetting.setValue({
-          names,
-          updatedAt: new Date().toISOString(),
-        });
-      }
-    });
-    await runFeature("menu", () => initMenu(menuConfig));
-    await runFeature("menuBadges", () =>
-      initMenuBadges(
-        ctx,
-        badgesConfig,
-        periodTableConfig.periods,
-        timetableConfig,
-        !quickDrawerConfig.hidden,
+    features.push(
+      runFeature("menuItemsCache", async () => {
+        if (!loggedIn) {
+          return;
+        }
+        const names = readMenuItemNames();
+        if (
+          names.length > 0 &&
+          names.join("\n") !== menuItemsCache.names.join("\n")
+        ) {
+          await menuItemsCacheSetting.setValue({
+            names,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      }),
+    );
+    features.push(runFeature("menu", () => initMenu(menuConfig)));
+    features.push(
+      runFeature("menuBadges", () =>
+        initMenuBadges(
+          ctx,
+          badgesConfig,
+          periodTableConfig.periods,
+          timetableConfig,
+          !quickDrawerConfig.hidden,
+        ),
       ),
     );
-    await runFeature("loginComponent", () => initLoginComponent());
+    features.push(runFeature("loginComponent", () => initLoginComponent()));
 
-    if (loggedIn && greetingConfig.enabled) {
-      await runFeature("greeting", async () => {
-        const shown = await initGreeting(ctx, greetingConfig, greetingLastMessage);
-        if (shown !== undefined) {
-          await homeGreetingLastMessage.setValue(shown);
-        }
-      });
+    // 挨拶と時間割は同じ入れ物の末尾へ足す。挨拶を上に置くため、時間割は挨拶の後に始める
+    if (loggedIn) {
+      features.push(
+        (async () => {
+          if (greetingConfig.enabled) {
+            await runFeature("greeting", async () => {
+              const shown = await initGreeting(ctx, greetingConfig, greetingLastMessage);
+              if (shown !== undefined) {
+                await homeGreetingLastMessage.setValue(shown);
+              }
+            });
+          }
+          if (timetableConfig.enabled) {
+            await runFeature("timetable", () =>
+              initTimetable(ctx, timetableConfig, periodTableConfig.periods),
+            );
+          }
+        })(),
+      );
     }
 
     if (!quickDrawerConfig.hidden && quickDrawerConfig.pinned.length > 0) {
-      await runFeature("pinnedCourses", () =>
-        initPinnedCourses(ctx, quickDrawerConfig),
+      features.push(
+        runFeature("pinnedCourses", () => initPinnedCourses(ctx, quickDrawerConfig)),
       );
     }
 
     // メニューの項目名と同じく、一覧が前と同じなら書き込まない
-    await runFeature("courseListCache", async () => {
-      const courses = readCourseList();
-      const cached = await courseListCacheSetting.getValue();
-      if (
-        courses.length > 0 &&
-        JSON.stringify(courses) !== JSON.stringify(cached.courses)
-      ) {
-        await courseListCacheSetting.setValue({
-          courses,
-          updatedAt: new Date().toISOString(),
-        });
-      }
-    });
+    features.push(
+      runFeature("courseListCache", async () => {
+        const courses = readCourseList();
+        if (
+          courses.length > 0 &&
+          JSON.stringify(courses) !== JSON.stringify(courseListCache.courses)
+        ) {
+          await courseListCacheSetting.setValue({
+            courses,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      }),
+    );
 
-    await runFeature("indexToggle", () => initIndexToggle(ctx));
-    await runFeature("incrementalSearch", () => initIncrementalSearch(ctx));
+    features.push(runFeature("indexToggle", () => initIndexToggle(ctx)));
+    features.push(runFeature("incrementalSearch", () => initIncrementalSearch(ctx)));
 
     if (autoattendButtonConfig.enabled) {
-      await runFeature("autoattendButton", () =>
-        initAutoattendButton(ctx, autoattendButtonConfig),
+      features.push(
+        runFeature("autoattendButton", () =>
+          initAutoattendButton(ctx, autoattendButtonConfig),
+        ),
       );
     }
 
     if (autoattendStatsConfig.enabled) {
-      await runFeature("autoattendStats", () =>
-        initAutoattendStats(ctx, autoattendStatsConfig),
+      features.push(
+        runFeature("autoattendStats", () =>
+          initAutoattendStats(ctx, autoattendStatsConfig),
+        ),
       );
     }
 
     if (gradeInlineConfig.enabled) {
-      await runFeature("gradeInline", () => initGradeInline(gradeInlineConfig));
+      features.push(runFeature("gradeInline", () => initGradeInline(gradeInlineConfig)));
     }
 
     if (exportConfig.enabled) {
-      await runFeature("exportMarkdown", () => initExportMarkdown(exportConfig));
+      features.push(runFeature("exportMarkdown", () => initExportMarkdown(exportConfig)));
     }
 
-    await runFeature("bulkDownload", () => initBulkDownload());
-
-    if (loggedIn && timetableConfig.enabled) {
-      await runFeature("timetable", () =>
-        initTimetable(ctx, timetableConfig, periodTableConfig.periods),
-      );
-    }
+    features.push(runFeature("bulkDownload", () => initBulkDownload()));
 
     if (todayOrderConfig.enabled) {
-      await runFeature("todayOrder", () =>
-        initTodayOrder(ctx, todayOrderConfig, timetableConfig, periodTableConfig.periods),
+      features.push(
+        runFeature("todayOrder", () =>
+          initTodayOrder(ctx, todayOrderConfig, timetableConfig, periodTableConfig.periods),
+        ),
       );
     }
+
+    await Promise.all(features);
   },
 });

@@ -32,8 +32,12 @@ entrypoint からの呼び出し:
 ```ts
 import { runFeature } from "@/utils/runFeature";
 
+// early.content.ts は順に待つ
 await runFeature("font", () => applyFont(uiFont));
-await runFeature("menu", () => initMenu(menuConfig));
+
+// shared.content.ts は並べて始め、最後にまとめて待つ
+features.push(runFeature("menu", () => initMenu(menuConfig)));
+await Promise.all(features);
 ```
 
 ## 処理の流れ
@@ -48,5 +52,7 @@ await runFeature("menu", () => initMenu(menuConfig));
 - **失敗を握りつぶさず、必ずコンソールへ出す。** 黙って続けると、機能が効かない理由を後から辿れない
 - **接頭辞は `[mi-mo]` に固定する。** Moodle 自身や他の拡張機能の出力と区別し、コンソールの絞り込みで拾えるようにする。background と設定画面のエラー出力も同じ接頭辞を使う
 - **設定の読み出しは包まない。** 設定が読めない場合はどの機能も正しく動かないため、entrypoint ごと止める方が安全側になる
-- **機能は順に `await` し、並列にしない。** 同じアンカーへ部品を足す機能があり、順序が表示の並びを決める。初期化はどれも軽く、並列にする利益が小さい
+- **`shared.content.ts` は機能を並べて始め、最後に `Promise.all` でまとめて待つ。** 成績の取得（`gradeInline`）や Shadow DOM の CSS の読み込みを待つ機能があり、順に待つと後の機能の表示がその分遅れる。`runFeature` は reject しないため、1つの失敗で `Promise.all` が途中で抜けることはない
+- **表示の並びが始める順に左右される機能だけを、1本の流れの中で順に待つ。** 挨拶と時間割は同じ入れ物の末尾へ足すため、挨拶を待ってから時間割を始める。メニューの項目名を控える処理は、名前を読む所が最初の `await` より前にあり、後に始める `initMenu` より先に終わる
+- **`early.content.ts` は順に待つ。** どの機能も CSS を入れるだけで同期的に終わり、並べる利益が無い。最初の画面の判断（`landingPage`）は `body` を待つことがあるため最後に置く
 - **画面への通知は行わない。** 失敗するのは多くが Moodle 側の構造の変化で、利用者にできることが無い。開発者がコンソールで気付ければ足りる
