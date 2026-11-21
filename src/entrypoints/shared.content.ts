@@ -41,12 +41,8 @@ export default defineContentScript({
   cssInjectionMode: "ui",
 
   async main(ctx) {
-    // 全体のスイッチが切られている間は、どの機能も動かさない
-    if (!(await extensionSetting.getValue()).enabled) {
-      return;
-    }
-
     const [
+      extension,
       menuConfig,
       badgesConfig,
       greetingConfig,
@@ -58,7 +54,10 @@ export default defineContentScript({
       periodTableConfig,
       timetableConfig,
       todayOrderConfig,
+      menuItemsCache,
+      greetingLastMessage,
     ] = await Promise.all([
+      extensionSetting.getValue(),
       menuSetting.getValue(),
       menuBadgesSetting.getValue(),
       homeGreetingSetting.getValue(),
@@ -70,7 +69,14 @@ export default defineContentScript({
       periodTableSetting.getValue(),
       timetableSetting.getValue(),
       myCoursesTodayOrderSetting.getValue(),
+      menuItemsCacheSetting.getValue(),
+      homeGreetingLastMessage.getValue(),
     ]);
+
+    // 全体のスイッチが切られている間は、どの機能も動かさない
+    if (!extension.enabled) {
+      return;
+    }
 
     // 未ログインの間は、挨拶と時間割を出さない
     const loggedIn = isLoggedIn();
@@ -83,8 +89,10 @@ export default defineContentScript({
         return;
       }
       const names = readMenuItemNames();
-      const cached = await menuItemsCacheSetting.getValue();
-      if (names.length > 0 && names.join("\n") !== cached.names.join("\n")) {
+      if (
+        names.length > 0 &&
+        names.join("\n") !== menuItemsCache.names.join("\n")
+      ) {
         await menuItemsCacheSetting.setValue({
           names,
           updatedAt: new Date().toISOString(),
@@ -105,11 +113,7 @@ export default defineContentScript({
 
     if (loggedIn && greetingConfig.enabled) {
       await runFeature("greeting", async () => {
-        const shown = await initGreeting(
-          ctx,
-          greetingConfig,
-          await homeGreetingLastMessage.getValue(),
-        );
+        const shown = await initGreeting(ctx, greetingConfig, greetingLastMessage);
         if (shown !== undefined) {
           await homeGreetingLastMessage.setValue(shown);
         }

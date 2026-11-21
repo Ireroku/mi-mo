@@ -150,8 +150,9 @@ export const extensionSetting = defineSetting<ExtensionConfig>(
 ```
 
 ```ts
-// src/entrypoints/shared.content.ts と early.content.ts の main() の先頭
-if (!(await extensionSetting.getValue()).enabled) {
+// src/entrypoints/shared.content.ts と early.content.ts の main()。
+// extension は他の設定と一緒に Promise.all で読んだ値
+if (!extension.enabled) {
   return;
 }
 ```

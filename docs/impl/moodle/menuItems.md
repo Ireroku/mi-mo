@@ -50,9 +50,12 @@ await runFeature("menuItemsCache", async () => {
   if (!loggedIn) {
     return;
   }
+  // menuItemsCache は他の設定と一緒に main() の先頭で読んだ値
   const names = readMenuItemNames();
-  const cached = await menuItemsCacheSetting.getValue();
-  if (names.length > 0 && names.join("\n") !== cached.names.join("\n")) {
+  if (
+    names.length > 0 &&
+    names.join("\n") !== menuItemsCache.names.join("\n")
+  ) {
     await menuItemsCacheSetting.setValue({
       names,
       updatedAt: new Date().toISOString(),

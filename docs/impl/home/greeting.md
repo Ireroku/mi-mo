@@ -126,11 +126,8 @@ entrypoint からの呼び出し。`main()` の中でこのモジュールが担
 // src/entrypoints/shared.content.ts
 if (loggedIn && greetingConfig.enabled) {
   await runFeature("greeting", async () => {
-    const shown = await initGreeting(
-      ctx,
-      greetingConfig,
-      await homeGreetingLastMessage.getValue(),
-    );
+    // greetingLastMessage は他の設定と一緒に main() の先頭で読んだ値
+    const shown = await initGreeting(ctx, greetingConfig, greetingLastMessage);
     if (shown !== undefined) {
       await homeGreetingLastMessage.setValue(shown);
     }

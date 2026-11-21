@@ -28,12 +28,8 @@ export default defineContentScript({
   matches: ["*://lms-m41.mie-u.ac.jp/*"],
   runAt: "document_start",
   async main() {
-    // 全体のスイッチが切られている間は、どの機能も動かさない
-    if (!(await extensionSetting.getValue()).enabled) {
-      return;
-    }
-
     const [
+      extension,
       homeHideElements,
       menuLogo,
       uiFloatingHint,
@@ -43,6 +39,7 @@ export default defineContentScript({
       landingConfig,
       landingPending,
     ] = await Promise.all([
+      extensionSetting.getValue(),
       homeHideElementsSetting.getValue(),
       menuLogoSetting.getValue(),
       uiFloatingHintSetting.getValue(),
@@ -52,6 +49,11 @@ export default defineContentScript({
       uiLandingPageSetting.getValue(),
       uiLandingPendingFlag.getValue(),
     ]);
+
+    // 全体のスイッチが切られている間は、どの機能も動かさない
+    if (!extension.enabled) {
+      return;
+    }
 
     // 機能は互いに独立している。1つが失敗しても残りを動かす。
     await runFeature("hideElements", () => applyHideElements(homeHideElements));
