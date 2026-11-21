@@ -5,7 +5,8 @@ import { applyFloatingHint } from "@/features/ui/floatingHint";
 import { applyFont } from "@/features/ui/font";
 import { applyReverseSections } from "@/features/coursePage/reverseSections";
 import { applyQuickDrawerVisibility } from "@/features/ui/quickDrawer";
-import { decideLanding } from "@/features/ui/landingPage";
+import { decideLanding } from "@/features/ui/landingPage.logic";
+import { readLoggedIn } from "@/moodle/user";
 import {
   extensionSetting,
   homeHideElementsSetting,
@@ -66,7 +67,9 @@ export default defineContentScript({
 
     let redirected = false;
     await runFeature("landingPage", async () => {
-      const decision = decideLanding(landingConfig, landingPending, window.location);
+      // 切ってある間は body を待たない。後に続く機能を遅らせないため
+      const loggedIn = landingConfig.enabled ? await readLoggedIn() : true;
+      const decision = decideLanding(landingConfig, landingPending, loggedIn, window.location);
       if (decision.pending !== landingPending) {
         await uiLandingPendingFlag.setValue(decision.pending);
       }

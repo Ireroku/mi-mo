@@ -15,7 +15,7 @@ import type { MenuLogoConfig } from "@/features/menu/logo";
 import type { FloatingHintConfig } from "@/features/ui/floatingHint";
 import type { FontConfig } from "@/features/ui/font";
 import type { QuickDrawerConfig } from "@/features/ui/quickDrawer";
-import type { LandingPageConfig } from "@/features/ui/landingPage";
+import type { LandingPageConfig } from "@/features/ui/landingPage.logic";
 import type { ReverseSectionsConfig } from "@/features/coursePage/reverseSections";
 import type { AutoattendButtonConfig } from "@/features/coursePage/autoattendButton";
 import type { AutoattendStatsConfig } from "@/features/coursePage/autoattendStats";
@@ -168,7 +168,12 @@ export const uiQuickDrawerSetting = defineSetting<QuickDrawerConfig>(
 
 export const uiLandingPageSetting = defineSetting<LandingPageConfig>(
   "local:ui.landingPage",
-  { fallback: { enabled: false, url: "" } },
+  {
+    fallback: {
+      enabled: true,
+      url: "https://lms-m41.mie-u.ac.jp/my/courses.php",
+    },
+  },
 );
 
 export const uiLandingPendingFlag = defineSetting<boolean>(

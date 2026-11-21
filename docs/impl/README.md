@@ -323,7 +323,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`ui/floatingHint.md`](./ui/floatingHint.md) | `src/features/ui/floatingHint.ts` | 使う: styleSheet ／ 資料: [`../moodle/common.md`](../moodle/common.md) |
 | [`ui/quickDrawer.md`](./ui/quickDrawer.md) | `src/features/ui/quickDrawer.ts`、`src/features/ui/DrawerBlock.svelte` | 使う: styleSheet ／ moodle/courseList ／ 資料: [`../moodle/drawer.md`](../moodle/drawer.md) |
 | [`ui/breadcrumb.md`](./ui/breadcrumb.md) | `src/features/ui/breadcrumb.ts` | 使う: styleSheet ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
-| [`ui/landingPage.md`](./ui/landingPage.md) | `src/features/ui/landingPage.ts` | 使う: utils/settings ／ ログイン直後の遷移 |
+| [`ui/landingPage.md`](./ui/landingPage.md) | `src/features/ui/landingPage.logic.ts` | 使う: utils/settings, moodle/user ／ ログイン直後の遷移 |
 | [`ui/font.md`](./ui/font.md) | `src/features/ui/font.ts` | 使う: styleSheet ／ utils/settings |
 | [`coursePage/autoattendButton.md`](./coursePage/autoattendButton.md) | `src/features/coursePage/autoattendButton.*` | 使う: moodle/page ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |
 | [`coursePage/autoattendStats.md`](./coursePage/autoattendStats.md) | `src/features/coursePage/autoattendStats.*` | 使う: moodle/page ／ 資料: [`../moodle/course-page.md`](../moodle/course-page.md) |

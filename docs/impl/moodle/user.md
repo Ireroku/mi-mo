@@ -21,7 +21,7 @@
 // src/moodle/user.ts
 export function isLoggedIn(): boolean;
 
-export function isLoginPage(pathname: string): boolean;
+export function readLoggedIn(): Promise<boolean>;
 
 export function readUserName(): string | undefined;
 ```
@@ -32,9 +32,9 @@ export function readUserName(): string | undefined;
 
 `document.body` に `notloggedin` クラスが付いていなければ `true` を返す。`body` が無い段階（`document_start`）では `false` を返す。
 
-### isLoginPage
+### readLoggedIn
 
-`pathname` が `/login/index.php` で始まれば `true` を返す。ログイン後の遷移（[`../ui/landingPage.md`](../ui/landingPage.md)）が、ログインページを通った印を付ける判断に使う。
+`document.body` があれば、すぐに `isLoggedIn()` の結果を返す。無ければ `MutationObserver` で `document.documentElement` の子を見張り、`body` が現れた時に `isLoggedIn()` の結果を返す。`document_start` で動くログイン後の遷移（[`../ui/landingPage.md`](../ui/landingPage.md)）が使う。`notloggedin` は `body` の開始タグに書かれるため、本文の読み込みは待たない。
 
 ### readUserName
 

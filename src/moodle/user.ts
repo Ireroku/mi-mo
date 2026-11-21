@@ -16,10 +16,21 @@ export function isLoggedIn(): boolean {
 }
 
 /**
- * ログインページのパスかどうかを返す。ログイン後の遷移が、ここを通ったことを印にする。
+ * body が現れるのを待ってから、ログイン中かどうかを返す。document_start から使う。
+ * body の開始タグにクラスが書かれているため、中身の読み込みは待たない
  */
-export function isLoginPage(pathname: string): boolean {
-  return pathname.startsWith("/login/index.php");
+export function readLoggedIn(): Promise<boolean> {
+  if (document.body) {
+    return Promise.resolve(isLoggedIn());
+  }
+  return new Promise((resolve) => {
+    const observer = new MutationObserver(() => {
+      if (!document.body) return;
+      observer.disconnect();
+      resolve(isLoggedIn());
+    });
+    observer.observe(document.documentElement, { childList: true });
+  });
 }
 
 /**
