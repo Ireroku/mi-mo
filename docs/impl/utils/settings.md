@@ -36,7 +36,7 @@ function defineSetting<T>(
 export const homeHideElementsSetting = defineSetting<HideElementsConfig>(
   "local:home.hideElements",
   {
-    fallback: { announcements: true, categories: true, search: true },
+    fallback: { announcements: true, categories: true, search: false },
   },
 );
 

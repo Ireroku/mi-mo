@@ -53,7 +53,7 @@ export const extensionSetting = defineSetting<ExtensionConfig>(
 export const homeHideElementsSetting = defineSetting<HideElementsConfig>(
   "local:home.hideElements",
   {
-    fallback: { announcements: true, categories: true, search: true },
+    fallback: { announcements: true, categories: true, search: false },
   },
 );
 
@@ -61,13 +61,24 @@ export const menuSetting = defineSetting<MenuConfig>(
   "local:menu.items",
   {
     fallback: {
+      // 並びは設定画面で見る時の順で、隠す働きには関わらない
       hidden: [
+        "ダッシュボード",
         "Office365",
         "Google",
+        "サービス",
         "eラーニング",
         "Scilets",
         "三重創生ファンタジスタ",
         "旧Moodle",
+      ],
+      // 並べた順にメニューへ足す
+      items: [
+        {
+          text: "年間行事",
+          href: "https://www.ars.mie-u.ac.jp/schedule/",
+          newTab: true,
+        },
       ],
     },
   },
@@ -150,7 +161,7 @@ export const homeGreetingSetting = defineSetting<GreetingConfig>(
     fallback: {
       enabled: true,
       salutation: "time",
-      useDefaultMessages: true,
+      useDefaultMessages: false,
       messages: [],
     },
   },
@@ -233,7 +244,7 @@ export const timetableSetting = defineSetting<TimetableConfig>(
   "local:home.timetable",
   {
     fallback: {
-      enabled: true,
+      enabled: false,
       startDate: "2026-04-06",
       lessonCount: 15,
       grid: {

@@ -107,7 +107,7 @@ export const homeGreetingSetting = defineSetting<GreetingConfig>(
     fallback: {
       enabled: true,
       salutation: "time",
-      useDefaultMessages: true,
+      useDefaultMessages: false,
       messages: [],
     },
   },

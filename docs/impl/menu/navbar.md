@@ -125,7 +125,8 @@ initMenu(menuConfig);
 
 ```ts
 {
-  hidden: ["Office365", "Google", "旧Moodle"],
+  hidden: ["Office365", "Google", "旧Moodle"], // 並びは働きに関わらない
+  // 並べた順にメニューへ足す
   items: [
     {
       text: "シラバス",
