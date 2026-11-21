@@ -1,6 +1,12 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'wxt';
 import tailwindcss from '@tailwindcss/vite';
+import { mkdir } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import sharp from 'sharp';
+
+// ツールバーのアイコンの絵は 16×16 のマス目なので、整数倍だけを作る
+const toolbarIconSizes = [16, 32];
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -14,6 +20,20 @@ export default defineConfig({
     // 96 は Firefox の高解像度の画面で使う。1.1.2 はここの値を既定へ足すが、未公開の次の版では置き換える。
     // どちらでも同じ結果になるよう、すべて書く
     sizes: [128, 96, 48, 32, 16],
+  },
+  hooks: {
+    // ツールバーのアイコンは別の絵にする。上の余白付きの絵は、16px の欄では細く小さく見える
+    'build:done': async (wxt, output) => {
+      for (const size of toolbarIconSizes) {
+        const image = sharp(resolve(wxt.config.srcDir, 'assets/icon-toolbar.svg')).resize(size).png();
+        // auto-icons にそろえ、開発版は灰色にする
+        if (wxt.config.mode === 'development') image.grayscale();
+        const fileName = `icons/toolbar-${size}.png`;
+        await mkdir(resolve(wxt.config.outDir, 'icons'), { recursive: true });
+        await image.toFile(resolve(wxt.config.outDir, fileName));
+        output.publicAssets.push({ type: 'asset', fileName });
+      }
+    },
   },
   vite: () => ({
     plugins: [tailwindcss()],
@@ -34,6 +54,10 @@ export default defineConfig({
     // wxt/utils/storage が browser.storage.local を使う。WXT は自動検出しない
     // downloads API は background で使用
     permissions: ['storage', 'downloads'],
+    // 32 は高解像度の画面で使う
+    action: {
+      default_icon: Object.fromEntries(toolbarIconSizes.map((size) => [size, `icons/toolbar-${size}.png`])),
+    },
     // Chrome はこの項目を知らないと警告するため、Firefox の時だけ付ける
     ...(browser === 'firefox' && {
       browser_specific_settings: {

@@ -56,7 +56,7 @@ python3 scripts/checkdocs.py docs/impl  # 一部だけ
 | `src/moodle/` | Moodle からのデータ取得・操作のうち、複数の機能が共有するもの。ページ種別の判定、ユーザー名の取得など |
 | `src/utils/` | Moodle に依存しない汎用処理。日付の整形、数値の変換など |
 | `src/lib/` | shadcn-svelte が自動生成するコンポーネント・フック用。手動でファイルを作らない |
-| `src/assets/` | グローバルCSSなどの静的アセット。拡張機能のアイコンの元の絵 `icon.svg` もここに置き、`@wxt-dev/auto-icons` がビルドのたびに各サイズの PNG を作る |
+| `src/assets/` | グローバルCSSなどの静的アセット。拡張機能のアイコンの元の絵 `icon.svg` もここに置き、`@wxt-dev/auto-icons` がビルドのたびに各サイズの PNG を作る。ツールバーには余白を詰めた別の絵 `icon-toolbar.svg` を使い、[wxt.config.ts](../../wxt.config.ts) のフックが 16px と 32px の PNG を作る |
 | `public/` | 拡張機能の直下へそのまま写すファイル（`greetings.txt`）。ここへ置いた物はすべて配られるため、配らない元の絵は置かない |
 
 `<機能名>` は camelCase で書き、リポジトリ直下の [README.md](../../README.md) の機能一覧の見出しに対応させる（`coursePage`、`myCourses`）。`docs/impl/` のディレクトリも同じ名前で揃える。仕様書を置く [`../features/`](../features/) だけはハイフン区切り（`course-page/`）を使い、見出しとの対応より URL の読みやすさを優先する。
