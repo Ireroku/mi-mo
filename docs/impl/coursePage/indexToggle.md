@@ -93,23 +93,22 @@ await initIndexToggle(ctx);
 body.pagelayout-course #courseindexdrawercontrolsmenubutton {
   display: none !important;
 }
+#theme_boost-drawers-courseindex .drawercontent {
+  scrollbar-gutter: stable;
+}
 @supports (anchor-name: --a) {
   #course-index .courseindex-section-title {
     anchor-name: --mimo-index-item;
   }
-  #theme_boost-drawers-courseindex .drawertoggle {
-    anchor-name: --mimo-index-close;
-  }
   mimo-index-toggle {
     position: absolute;
-    position-anchor: --mimo-index-close;
-    align-self: anchor-center;
+    align-self: center;
     right: anchor(--mimo-index-item right);
   }
 }
 ```
 
-右端は一覧のセクション名の行の右端に、縦は閉じるボタン（×）の中心に揃う。アンカー配置に対応しないブラウザでは `@supports` の中が無視され、ヘッダの右端に並ぶ。
+右端は一覧のセクション名の行の右端に揃い、縦はヘッダの中央（閉じるボタン（×）と同じ高さ）に来る。アンカー配置に対応しないブラウザでは `@supports` の中が無視され、ヘッダの右端に並ぶ。
 
 ### IndexToggle.svelte
 
@@ -126,7 +125,9 @@ body.pagelayout-course #courseindexdrawercontrolsmenubutton {
 - **標準のドロップダウンボタンを隠す。** 中身は展開と折りたたみの2つだけで、トグルに置き換えれば役目が残らない。ボタンを消しても Moodle 側のリンクは DOM に残るため、`click()` で呼べる
 - **リンクの `click()` を呼び、開閉そのものは Moodle に任せる。** 各セクションの `aria-expanded` を自分で書き換えると、Moodle が持つ表示状態の記録と食い違う
 - **ボタンを shadcn-svelte の `Button` で描き、Bootstrap のクラスを使わない。** Shadow DOM の中には Moodle の Bootstrap が届かない。`btn btn-secondary btn-sm` を付けても装飾が当たらず、文字だけが表示される
-- **位置を数値で書かず、CSS のアンカー配置で一覧の項目と × に合わせる。** 一覧のスクロールバーの幅は OS と設定で 0 から 17px ほどまで変わり、定数の余白ではどこかの環境でずれる。ブラウザが描いた位置を参照すれば、スクロールバーの出入りや Moodle 側の余白の変更にも追従する。JS で位置を読んで書く方法より、持つコードが少ない
+- **右端を数値で書かず、CSS のアンカー配置で一覧の項目に合わせる。** 一覧のスクロールバーの幅は OS と設定で 0 から 17px ほどまで変わり、定数の余白ではどこかの環境でずれる。ブラウザが描いた位置を参照すれば、スクロールバーの出入りや Moodle 側の余白の変更にも追従する。JS で位置を読んで書く方法より、持つコードが少ない
+- **縦はアンカーを使わず、`align-self: center` でヘッダの中央に置く。** ヘッダは `display: flex` で、その直下の絶対位置の要素は `top` を書かなければ `align-self` で縦の位置が決まる。× にアンカーを付けて `align-self: anchor-center` で揃えた形では、Chrome でドロワーの開閉のアニメーション中にアンカーを見失い、ボタンが上へ張り付いた
+- **一覧に `scrollbar-gutter: stable` を当てる。** Chrome で常に表示するスクロールバーの場合、セクションの開閉で一覧の長さがドロワーの高さを越えるたびにスクロールバーが出入りし、項目の右端とボタンが一緒にずれた。スクロールバーの場所を常に空ければ、一覧の幅が変わらない。スクロールバーが幅を取らない環境（macOS のスクロール時に表示）では空く幅も 0 になる
 - **ボタンの箱を項目の箱と同じ形にする。** 余白・枠・角の丸みが同じなら、右端を揃えた時に、ホバーの面が青い項目の枠と重なり、文言の右端も項目の文字の右端と揃う。値は Moodle 4.5 の `theme/boost/scss/moodle/courseindex.scss` の `.courseindex-item` から取った
 - **ボタンを `.drawerheader` の直下へ置く。** 元のボタンの隣（`.dropdown` の中）は Bootstrap が `position: relative` を当てており、そこが位置の基準になる。基準の中に一覧が無いと、項目をアンカーとして参照できない。ヘッダは `position: static` のため、直下に置けば基準はドロワー（`position: fixed`）になる
 - **`inheritStyles: true` にする。** WXT は既定で Shadow DOM の入れ物へ `:host { all: initial !important; }` を当てる。内側の `!important` は外のどの指定にも勝つため、入れ物へ書いた `position` などが消える。中のボタンは Tailwind が文字の設定を当て直すので、ページの文字の設定を継承しても見た目は変わらない

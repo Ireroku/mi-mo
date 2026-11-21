@@ -10,23 +10,23 @@ import IndexToggle from "./IndexToggle.svelte";
 export type IndexState = "allExpanded" | "allCollapsed" | "mixed";
 
 const STYLE_ID = "mimo-course-page-index-toggle";
-// 位置はブラウザが描いた結果へ合わせる。右端は一覧の項目の右端（スクロールバーの有無も含む）、
-// 縦は閉じるボタンの中心。対応しないブラウザでは @supports の中が無視され、ヘッダの右端に並ぶ
+// 右端は一覧の項目の右端へ、ブラウザが描いた位置で合わせる。縦はヘッダ（flex）の中央。
+// 対応しないブラウザでは @supports の中が無視され、ヘッダの右端に並ぶ。
+// スクロールバーの場所を常に空け、開閉で一覧の幅（と項目の右端）が変わらないようにする
 const STYLE_CSS = `
 body.pagelayout-course #courseindexdrawercontrolsmenubutton {
   display: none !important;
+}
+#theme_boost-drawers-courseindex .drawercontent {
+  scrollbar-gutter: stable;
 }
 @supports (anchor-name: --a) {
   #course-index .courseindex-section-title {
     anchor-name: --mimo-index-item;
   }
-  #theme_boost-drawers-courseindex .drawertoggle {
-    anchor-name: --mimo-index-close;
-  }
   mimo-index-toggle {
     position: absolute;
-    position-anchor: --mimo-index-close;
-    align-self: anchor-center;
+    align-self: center;
     right: anchor(--mimo-index-item right);
   }
 }
