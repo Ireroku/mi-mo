@@ -1,4 +1,4 @@
-# mi-mo
+# <img src="./src/assets/icon.svg" alt="" height="32"> mi-mo
 
 [三重大学 Moodle 4](https://lms-m41.mie-u.ac.jp/) に幾つかの機能を追加するブラウザ拡張機能です。
 
@@ -128,6 +128,65 @@ pnpm dev:firefox
   - [ ] Firefox Add-ons ストアへの公開
   - [ ] Chrome Web Store への公開
   - [ ] Safari 向け対応 / 公開（未定）
+
+## 🗓️ 時間割ファイルの形式
+
+設定画面の「時間割」から書き出す・読み込むファイル（`mi-mo-timetable.json`）の形式です。LLM に時間割を作ってもらう時は、この節ごと渡してください。
+
+```json
+{
+  "app": "mi-mo",
+  "version": 1,
+  "settings": {
+    "local:home.timetable": {
+      "startDate": "2026-04-06",
+      "lessonCount": 15,
+      "grid": {
+        "mon": [
+          { "title": "線形代数", "url": "https://lms-m41.mie-u.ac.jp/course/view.php?id=1234" },
+          null,
+          { "title": "英語コミュニケーション" }
+        ],
+        "tue": [],
+        "wed": [null, { "title": "プログラミング演習" }],
+        "thu": [],
+        "fri": [{ "title": "物理学実験" }, { "title": "物理学実験" }]
+      },
+      "holidays": [
+        { "date": "2026-04-29", "label": "昭和の日" },
+        { "date": "2026-05-06" }
+      ],
+      "substitutes": [
+        { "date": "2026-07-21", "weekday": "mon" }
+      ]
+    },
+    "local:periods.table": {
+      "periods": [
+        { "period": 1, "start": "08:50", "end": "10:20" },
+        { "period": 2, "start": "10:30", "end": "12:00" },
+        { "period": 3, "start": "13:00", "end": "14:30" },
+        { "period": 4, "start": "14:40", "end": "16:10" },
+        { "period": 5, "start": "16:20", "end": "17:50" },
+        { "period": 6, "start": "18:00", "end": "19:30" }
+      ]
+    }
+  }
+}
+```
+
+| 項目 | 内容 |
+|---|---|
+| `app`, `version` | 常に `"mi-mo"` と `1` |
+| `startDate` | 学期の開始日。授業の回数をこの日から数える。`"YYYY-MM-DD"` |
+| `lessonCount` | 1つの授業が何回で終わるか |
+| `grid` | 曜日（`mon`〜`fri`）ごとの授業の配列。`n` 番目（0 始まり）が `period` の `n + 1` の時限に入る。空きコマは `null` で、末尾の空きは省ける。`url` は省ける |
+| `holidays` | 授業の無い日。`label` は省ける |
+| `substitutes` | 別の曜日の授業を行う日。`weekday` はその日に行う授業の曜日 |
+| `periods` | 時限表。`period` は時限の番号（1 以上で重ならない整数）、配列の順が表示の順。`name` を足すと時限の名前になり、無ければ「一限」のように出る。時刻は `"HH:MM"` |
+
+- 上の `periods` は既定の時限表です。変えないなら `"local:periods.table"` ごと省けます。省くと、読み込んだ側の時限表が残ります
+- 表示の入り切りと色はファイルに入れません。入れても読み込みません
+- 2コマ続きの授業は、上の金曜のように同じ授業を2つ並べます
 
 ## 📚 参考リンク
 
