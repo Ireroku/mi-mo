@@ -28,6 +28,7 @@
   {onChange}
   createItem={() => ""}
   addLabel="隠す項目を追加"
+  sortable={{ listLabel: "隠す項目の並び", itemLabel: (item) => item || "名前のない項目" }}
 >
   {#snippet row(item, update)}
     <SuggestInput

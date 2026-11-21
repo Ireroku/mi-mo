@@ -19,7 +19,7 @@
 
 | パス | 役割 |
 |---|---|
-| `src/features/settings/fields/ListField.svelte` | 行の追加と削除を扱う共通の枠。時限表は使わない |
+| `src/features/settings/fields/ListField.svelte` | 行の追加・削除と、求めがあれば並べ替えを扱う共通の枠。時限表は使わない |
 | `src/features/settings/fields/HiddenMenuItemsField.svelte` | 隠すメニュー項目の編集 |
 | `src/features/settings/fields/NewMenuItemsField.svelte` | 追加するメニュー項目の編集 |
 | `src/features/settings/fields/PeriodTableField.svelte` | 時限表の編集 |
@@ -39,6 +39,8 @@
     createItem: () => T;
     addLabel: string;
     row: Snippet<[T, (next: T) => void, number]>; // 3つ目は行の位置。行ごとに違う id を作るのに使う
+    // 行の左に持ち手を出し、ドラッグで並べ替えられるようにする。listLabel は並び全体の名前
+    sortable?: { listLabel: string; itemLabel: (item: T) => string };
   }
 </script>
 ```
@@ -72,6 +74,7 @@ defineGroup("general", "上部メニュー", menuLogoSetting, {
 }),
 // section で、1つの保存先を「時計」と「カウントダウン」の2枚のカードへ分ける
 defineGroup("general", "時計", menuBadgesSetting, {
+  showClock: { label: "時計を表示", control: { kind: "toggle" } },
   clock: {
     label: "時計のオプション",
     control: {
@@ -145,10 +148,12 @@ defineGroup(
 3. 一覧の下に `addLabel` のボタンを置き、`createItem()` を末尾へ足した配列で `onChange` を呼ぶ
 4. `update` が呼ばれたら、その行だけを差し替えた配列で `onChange` を呼ぶ
 5. 行の間は `gap-3` にする。行の下に添え物（追加するメニュー項目の「別タブで開く」）があっても、次の行の欄と詰まらない
+6. `sortable` を渡した時だけ、行の左に持ち手を置き、`svelte-dnd-action` の `dragHandleZone` で並べ替えられるようにする。持ち手の扱い、動きの長さ、`consider` と `finalize` の扱いは、下の `PeriodTableField` と同じ。持ち手の `aria-label` は「`itemLabel(行)`を並べ替える」
+7. 並べ替えの部品が求める `id` は、行の位置ごとに数を振って手元に控える。値は同じ文字列が並ぶ場合があり、`id` にできない。行を消す時と並べ替えた時は、控えの `id` も値と一緒に動かす。外から値が差し替わって行の数が変われば、足りない分を足し、余りを捨てる
 
 ### HiddenMenuItemsField
 
-行は `SuggestInput`（[`./controls.md`](./controls.md)）1つ。`createItem` は空文字を返す。
+行は `SuggestInput`（[`./controls.md`](./controls.md)）1つ。`createItem` は空文字を返す。`ListField` へ `sortable` を渡す。並びは設定画面で見るためのもので、隠す働きには関わらない。
 
 1. `menuItemsCacheSetting`（[`../utils/settings.md`](../utils/settings.md)）から、Moodle を開いた時に控えた項目名を読む
 2. 行ごとに、他の行にある名前を除いたものを `suggestions` として渡す。その行自身の名前は残し、候補の中で選んだ状態として見せる
@@ -156,7 +161,7 @@ defineGroup(
 
 ### NewMenuItemsField
 
-行は、`StackedInputs` で積んだテキスト入力2つ（表示名の `text`・URL の `href`）と、その下の「別タブで開く」のトグル1つ。トグルは枠の外に置く。`createItem` は `{ text: "", href: "", newTab: false }` を返す。
+行は、`StackedInputs` で積んだテキスト入力2つ（表示名の `text`・URL の `href`）と、その下の「別タブで開く」のトグル1つ。トグルは枠の外に置く。`createItem` は `{ text: "", href: "", newTab: false }` を返す。`ListField` へ `sortable` を渡す。並べた順がメニューに出る順になる（[`../menu/navbar.md`](../menu/navbar.md)）。
 
 トグルの `id` は `$props.id()` と行の位置から作る（`<id>-newtab-<index>`）。設定ページの中で `id` が重ならず、ラベルを押すとその行のトグルが切り替わる。
 
@@ -188,7 +193,7 @@ defineGroup(
 
 ## 決めごと
 
-- **並べ替えの無い3つのエディタは、配列の操作を書き直さず `ListField` に集める。** 行の追加・削除・差し替えはどれも同じ手順になる。時限表は並べ替えの部品が一覧の要素そのものに付くため、`ListField` の外で描く
+- **配列を編集するエディタは、配列の操作を書き直さず `ListField` に集める。** 行の追加・削除・差し替えはどれも同じ手順になる。時限表は名前の欄と時刻の欄が1行に並ぶ形と、番号を `id` に使う点が違うため、`ListField` の外で描く
 - **`id` は自動で振り、画面に出さない。** `CountdownConfig.id` は内部の識別子で、ユーザーが決める意味が無い
 - **`source.at` は `datetime-local` の値をそのまま保存する。** `buildCountdownTargets` が `new Date(source.at)` で解釈するため、`YYYY-MM-DDTHH:MM` の形がそのまま通る
 - **時限表を保存時に開始時刻で並べ替えない。** 配列の順は時間割の表示の順として利用者が決める。時計は読む側（`initMenuBadges`）が `sortByStart` で開始時刻の順に整える
@@ -202,6 +207,7 @@ defineGroup(
 - **足した行の既定の対象は「日時を指定」にする。** 「今の時限の残り時間」は1つあれば足り、追加で増やすのは日時の対象のため
 - **書きかけで空のカウントダウンは「戻る」で消す。** 「追加」を押しただけの行が残ると、メニューに名前の無いバッジが並ぶ。「今の時限の残り時間」はラベルも日時も持たないため、消さない
 - **時限表は、保存先を時計と共有したまま、画面では時間割のカードに置く。** 時刻を決める動機は時間割の入力にあり、利用者は時間割の近くを探す。時計だけを使う利用者のために、説明へ時計にも効くことを書く。時間割を無効にしている間も、この行は残る
-- **時限表だけ、ドラッグで並べ替えられるようにする。** 時限の名前を自由に付けられるため（「1-2限」のようなまとめた枠など）、時間割に出す順は利用者が決める。他の3項目の並べ替えは作らない
+- **時限表と、上部メニューの2つの一覧をドラッグで並べ替えられるようにする。** 時限の名前を自由に付けられるため（「1-2限」のようなまとめた枠など）、時間割に出す順は利用者が決める。追加する項目は並べた順にメニューへ出る。隠す項目の並びは働きに関わらないが、項目が多く、メニューと同じ順に並べると見比べやすい。カウントダウンの並べ替えは作らない
+- **「時計を表示」を切っても、時計のオプションは隠さない。** オプションは切っている間も保存され、入れ直した時にそのまま効く。行が出たり消えたりすると、設定画面の中で位置がずれる
 - **並べ替えは持ち手でだけ始める。** 行の中に入力欄と時計のボタンがあり、行のどこでも掴めると、入力や選択のつもりの操作がドラッグになる
 - **時限の番号を画面から消す。** 番号は授業の置き場所を指す変わらない値で、利用者が変えると時間割の授業が別の時限へずれる。名前と並びは自由に変えてよく、番号は追加の時にだけ振る

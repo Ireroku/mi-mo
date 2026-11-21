@@ -248,6 +248,7 @@ export const settingsGroups: readonly SettingsGroup[] = [
   }),
 
   defineGroup("general", "時計", menuBadgesSetting, {
+    showClock: { label: "時計を表示", control: { kind: "toggle" } },
     clock: {
       label: "時計のオプション",
       control: {

@@ -43,6 +43,7 @@ nav.navbar #usernavigation {
 `;
 
 export interface MenuBadgesConfig {
+  showClock: boolean;
   clock: ClockConfig;
   countdowns: CountdownConfig[];
   thresholds: CountdownThresholds;
@@ -128,11 +129,14 @@ export async function initMenuBadges(
     thresholds: config.thresholds,
     watch: trackers?.countdowns.watch,
   });
-  await mountBadge(ctx, "mimo-clock-badge", userNavigation, "before", ClockBadge, {
-    config: config.clock,
-    periodTable,
-    watch: trackers?.clock.watch,
-  });
+  // 時計を出さない時は、ドロワーにも時計が出ない。ドロワーはメニューの時計が隠れた時だけ時計を出す
+  if (config.showClock) {
+    await mountBadge(ctx, "mimo-clock-badge", userNavigation, "before", ClockBadge, {
+      config: config.clock,
+      periodTable,
+      watch: trackers?.clock.watch,
+    });
+  }
   // ブロックの並びの外（直前）へ置き、ピン留めのブロックとどちらが先に差し込まれても先頭に来るようにする
   if (region && trackers) {
     await mountBadge(ctx, "mimo-drawer-clock", region, "before", DrawerClock, {

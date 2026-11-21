@@ -20,6 +20,7 @@
   {onChange}
   createItem={(): NewMenuItem => ({ text: "", href: "", newTab: false })}
   addLabel="メニュー項目を追加"
+  sortable={{ listLabel: "追加する項目の並び", itemLabel: (item) => item.text || "名前のない項目" }}
 >
   {#snippet row(item, update, index)}
     {@const toggleId = `${uid}-newtab-${index}`}

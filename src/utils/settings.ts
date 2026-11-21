@@ -77,6 +77,7 @@ export const menuBadgesSetting = defineSetting<MenuBadgesConfig>(
   "local:menu.badges",
   {
     fallback: {
+      showClock: true,
       clock: {
         showSeconds: false,
         hour12: false,

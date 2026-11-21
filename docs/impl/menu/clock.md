@@ -69,6 +69,7 @@ interface Props {
 ```ts
 // index.ts
 export interface MenuBadgesConfig {
+  showClock: boolean; // false の時は時計を差し込まない
   clock: ClockConfig;
   countdowns: CountdownConfig[];
   thresholds: CountdownThresholds;
@@ -179,7 +180,7 @@ await initMenuBadges(
 
 1. `#usernavigation` の直前へ `div.mimo-countdown-slot`（カウントダウンの置き場所）を置く。`ctx.onInvalidated` で取り除く
 2. カウントダウンを置き場所の中へ差し込む
-3. 時計を `#usernavigation` の直前へ差し込む
+3. `config.showClock` が true の場合だけ、時計を `#usernavigation` の直前へ差し込む。false の時はドロワーにも時計が出ない。ドロワーはメニューの時計が隠れた時だけ時計を出すため
 4. `drawer` が true でドロワーがあれば、ドロワーのブロックを差し込む（[`drawerClock.md`](./drawerClock.md)）
 
 | 設定 | カウントダウン | 時計 |
