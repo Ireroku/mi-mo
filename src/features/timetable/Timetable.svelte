@@ -1,6 +1,6 @@
 <script lang="ts">
   import { periodName, type PeriodSlot } from "@/utils/periods";
-  import type { TimetableConfig, Weekday } from "./types";
+  import { WEEKDAYS, WEEKDAY_LABELS, type TimetableConfig } from "./types";
   import { formatDateKey, isSameDay } from "./date";
   import {
     lessonsOn,
@@ -14,14 +14,6 @@
   }
 
   let { config, periods, schedule }: Props = $props();
-
-  const WEEKDAY_NAMES: { key: Weekday; label: string }[] = [
-    { key: "mon", label: "月" },
-    { key: "tue", label: "火" },
-    { key: "wed", label: "水" },
-    { key: "thu", label: "木" },
-    { key: "fri", label: "金" },
-  ];
 
   // 今週の月曜〜金曜の日付を計算
   function getThisWeekDays(): Date[] {
@@ -43,18 +35,16 @@
     return days;
   }
 
-  let weekDays = $derived(getThisWeekDays());
+  // 開いた時点の週を出す。開いたまま日をまたいでも描き直さない
+  const weekDays = getThisWeekDays();
 
+  // 今日の列の添字。土日は今週の5日に入らず -1 になる
   const today = new Date();
+  const todayIndex = weekDays.findIndex((day) => isSameDay(day, today));
 
   // 各曜日のレッスンを取得
   function getLessonsForDay(date: Date): Map<number, LessonOccurrence> {
-    const list = lessonsOn(date, schedule);
-    const map = new Map<number, LessonOccurrence>();
-    for (const occ of list) {
-      map.set(occ.periodIndex, occ);
-    }
-    return map;
+    return new Map(lessonsOn(date, schedule).map((occ) => [occ.periodIndex, occ]));
   }
 
   let weekLessons = $derived(weekDays.map((d) => getLessonsForDay(d)));
@@ -85,15 +75,14 @@
         <tr class="border-b">
           <th class="w-16 p-2 text-center text-xs font-medium opacity-75">時限</th>
           {#each weekDays as day, i}
-            {@const isToday = isSameDay(day, today)}
             {@const holiday = isHoliday(day)}
             <th
               class="min-w-28 p-2 text-center font-medium transition-colors"
-              class:is-today={isToday}
+              class:is-today={i === todayIndex}
             >
               <div class="flex flex-col items-center gap-0.5">
                 <span class="text-sm font-semibold">
-                  {WEEKDAY_NAMES[i]?.label}
+                  {WEEKDAY_LABELS[WEEKDAYS[i]!]}
                 </span>
                 <span class="text-xs opacity-75">
                   {day.getMonth() + 1}/{day.getDate()}
@@ -119,12 +108,11 @@
               </div>
             </td>
             {#each weekDays as day, dayIdx}
-              {@const isToday = isSameDay(day, today)}
               {@const dayMap = weekLessons[dayIdx]}
               {@const occ = dayMap?.get(periodSlot.period - 1)}
               <td
                 class="p-2 align-top border-r last:border-r-0 transition-colors"
-                class:is-today={isToday}
+                class:is-today={dayIdx === todayIndex}
               >
                 {#if occ}
                   <div class="flex flex-col gap-1">
@@ -157,96 +145,72 @@
 <style>
   /* テーマ・配色スタイル */
   /* Moodle に暗い配色が無いため、どの色も OS の配色に合わせて変えない。moodle は Moodle のカードと同じ色にする */
+  /* 色ごとに値だけを決め、当て方は下の共通の規則にまとめる */
   .mimo-timetable-panel[data-mimo-color="moodle"] {
-    background-color: #ffffff;
-    color: #1d2125;
-    border-color: #dee2e6;
-  }
-  .mimo-timetable-panel[data-mimo-color="moodle"] thead tr,
-  .mimo-timetable-panel[data-mimo-color="moodle"] tbody tr,
-  .mimo-timetable-panel[data-mimo-color="moodle"] td,
-  .mimo-timetable-panel[data-mimo-color="moodle"] th {
-    border-color: #dee2e6;
-  }
-  .mimo-timetable-panel[data-mimo-color="moodle"] .is-today {
-    background-color: #e7f0f9;
-  }
-  .mimo-timetable-panel[data-mimo-color="moodle"] a {
-    color: #0f6cbf;
+    --mimo-tt-bg: #ffffff;
+    --mimo-tt-fg: #1d2125;
+    --mimo-tt-border: #dee2e6;
+    --mimo-tt-rule: #dee2e6;
+    --mimo-tt-today: #e7f0f9;
   }
 
   .mimo-timetable-panel[data-mimo-color="white"] {
-    background-color: #ffffff;
-    color: #0f172a;
-    border-color: #e2e8f0;
-  }
-  .mimo-timetable-panel[data-mimo-color="white"] thead tr,
-  .mimo-timetable-panel[data-mimo-color="white"] tbody tr,
-  .mimo-timetable-panel[data-mimo-color="white"] td,
-  .mimo-timetable-panel[data-mimo-color="white"] th {
-    border-color: #f1f5f9;
-  }
-  .mimo-timetable-panel[data-mimo-color="white"] .is-today {
-    background-color: #f8fafc;
+    --mimo-tt-bg: #ffffff;
+    --mimo-tt-fg: #0f172a;
+    --mimo-tt-border: #e2e8f0;
+    --mimo-tt-rule: #f1f5f9;
+    --mimo-tt-today: #f8fafc;
   }
 
   .mimo-timetable-panel[data-mimo-color="black"] {
-    background-color: #09090b;
-    color: #f4f4f5;
-    border-color: #27272a;
-  }
-  .mimo-timetable-panel[data-mimo-color="black"] thead tr,
-  .mimo-timetable-panel[data-mimo-color="black"] tbody tr,
-  .mimo-timetable-panel[data-mimo-color="black"] td,
-  .mimo-timetable-panel[data-mimo-color="black"] th {
-    border-color: #18181b;
-  }
-  .mimo-timetable-panel[data-mimo-color="black"] .is-today {
-    background-color: #18181b;
+    --mimo-tt-bg: #09090b;
+    --mimo-tt-fg: #f4f4f5;
+    --mimo-tt-border: #27272a;
+    --mimo-tt-rule: #18181b;
+    --mimo-tt-today: #18181b;
   }
 
   .mimo-timetable-panel[data-mimo-color="sky"] {
-    background-color: #f0f9ff;
-    color: #0c4a6e;
-    border-color: #bae6fd;
-  }
-  .mimo-timetable-panel[data-mimo-color="sky"] thead tr,
-  .mimo-timetable-panel[data-mimo-color="sky"] tbody tr,
-  .mimo-timetable-panel[data-mimo-color="sky"] td,
-  .mimo-timetable-panel[data-mimo-color="sky"] th {
-    border-color: #e0f2fe;
-  }
-  .mimo-timetable-panel[data-mimo-color="sky"] .is-today {
-    background-color: #e0f2fe;
+    --mimo-tt-bg: #f0f9ff;
+    --mimo-tt-fg: #0c4a6e;
+    --mimo-tt-border: #bae6fd;
+    --mimo-tt-rule: #e0f2fe;
+    --mimo-tt-today: #e0f2fe;
   }
 
   .mimo-timetable-panel[data-mimo-color="pink"] {
-    background-color: #fdf2f8;
-    color: #831843;
-    border-color: #fbcfe8;
-  }
-  .mimo-timetable-panel[data-mimo-color="pink"] thead tr,
-  .mimo-timetable-panel[data-mimo-color="pink"] tbody tr,
-  .mimo-timetable-panel[data-mimo-color="pink"] td,
-  .mimo-timetable-panel[data-mimo-color="pink"] th {
-    border-color: #fce7f3;
-  }
-  .mimo-timetable-panel[data-mimo-color="pink"] .is-today {
-    background-color: #fce7f3;
+    --mimo-tt-bg: #fdf2f8;
+    --mimo-tt-fg: #831843;
+    --mimo-tt-border: #fbcfe8;
+    --mimo-tt-rule: #fce7f3;
+    --mimo-tt-today: #fce7f3;
   }
 
   .mimo-timetable-panel[data-mimo-color="green"] {
-    background-color: #f0fdf4;
-    color: #14532d;
-    border-color: #bbf7d0;
+    --mimo-tt-bg: #f0fdf4;
+    --mimo-tt-fg: #14532d;
+    --mimo-tt-border: #bbf7d0;
+    --mimo-tt-rule: #dcfce7;
+    --mimo-tt-today: #dcfce7;
   }
-  .mimo-timetable-panel[data-mimo-color="green"] thead tr,
-  .mimo-timetable-panel[data-mimo-color="green"] tbody tr,
-  .mimo-timetable-panel[data-mimo-color="green"] td,
-  .mimo-timetable-panel[data-mimo-color="green"] th {
-    border-color: #dcfce7;
+
+  .mimo-timetable-panel[data-mimo-color] {
+    background-color: var(--mimo-tt-bg);
+    color: var(--mimo-tt-fg);
+    border-color: var(--mimo-tt-border);
   }
-  .mimo-timetable-panel[data-mimo-color="green"] .is-today {
-    background-color: #dcfce7;
+  .mimo-timetable-panel[data-mimo-color] thead tr,
+  .mimo-timetable-panel[data-mimo-color] tbody tr,
+  .mimo-timetable-panel[data-mimo-color] td,
+  .mimo-timetable-panel[data-mimo-color] th {
+    border-color: var(--mimo-tt-rule);
+  }
+  .mimo-timetable-panel[data-mimo-color] .is-today {
+    background-color: var(--mimo-tt-today);
+  }
+
+  /* リンクの色は moodle だけが持つ。他の色は文字色を引き継ぐ */
+  .mimo-timetable-panel[data-mimo-color="moodle"] a {
+    color: #0f6cbf;
   }
 </style>

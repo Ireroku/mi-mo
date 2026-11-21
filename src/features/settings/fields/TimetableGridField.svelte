@@ -1,6 +1,11 @@
 <script lang="ts">
   import type { CustomFieldProps } from "../types";
-  import type { TimetableSlot, Weekday } from "@/features/timetable/types";
+  import {
+    WEEKDAYS,
+    WEEKDAY_LABELS,
+    type TimetableSlot,
+    type Weekday,
+  } from "@/features/timetable/types";
   import { periodTableSetting } from "@/utils/settings";
   import { periodName, type PeriodSlot } from "@/utils/periods";
   import * as Accordion from "$lib/components/ui/accordion";
@@ -11,14 +16,6 @@
     value,
     onChange,
   }: CustomFieldProps<Record<Weekday, (TimetableSlot | null)[]>> = $props();
-
-  const WEEKDAYS: { key: Weekday; label: string }[] = [
-    { key: "mon", label: "月曜日" },
-    { key: "tue", label: "火曜日" },
-    { key: "wed", label: "水曜日" },
-    { key: "thu", label: "木曜日" },
-    { key: "fri", label: "金曜日" },
-  ];
 
   // 時限表の並びで行を出す。時限表は別の画面で直すため、開いた時に一度だけ読む
   let periods = $state<PeriodSlot[]>([]);
@@ -64,7 +61,8 @@
 </script>
 
 <Accordion.Root type="single" class="w-full">
-  {#each WEEKDAYS as { key, label } (key)}
+  {#each WEEKDAYS as key (key)}
+    {@const label = `${WEEKDAY_LABELS[key]}曜日`}
     {@const slots = value[key] || []}
     <Accordion.Item value={key}>
       <Accordion.Trigger class="text-row font-normal">{label}</Accordion.Trigger>

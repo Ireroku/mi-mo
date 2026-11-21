@@ -1,7 +1,8 @@
 // 時間割を iCalendar (.ics) 形式にエクスポートする。
 
 import type { PeriodSlot } from "@/utils/periods";
-import type { TimetableConfig, Weekday } from "./types";
+import { WEEKDAYS, type TimetableConfig, type Weekday } from "./types";
+import { formatDateKey } from "./date";
 import {
   buildSchedule,
   weekdayOf,
@@ -59,13 +60,25 @@ function foldLine(line: string): string {
   return result.join("\r\n");
 }
 
+// UTC の時刻を YYYYMMDDTHHMMSSZ の形に整形する。
+function formatUtc(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const y = date.getUTCFullYear();
+  const mon = pad(date.getUTCMonth() + 1);
+  const d = pad(date.getUTCDate());
+  const hour = pad(date.getUTCHours());
+  const min = pad(date.getUTCMinutes());
+  const sec = pad(date.getUTCSeconds());
+  return `${y}${mon}${d}T${hour}${min}${sec}Z`;
+}
+
 /**
  * 日本時間の日付と "HH:MM" 文字列から UTC の ISO 類似形式 (YYYYMMDDTHHMMSSZ) を生成する。
  */
 function toUtcString(date: Date, timeStr: string): string {
   const [h, m] = timeStr.split(":").map((v) => parseInt(v, 10));
   // 授業の時刻は日本時間（UTC+9）で決まる。実行環境のタイムゾーンに依らず同じ結果にする。
-  const localDate = new Date(
+  const utcDate = new Date(
     Date.UTC(
       date.getFullYear(),
       date.getMonth(),
@@ -74,26 +87,7 @@ function toUtcString(date: Date, timeStr: string): string {
       m ?? 0,
     ),
   );
-
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const y = localDate.getUTCFullYear();
-  const mon = pad(localDate.getUTCMonth() + 1);
-  const d = pad(localDate.getUTCDate());
-  const hour = pad(localDate.getUTCHours());
-  const min = pad(localDate.getUTCMinutes());
-  const sec = pad(localDate.getUTCSeconds());
-  return `${y}${mon}${d}T${hour}${min}${sec}Z`;
-}
-
-function formatDtstamp(now: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const y = now.getUTCFullYear();
-  const mon = pad(now.getUTCMonth() + 1);
-  const d = pad(now.getUTCDate());
-  const hour = pad(now.getUTCHours());
-  const min = pad(now.getUTCMinutes());
-  const sec = pad(now.getUTCSeconds());
-  return `${y}${mon}${d}T${hour}${min}${sec}Z`;
+  return formatUtc(utcDate);
 }
 
 /**
@@ -105,7 +99,7 @@ export function buildIcs(
 ): string {
   const schedule = buildSchedule(config, periods);
   const now = new Date();
-  const dtstamp = formatDtstamp(now);
+  const dtstamp = formatUtc(now);
 
   const lines: string[] = [
     "BEGIN:VCALENDAR",
@@ -133,8 +127,7 @@ export function buildIcs(
   }
 
   // 1. 通常の週繰り返し VEVENT
-  const weekdays: Weekday[] = ["mon", "tue", "wed", "thu", "fri"];
-  for (const w of weekdays) {
+  for (const w of WEEKDAYS) {
     const list = config.grid[w] || [];
     for (let periodIdx = 0; periodIdx < list.length; periodIdx++) {
       const slot = list[periodIdx];
@@ -165,14 +158,11 @@ export function buildIcs(
       const byday = WEEKDAY_BYDAY[w];
 
       const exdates: string[] = [];
-      const carriedOutDates = new Set(
-        group.map((o) => `${o.date.getFullYear()}-${o.date.getMonth()}-${o.date.getDate()}`),
-      );
+      const carriedOutDates = new Set(group.map((o) => formatDateKey(o.date)));
       // 初回日から最終回日までの本来の曜日で、授業が実施されなかった日を抽出
       const cursor = new Date(firstOcc.date);
       while (cursor <= lastOcc.date) {
-        const cursorKey = `${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`;
-        if (!carriedOutDates.has(cursorKey)) {
+        if (!carriedOutDates.has(formatDateKey(cursor))) {
           exdates.push(toUtcString(cursor, startTime));
         }
         cursor.setDate(cursor.getDate() + 7);
@@ -207,7 +197,7 @@ export function buildIcs(
 
     const dtstart = toUtcString(occ.date, startTime);
     const dtend = toUtcString(occ.date, endTime);
-    const dateSlug = `${occ.date.getFullYear()}${String(occ.date.getMonth() + 1).padStart(2, "0")}${String(occ.date.getDate()).padStart(2, "0")}`;
+    const dateSlug = formatDateKey(occ.date).replace(/-/g, "");
 
     lines.push("BEGIN:VEVENT");
     lines.push(`UID:${occ.weekday}-${occ.periodIndex + 1}-${dateSlug}@mi-mo`);

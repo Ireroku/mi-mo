@@ -1,6 +1,18 @@
 // 時間割カレンダーの設定とデータ構造の型定義。
 
-export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri";
+// 月曜から金曜の順に並べる。曜日を回す処理と画面の並びはこの順に従う
+export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri"] as const;
+
+export type Weekday = (typeof WEEKDAYS)[number];
+
+// 画面に出す曜日の1文字。「曜日」「曜の授業」などは使う側で足す
+export const WEEKDAY_LABELS: Record<Weekday, string> = {
+  mon: "月",
+  tue: "火",
+  wed: "水",
+  thu: "木",
+  fri: "金",
+};
 
 export interface TimetableSlot {
   title: string;

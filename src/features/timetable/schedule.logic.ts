@@ -2,10 +2,11 @@
 
 import type { PeriodSlot } from "@/utils/periods";
 import { formatDateKey, isSameDay } from "./date";
-import type {
-  TimetableConfig,
-  Weekday,
-  TimetableSlot,
+import {
+  WEEKDAYS,
+  type TimetableConfig,
+  type Weekday,
+  type TimetableSlot,
 } from "./types";
 
 export interface LessonOccurrence {
@@ -20,21 +21,8 @@ export interface LessonOccurrence {
  * Date の曜日を Weekday に変換する。土日なら undefined を返す。
  */
 export function weekdayOf(date: Date): Weekday | undefined {
-  const day = date.getDay();
-  switch (day) {
-    case 1:
-      return "mon";
-    case 2:
-      return "tue";
-    case 3:
-      return "wed";
-    case 4:
-      return "thu";
-    case 5:
-      return "fri";
-    default:
-      return undefined;
-  }
+  // 日曜は -1、土曜は 5 になり、どちらも範囲の外で undefined になる
+  return WEEKDAYS[date.getDay() - 1];
 }
 
 /**
@@ -66,9 +54,8 @@ export function buildSchedule(
   const periodIndexes = periods.map((p) => p.period - 1);
 
   // 有効なコマの総数をチェック
-  const weekdays: Weekday[] = ["mon", "tue", "wed", "thu", "fri"];
   const activeSlots: { weekday: Weekday; periodIndex: number; slot: TimetableSlot }[] = [];
-  for (const w of weekdays) {
+  for (const w of WEEKDAYS) {
     const list = config.grid[w] || [];
     for (const i of periodIndexes) {
       const slot = list[i];
@@ -85,10 +72,7 @@ export function buildSchedule(
 
   const holidaySet = new Set(config.holidays.map((h) => h.date));
 
-  const substituteMap = new Map<string, Weekday>();
-  for (const sub of config.substitutes) {
-    substituteMap.set(sub.date, sub.weekday);
-  }
+  const substituteMap = new Map(config.substitutes.map((sub) => [sub.date, sub.weekday]));
 
   const occurrences: LessonOccurrence[] = [];
   const countMap = new Map<string, number>();
@@ -112,12 +96,7 @@ export function buildSchedule(
     }
 
     // 行う授業の曜日（振替があれば振替元の曜日、なければ実際の曜日）
-    let targetWeekday: Weekday | undefined;
-    if (substituteMap.has(dateKey)) {
-      targetWeekday = substituteMap.get(dateKey);
-    } else {
-      targetWeekday = weekdayOf(currentDate);
-    }
+    const targetWeekday = substituteMap.get(dateKey) ?? weekdayOf(currentDate);
 
     if (targetWeekday) {
       const list = config.grid[targetWeekday] || [];

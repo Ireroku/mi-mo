@@ -24,7 +24,9 @@
 // src/features/timetable/types.ts
 import type { PeriodSlot } from "@/utils/periods";
 
-export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri";
+export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri"] as const;
+export type Weekday = (typeof WEEKDAYS)[number];
+export const WEEKDAY_LABELS: Record<Weekday, string>; // "月" から "金" の1文字
 
 export interface TimetableSlot {
   title: string;
@@ -112,7 +114,7 @@ export function isSameDay(first: Date, second: Date): boolean;
 
 ### weekdayOf
 
-`Date` の曜日を `Weekday` へ直す。土曜と日曜は `undefined` を返す。
+`Date` の曜日を `Weekday` へ直す。土曜と日曜は `undefined` を返す。`WEEKDAYS` を `getDay() - 1` の添字で引き、範囲の外になる土日を `undefined` にする。
 
 ## 決めごと
 
@@ -122,6 +124,7 @@ export function isSameDay(first: Date, second: Date): boolean;
 - **同じ日が休講日と振替日の両方に指定された場合、休講を優先する。** 処理の順序で休講を先に見る。どちらが勝つかを決めておかないと、設定の入力ミスで日程が静かにずれる
 - **終了条件を「全コマが所定の回数に達すること」にする。** 学期の終了日を別に設定させない。休講が多いコマがあれば、その分だけ日程が後ろへ伸びる
 - **365 日の上限を置く。** 設定次第（回数が大きい、grid が空など）で終わらなくなるため、無条件に止まる線を引く
+- **曜日の並びと表示名は `WEEKDAYS` と `WEEKDAY_LABELS` にだけ書く。** 日程計算、`.ics` の書き出し、時間割パネル、設定画面のエディタが同じ並びを使う。表示名は1文字だけを持ち、「曜日」「曜の授業」などは使う側で足す
 - **土曜と日曜は授業を置かない。** `Weekday` を月曜から金曜に限る。土曜開講が必要になった時点で型を広げる
 - **`grid` は曜日ごとの配列で持ち、添字を時限の番号（`period - 1`）に対応させる。** どの時限があり、どの順に並ぶかは [`../utils/periods.md`](../utils/periods.md) の時限表に従う。配列の長さが時限表より短い場合、足りない分は空きコマとして扱う
 - **時限表から消した時限のコマは、日程に入れず、`grid` からも消さない。** 消した時限を戻すと授業も戻る。消すと、誤って時限を消しただけで授業の入力が失われる

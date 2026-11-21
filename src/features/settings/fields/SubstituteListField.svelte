@@ -1,6 +1,11 @@
 <script lang="ts">
   import type { CustomFieldProps } from "../types";
-  import type { TimetableSubstitute, Weekday } from "@/features/timetable/types";
+  import {
+    WEEKDAYS,
+    WEEKDAY_LABELS,
+    type TimetableSubstitute,
+    type Weekday,
+  } from "@/features/timetable/types";
   import ListField from "./ListField.svelte";
   import StackedInputs from "../controls/StackedInputs.svelte";
   import DatePicker from "../controls/DatePicker.svelte";
@@ -10,13 +15,10 @@
 
   let items = $derived(value ?? []);
 
-  const WEEKDAY_OPTIONS: { value: Weekday; label: string }[] = [
-    { value: "mon", label: "月曜の授業" },
-    { value: "tue", label: "火曜の授業" },
-    { value: "wed", label: "水曜の授業" },
-    { value: "thu", label: "木曜の授業" },
-    { value: "fri", label: "金曜の授業" },
-  ];
+  const WEEKDAY_OPTIONS = WEEKDAYS.map((value) => ({
+    value,
+    label: `${WEEKDAY_LABELS[value]}曜の授業`,
+  }));
 </script>
 
 <ListField
