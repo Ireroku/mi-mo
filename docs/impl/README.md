@@ -258,7 +258,7 @@ content script で Tailwind を使うには、entrypoint から `@/assets/global
 
 entrypoint だけは例外として、呼び出し部分を実コードで書く。設定をどう取得して機能へどう渡すかが設計判断にあたるため。
 
-**entrypoint と `src/utils/settings.ts` は追記専用として扱う。** 多くのモジュールが同じファイルを対象ファイルに挙げる（`shared.content.ts` へ17本、`src/utils/settings.ts` へ15本、`early.content.ts` へ11本）。実装するときは自分が担当する行だけを足し、既にある他機能の行を消さない。ファイルごと書き直すと、先に実装した機能の呼び出しがまとめて失われる。
+**entrypoint と `src/utils/settings.ts` は追記専用として扱う。** 多くのモジュールが同じファイルを対象ファイルに挙げる（`shared.content.ts` へ17本、`src/utils/settings.ts` へ15本、`early.content.ts` へ12本）。実装するときは自分が担当する行だけを足し、既にある他機能の行を消さない。ファイルごと書き直すと、先に実装した機能の呼び出しがまとめて失われる。
 
 **決めごと** は、読んだ人が迷う箇所を潰すために書く。「IDを数値にするか文字列にするか」のような、どちらでも動くが決めておかないと食い違う判断を記載する。
 

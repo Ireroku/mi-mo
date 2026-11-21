@@ -8,20 +8,22 @@ Moodle のナビゲーションメニューに対して、項目の非表示と�
 flowchart TD
     subgraph Entrypoints["src/entrypoints/"]
         SC["shared.content.ts<br/>(WXT Content Script)"]
+        EC["early.content.ts<br/>(document_start)"]
     end
 
     subgraph MenuFeature["src/features/menu/"]
         MI["index.ts<br/>(設定の定義と初期化)"]
 
         subgraph NavbarModule["navbar/"]
-            MM["menu.manager.ts<br/>(applyMenuConfig)"]
-            PN["primaryNav.dom.ts<br/>(applyNavbarMenu)"]
+            MM["menu.manager.ts<br/>(applyMenuConfig, hideNavbarItemsEarly)"]
+            PN["primaryNav.dom.ts<br/>(applyNavbarMenu, watchNavbarHidden)"]
             DR["drawer.dom.ts<br/>(applyDrawerMenu)"]
             TY["types.ts<br/>(MenuConfig, NewMenuItem)"]
         end
     end
 
     SC -->|呼び出し| MI
+    EC -->|hidden だけを渡す| MM
     MI -->|設定を適用| MM
     MM -->|PCナビ操作| PN
     MM -->|ドロワー操作| DR
@@ -43,11 +45,12 @@ flowchart TD
 | パス | 役割 |
 |---|---|
 | `src/features/menu/navbar/types.ts` | `MenuConfig` / `NewMenuItem` の型定義 |
-| `src/features/menu/navbar/menu.manager.ts` | `applyMenuConfig`。非表示用のスタイルを入れ、両方のアダプターへ設定を渡す |
-| `src/features/menu/navbar/primaryNav.dom.ts` | `applyNavbarMenu`。PC表示のトップバーを操作する |
+| `src/features/menu/navbar/menu.manager.ts` | `applyMenuConfig`。非表示用のスタイルを入れ、両方のアダプターへ設定を渡す。`hideNavbarItemsEarly`。描画前にトップバーの項目を隠す |
+| `src/features/menu/navbar/primaryNav.dom.ts` | `applyNavbarMenu`。PC表示のトップバーを操作する。`watchNavbarHidden`。読み込み中のトップバーを見張る |
 | `src/features/menu/navbar/drawer.dom.ts` | `applyDrawerMenu`。モバイル表示のドロワーを操作する |
 | `src/features/menu/index.ts` | 設定を受け取り、`applyMenuConfig` へ渡す |
 | `src/entrypoints/shared.content.ts` | 設定を読み、`initMenu` へ渡す |
+| `src/entrypoints/early.content.ts` | 設定の `hidden` だけを `hideNavbarItemsEarly` へ渡す |
 
 ## インターフェース
 
@@ -68,11 +71,13 @@ export interface MenuConfig {
 ```ts
 // menu.manager.ts
 export function applyMenuConfig(config: MenuConfig): void;
+export function hideNavbarItemsEarly(config: Pick<MenuConfig, "hidden">): void;
 ```
 
 ```ts
 // primaryNav.dom.ts
 export function applyNavbarMenu(config: MenuConfig): void;
+export function watchNavbarHidden(hidden: string[]): void;
 ```
 
 ```ts
@@ -92,6 +97,13 @@ export function initMenu(config: MenuConfig): void;
 ```ts
 const menuConfig = await menuSetting.getValue();
 initMenu(menuConfig);
+```
+
+`src/entrypoints/early.content.ts` での使い方:
+
+```ts
+const menuConfig = await menuSetting.getValue();
+hideNavbarItemsEarly({ hidden: menuConfig.hidden });
 ```
 
 設定の中身は次の形になる。
@@ -118,6 +130,11 @@ initMenu(menuConfig);
 2. `applyNavbarMenu(config)` を呼ぶ
 3. `applyDrawerMenu(config)` を呼ぶ
 
+### hideNavbarItemsEarly
+
+1. `applyMenuConfig` と同じ非表示用のスタイルを入れる
+2. `watchNavbarHidden(config.hidden ?? [])` を呼ぶ
+
 ### アダプター共通
 
 - 呼ばれた時にコンテナを1度だけ探す。見つからなければ何もしない
@@ -127,10 +144,17 @@ initMenu(menuConfig);
 
 コンテナのセレクタ: `NAVBAR_CONTAINER_SELECTOR`（`nav.navbar ul.more-nav, nav.navbar ul.navbar-nav`）
 
-**hideItem**
+**markHiddenItems**
 
-1. `:scope > li.nav-item` を走査し、照合にヒットした要素へ `data-mimo-hidden="true"` を付ける
-2. `.dropdown-menu a.dropdown-item` を走査し、同様に処理する
+1. `:scope > li.nav-item` と `.dropdown-menu a.dropdown-item` を走査する
+2. 隠す対象のどれかに照合がヒットした要素へ `data-mimo-hidden` を付け、ヒットしない要素からは外す。`toggleAttribute` を使い、状態が同じなら書き換えない
+
+**watchNavbarHidden**
+
+1. 隠す対象を保持し、コンテナがあれば `markHiddenItems` を呼ぶ
+2. 読み込みが終わっていれば、ここで終わる。見張りが既にあれば、保持する対象を差し替えるだけで終わる
+3. `document` の子孫の追加を `MutationObserver` で見張り、通知のたびにコンテナを探して `markHiddenItems` を呼ぶ
+4. `#usernavigation` が現れるか `DOMContentLoaded` が来たら、見張りをやめる
 
 **insertItem**
 
@@ -187,4 +211,7 @@ initMenu(menuConfig);
 - **操作対象は主ナビゲーションに限る。** 通知・メッセージ・ユーザープロフィールなどのユーザーナビゲーションは対象外
 - **足す項目は位置を持たず、並びの末尾へ入る。** 位置を指定する設定は [`../settings/menuFields.md`](../settings/menuFields.md) が編集させないため、指定の処理も持たない
 - **設定の適用は1度だけ行い、DOM の変化を待たない。** `initMenu` は `document_idle` の [`shared.content.ts`](../../../src/entrypoints/shared.content.ts) からだけ呼ばれ、その時点でメニューは描画済みになっている
+- **トップバーの非表示だけは、`document_start` から先に行う。** `document_idle` で隠すと、項目が一瞬見えてから消えるため。`MutationObserver` の通知はマイクロタスクで、項目が DOM に入ってから描画までの間に印が付く。見張りは `#usernavigation`（主ナビゲーションの後ろ）が現れた時点でやめ、読み込みの後まで残さない
+- **先に行うのは、トップバーの非表示に限る。** ドロワーは閉じた状態で読み込まれ、開くまで見えない。足す項目は利用者の入れたリンクを含み、ページの `localStorage` の写しへ入れないため
+- **Moodle が「さらに」へ移す幅の計算は、隠した後の幅で行われる。** 見張りが印を付けた後で Moodle のスクリプトが動くため
 - **設定は entrypoint が読み、`initMenu` が引数で受け取る。** このモジュールは設定の保存場所も形式も参照しない

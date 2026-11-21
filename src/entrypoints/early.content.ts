@@ -8,6 +8,8 @@ import {
   type ReverseSectionsConfig,
 } from "@/features/coursePage/reverseSections";
 import { applyQuickDrawerVisibility, type QuickDrawerConfig } from "@/features/ui/quickDrawer";
+import { hideNavbarItemsEarly } from "@/features/menu/navbar/menu.manager";
+import type { MenuConfig } from "@/features/menu/navbar/types";
 import { decideLanding } from "@/features/ui/landingPage.logic";
 import { readLoggedIn } from "@/moodle/user";
 import {
@@ -18,6 +20,7 @@ import {
   uiFontSetting,
   coursePageReverseSectionsSetting,
   uiQuickDrawerSetting,
+  menuSetting,
   uiLandingPageSetting,
   uiLandingPendingFlag,
   type ExtensionConfig,
@@ -39,11 +42,12 @@ interface EarlySettings {
   font: FontConfig;
   reverseSections: ReverseSectionsConfig;
   quickDrawer: Pick<QuickDrawerConfig, "hidden">;
+  menu: Pick<MenuConfig, "hidden">;
 }
 
 const CACHE_KEY = "mimo:early";
 
-// どれも style 要素を1つ入れるか差し替えるだけ。同じ設定で呼び直しても変わらない。
+// どれも style 要素を1つ入れるか差し替えるか、属性の印を付け直すだけ。同じ設定で呼び直しても変わらない。
 // 間の await はマイクロタスクで、描画の前に流れ切る
 async function applyEarly(settings: EarlySettings): Promise<void> {
   // 全体のスイッチが切られている間は、どの機能も動かさない。写しで当てた分も外す
@@ -59,6 +63,7 @@ async function applyEarly(settings: EarlySettings): Promise<void> {
   await runFeature("font", () => applyFont(settings.font));
   await runFeature("reverseSections", () => applyReverseSections(settings.reverseSections));
   await runFeature("quickDrawer", () => applyQuickDrawerVisibility(settings.quickDrawer));
+  await runFeature("menuHidden", () => hideNavbarItemsEarly(settings.menu));
   await runFeature("sectionTitleLink", () => applySectionTitleLink());
   await runFeature("sectionToggleDesign", () => applySectionToggleDesign());
   await runFeature("clickableCard", () => applyClickableCard());
@@ -84,6 +89,7 @@ export default defineContentScript({
       uiFont,
       coursePageReverseSections,
       quickDrawerConfig,
+      menuConfig,
       landingConfig,
       landingPending,
     ] = await Promise.all([
@@ -94,6 +100,7 @@ export default defineContentScript({
       uiFontSetting.getValue(),
       coursePageReverseSectionsSetting.getValue(),
       uiQuickDrawerSetting.getValue(),
+      menuSetting.getValue(),
       uiLandingPageSetting.getValue(),
       uiLandingPendingFlag.getValue(),
     ]);
@@ -107,6 +114,7 @@ export default defineContentScript({
       font: uiFont,
       reverseSections: coursePageReverseSections,
       quickDrawer: { hidden: quickDrawerConfig.hidden },
+      menu: { hidden: menuConfig.hidden },
     };
     writePageCache(CACHE_KEY, version, settings);
     await applyEarly(settings);
