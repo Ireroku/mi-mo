@@ -13,7 +13,7 @@
 ## 手順
 
 1. `package.json` の `version` を、上の決まりで書き換える
-2. [`verify.md`](./verify.md) の確認を通し、`chore: <版> をリリース` でコミットする
+2. [`verify.md`](./verify.md) の確認を通し、版の番号だけをメッセージにしてコミットする（`git commit -m "2026.11.19"`）
 3. 版と同じ名前の注釈付きタグ（`git tag -a v2026.11.19`）を付け、注釈に[変更の一覧](#変更の一覧)を書く。main とタグを GitHub へ push する
 4. GitHub Actions（`.github/workflows/release.yml`）が、タグと `version` が一致することを確かめ、単体テストを通し、Chrome 向けと Firefox 向けの ZIP を作って GitHub の Release へ添える。タグの注釈が Release の本文になる
 5. Release の ZIP を、Chrome Web Store と Firefox Add-ons へ上げる。Firefox には、`-sources.zip` を審査用のソースコードとして添える
