@@ -25,19 +25,18 @@ export const HOME_CONTAINER_ID = "mimo-home-top";
 export function ensureHomeContainer(): HTMLElement | undefined;
 ```
 
-使う側は、返った要素を `createShadowRootUi` の `anchor` に渡し、`append` へ `last` を指定します。
+使う側は、返った要素を [`mountShadowUi`](../utils/mountShadowUi.md) の `anchor` に渡し、`append` へ `last` を指定します。
 
 ```ts
 const container = ensureHomeContainer();
 if (!container) return;
 
-const ui = await createShadowRootUi(ctx, {
-  name: "mimo-greeting",
-  position: "inline",
-  anchor: container,
-  append: "last",
-  onMount: /* ... */,
-});
+await mountShadowUi(
+  ctx,
+  { name: "mimo-greeting", anchor: container, append: "last" },
+  Greeting,
+  { salutation, userName, message },
+);
 ```
 
 ## 処理の流れ

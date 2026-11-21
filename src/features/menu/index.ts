@@ -1,6 +1,6 @@
-import { mount, unmount, type Component } from "svelte";
 import type { ContentScriptContext } from "wxt/utils/content-script-context";
-import { MenuManager, type MenuConfig } from "./navbar/menu.manager";
+import { applyMenuConfig } from "./navbar/menu.manager";
+import type { MenuConfig } from "./navbar/types";
 import ClockBadge from "./clock.svelte";
 import CountdownBadge from "./countdownBadge.svelte";
 import DrawerClock from "./drawerClock.svelte";
@@ -16,6 +16,7 @@ import {
   type CountdownThresholds,
 } from "./countdownBadge.logic";
 import { applyStyleSheet } from "@/utils/styleSheet";
+import { mountShadowUi } from "@/utils/mountShadowUi";
 import { DRAWER_REGION_SELECTOR } from "@/features/ui/quickDrawer";
 import { buildSchedule, hasLessons } from "@/features/timetable/schedule.logic";
 import type { TimetableConfig } from "@/features/timetable/types";
@@ -53,34 +54,7 @@ export interface MenuBadgesConfig {
  * ナビゲーションメニュー機能を初期化する。エントリーポイント（shared.content.ts）から呼び出す。
  */
 export function initMenu(config: MenuConfig): void {
-  const menuManager = new MenuManager();
-  menuManager.applyConfig(config);
-}
-
-/**
- * SvelteコンポーネントをShadow DOM経由でanchorの位置にマウントする共通処理。
- */
-async function mountBadge<Props extends Record<string, unknown>>(
-  ctx: ContentScriptContext,
-  name: string,
-  anchor: Element,
-  append: "before" | "last",
-  component: Component<Props>,
-  props: Props,
-): Promise<void> {
-  const ui = await createShadowRootUi(ctx, {
-    name,
-    position: "inline",
-    anchor,
-    append,
-    onMount: (container) => mount(component, { target: container, props }),
-    onRemove: (mounted) => {
-      if (mounted) {
-        unmount(mounted);
-      }
-    },
-  });
-  ui.mount();
+  applyMenuConfig(config);
 }
 
 /**
@@ -124,29 +98,44 @@ export async function initMenuBadges(
     });
   }
 
-  await mountBadge(ctx, "mimo-countdown-badge", slot, "last", CountdownBadge, {
-    targets: countdownTargets,
-    thresholds: config.thresholds,
-    watch: trackers?.countdowns.watch,
-  });
+  await mountShadowUi(
+    ctx,
+    { name: "mimo-countdown-badge", anchor: slot, append: "last" },
+    CountdownBadge,
+    {
+      targets: countdownTargets,
+      thresholds: config.thresholds,
+      watch: trackers?.countdowns.watch,
+    },
+  );
   // 時計を出さない時は、ドロワーにも時計が出ない。ドロワーはメニューの時計が隠れた時だけ時計を出す
   if (config.showClock) {
-    await mountBadge(ctx, "mimo-clock-badge", userNavigation, "before", ClockBadge, {
-      config: config.clock,
-      periodTable,
-      watch: trackers?.clock.watch,
-    });
+    await mountShadowUi(
+      ctx,
+      { name: "mimo-clock-badge", anchor: userNavigation, append: "before" },
+      ClockBadge,
+      {
+        config: config.clock,
+        periodTable,
+        watch: trackers?.clock.watch,
+      },
+    );
   }
   // ブロックの並びの外（直前）へ置き、ピン留めのブロックとどちらが先に差し込まれても先頭に来るようにする
   if (region && trackers) {
-    await mountBadge(ctx, "mimo-drawer-clock", region, "before", DrawerClock, {
-      clock: config.clock,
-      periodTable,
-      targets: countdownTargets,
-      thresholds: config.thresholds,
-      hiddenClock: trackers.clock,
-      hiddenCountdowns: trackers.countdowns,
-    });
+    await mountShadowUi(
+      ctx,
+      { name: "mimo-drawer-clock", anchor: region, append: "before" },
+      DrawerClock,
+      {
+        clock: config.clock,
+        periodTable,
+        targets: countdownTargets,
+        thresholds: config.thresholds,
+        hiddenClock: trackers.clock,
+        hiddenCountdowns: trackers.countdowns,
+      },
+    );
   }
 
   // Moodle はメニューに収まる項目数を resize の時にだけ計算する。

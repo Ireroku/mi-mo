@@ -8,7 +8,7 @@
 
 - 使う: [`../moodle/page.md`](../moodle/page.md) — コースページかどうかの判定
 - 資料: [`../../moodle/course-page.md`](../../moodle/course-page.md) — 出席リンクのセレクタ、遷移先が別ページになる事情
-- 参考: [`../menu/clock.md`](../menu/clock.md) — `createShadowRootUi` で要素を差し込む書き方
+- 使う: [`../utils/mountShadowUi.md`](../utils/mountShadowUi.md) — Svelte コンポーネントを Shadow DOM で差し込む共通処理
 
 ## 対象ファイル
 
@@ -73,7 +73,7 @@ if (config.enabled) {
 1. `isCoursePage()` が false なら何もせず戻る
 2. `#region-main li.activity.modtype_autoattendmod a.aalink` を探す。無ければ何もせず戻る
 3. その `href` を取る
-4. `placement` に応じた差し込み先で `createShadowRootUi` を呼び、`AutoattendButton.svelte` をマウントする
+4. `placement` に応じた差し込み先で [`mountShadowUi`](../utils/mountShadowUi.md) を呼び、`AutoattendButton.svelte` をマウントする
 
 | `placement` | `anchor` | `append` |
 |---|---|---|

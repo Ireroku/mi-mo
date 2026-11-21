@@ -353,6 +353,7 @@ entrypoint だけは例外として、呼び出し部分を実コードで書く
 | [`utils/markdown.md`](./utils/markdown.md) | `src/utils/markdown.ts` | 参考: coursePage/exportMarkdown ／ coursePage/pageSave |
 | [`utils/download.md`](./utils/download.md) | `src/utils/download.ts` ／ `src/entrypoints/background.ts` | 使う: coursePage の書き出しと一括保存 ／ settings/panel のバックアップ |
 | [`utils/runFeature.md`](./utils/runFeature.md) | `src/utils/runFeature.ts` | 使う: content script の entrypoint 2本 |
+| [`utils/mountShadowUi.md`](./utils/mountShadowUi.md) | `src/utils/mountShadowUi.ts` | 使う: Shadow DOM で部品を足す各機能（menu のバッジ、home/greeting、timetable、ui/quickDrawer、coursePage の autoattend と indexToggle） |
 | [`moodle/page.md`](./moodle/page.md) | `src/moodle/page.ts` | 資料: [`../moodle/`](../moodle/) の各ページ |
 | [`moodle/courseList.md`](./moodle/courseList.md) | `src/moodle/courseList.ts` | 資料: [`../moodle/drawer.md`](../moodle/drawer.md) ／ 使う: utils/settings |
 | [`moodle/menuItems.md`](./moodle/menuItems.md) | `src/moodle/menuItems.ts` | 資料: [`../moodle/navbar.md`](../moodle/navbar.md) ／ 使う: utils/settings |

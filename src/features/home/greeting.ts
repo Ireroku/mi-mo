@@ -1,10 +1,10 @@
 // ホームへ挨拶を出す。
 // 名前の前の言葉とログインユーザー名、候補から選んだ一言を並べる。
 
-import { mount, unmount } from "svelte";
 import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { readUserName } from "@/moodle/user";
 import { ensureHomeContainer } from "@/features/home/container";
+import { mountShadowUi } from "@/utils/mountShadowUi";
 import type { SalutationMode } from "./greeting.logic";
 import { pickSalutation } from "./greeting.logic";
 import { requestMessage } from "./defaultMessages";
@@ -38,24 +38,12 @@ export async function initGreeting(
     useDefaults: config.useDefaultMessages,
     last: lastMessage,
   });
-  const ui = await createShadowRootUi(ctx, {
-    name: "mimo-greeting",
-    position: "inline",
-    anchor: container,
-    append: "last",
-    onMount: (target) => {
-      return mount(Greeting, {
-        target,
-        props: { salutation, userName, message },
-      });
-    },
-    onRemove: (mounted) => {
-      if (mounted) {
-        unmount(mounted);
-      }
-    },
-  });
-  ui.mount();
+  await mountShadowUi(
+    ctx,
+    { name: "mimo-greeting", anchor: container, append: "last" },
+    Greeting,
+    { salutation, userName, message },
+  );
 
   return message;
 }

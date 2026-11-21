@@ -12,6 +12,7 @@ Moodle のナビゲーションメニューに現在時刻を表示する。左�
 - 使う: [`../utils/settings.md`](../utils/settings.md) — 設定の取得。参照するのは entrypoint のみで、機能側は参照しない
 - 使う: [`../utils/periods.md`](../utils/periods.md) — `PeriodSlot` の型と、時刻から時限を引く計算
 - 使う: [`../utils/graphemes.md`](../utils/graphemes.md) — 時限の名前を書記素で数えて切る
+- 使う: [`../utils/mountShadowUi.md`](../utils/mountShadowUi.md) — Svelte コンポーネントを Shadow DOM で差し込む共通処理
 - 参考: [`drawerClock.md`](./drawerClock.md) — 隠れた部分の見張りと、ドロワーのブロック。`layout` と `watch` の使い道
 
 ## 対象ファイル
@@ -176,7 +177,7 @@ await initMenuBadges(
 
 ### マウント
 
-`index.ts` の `initMenuBadges` が `createShadowRootUi` で差し込む。`#usernavigation` が無いページでは何もしない。
+`index.ts` の `initMenuBadges` が [`mountShadowUi`](../utils/mountShadowUi.md) で差し込む。`#usernavigation` が無いページでは何もしない。
 
 1. `#usernavigation` の直前へ `div.mimo-countdown-slot`（カウントダウンの置き場所）を置く。`ctx.onInvalidated` で取り除く
 2. カウントダウンを置き場所の中へ差し込む

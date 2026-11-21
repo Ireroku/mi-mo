@@ -10,7 +10,7 @@
 - 使う: [`../moodle/courseList.md`](../moodle/courseList.md) — `CourseRef` の型
 - 使う: [`../utils/settings.md`](../utils/settings.md) — ストレージ項目を足す手順
 - 資料: [`../../moodle/drawer.md`](../../moodle/drawer.md) — ドロワーのセレクタ、開閉状態の現れ方、`course_list` の構造
-- 参考: [`../menu/clock.md`](../menu/clock.md) — `createShadowRootUi` で要素を差し込む書き方
+- 使う: [`../utils/mountShadowUi.md`](../utils/mountShadowUi.md) — Svelte コンポーネントを Shadow DOM で差し込む共通処理
 - 参考: [`../menu/drawerClock.md`](../menu/drawerClock.md) — 同じ外枠と差し込み先を使う時計のブロック。ピン留めより上に置く
 
 ## 対象ファイル
@@ -104,7 +104,7 @@ if (!config.hidden && config.pinned.length > 0) {
 ### initPinnedCourses
 
 1. `DRAWER_REGION_SELECTOR` の要素を探す。無ければ何もせず戻る
-2. `createShadowRootUi` で `PinnedCourses.svelte` を差し込む
+2. [`mountShadowUi`](../utils/mountShadowUi.md) で `PinnedCourses.svelte` を差し込む
 
 | 設定 | 値 |
 |---|---|

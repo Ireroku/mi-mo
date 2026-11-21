@@ -1,10 +1,10 @@
 // コースインデックスの一括開閉を、1つのトグルボタンにまとめる。
 // 標準のドロップダウンを隠し、Svelte コンポーネントを差し込む。
 
-import { mount, unmount } from "svelte";
 import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { isCoursePage } from "@/moodle/page";
 import { applyStyleSheet } from "@/utils/styleSheet";
+import { mountShadowUi } from "@/utils/mountShadowUi";
 import IndexToggle from "./IndexToggle.svelte";
 
 export type IndexState = "allExpanded" | "allCollapsed" | "mixed";
@@ -74,47 +74,35 @@ export async function initIndexToggle(ctx: ContentScriptContext): Promise<void> 
 
   applyStyleSheet(STYLE_ID, STYLE_CSS);
 
-  let componentInstance: { setState?: (next: IndexState) => void } | undefined;
-  const ui = await createShadowRootUi(ctx, {
-    name: "mimo-index-toggle",
-    position: "inline",
-    // ヘッダの直下に置き、位置の基準をドロワーにする。.dropdown の中は position: relative のため、
-    // そこに置くと一覧の項目をアンカーとして参照できない
-    anchor: "#theme_boost-drawers-courseindex .drawerheader",
-    append: "last",
-    // WXT の既定は :host へ all: initial !important を当て、外から書いた位置の指定を打ち消す
-    inheritStyles: true,
-    onMount: (container) => {
-      const instance = mount(IndexToggle, {
-        target: container,
-        props: {
-          state: readIndexState() ?? "allExpanded",
-          onToggle: () => {
-            const observedState = readIndexState();
-            if (observedState) {
-              toggleIndex(observedState);
-            }
-          },
-        },
-      });
-      componentInstance = instance;
-      return instance;
+  const ui = await mountShadowUi(
+    ctx,
+    {
+      name: "mimo-index-toggle",
+      // ヘッダの直下に置き、位置の基準をドロワーにする。.dropdown の中は position: relative のため、
+      // そこに置くと一覧の項目をアンカーとして参照できない
+      anchor: "#theme_boost-drawers-courseindex .drawerheader",
+      append: "last",
+      // WXT の既定は :host へ all: initial !important を当て、外から書いた位置の指定を打ち消す
+      inheritStyles: true,
     },
-    onRemove: (mounted) => {
-      componentInstance = undefined;
-      if (mounted) {
-        unmount(mounted);
-      }
+    IndexToggle,
+    {
+      state: readIndexState() ?? "allExpanded",
+      onToggle: () => {
+        const observedState = readIndexState();
+        if (observedState) {
+          toggleIndex(observedState);
+        }
+      },
     },
-  });
-  ui.mount();
+  );
 
   const courseIndex = document.getElementById("course-index");
   if (courseIndex) {
     const observer = new MutationObserver(() => {
       const next = readIndexState();
       if (next) {
-        componentInstance?.setState?.(next);
+        ui.mounted?.setState(next);
       }
     });
 

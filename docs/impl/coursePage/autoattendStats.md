@@ -7,6 +7,7 @@
 ## 関連
 
 - 使う: [`../moodle/page.md`](../moodle/page.md) — コースページかどうかの判定
+- 使う: [`../utils/mountShadowUi.md`](../utils/mountShadowUi.md) — Svelte コンポーネントを Shadow DOM で差し込む共通処理
 - 資料: [`../../moodle/course-page.md`](../../moodle/course-page.md) — 出欠ブロックのセレクタと、中身がテキストで並ぶ構造
 - 資料: [`../../moodle/drawer.md`](../../moodle/drawer.md) — ドロワーが閉じていても中身が DOM にある点
 - 参考: [`./autoattendButton.md`](./autoattendButton.md) — 同じ autoattend を対象にする機能
@@ -99,7 +100,7 @@ if (config.enabled) {
 
 1. `isCoursePage()` が false なら何もせず戻る
 2. `readAttendanceStats()` を呼ぶ。`undefined` なら何もせず戻る
-3. `createShadowRootUi` で `AutoattendStats.svelte` をマウントする
+3. [`mountShadowUi`](../utils/mountShadowUi.md) で `AutoattendStats.svelte` をマウントする
 
 | 設定 | 値 |
 |---|---|

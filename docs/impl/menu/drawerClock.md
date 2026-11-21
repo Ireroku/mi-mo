@@ -66,7 +66,7 @@ interface Props {
 1. `initMenuBadges` が、`drawer` が true で `DRAWER_REGION_SELECTOR` の要素がある時だけ、時計用とカウントダウン用の `HiddenTracker<string>` を1つずつ作る。無い時は作らず、バッジへ `watch` を渡さない
 2. `ctx.onInvalidated` で両方の `disconnect` を呼ぶ
 3. 時計とカウントダウンのバッジへ、それぞれの `watch` を渡してマウントする
-4. ドロワーのブロックを `createShadowRootUi` で差し込む
+4. ドロワーのブロックを [`mountShadowUi`](../utils/mountShadowUi.md) で差し込む
 
 | 設定 | 値 |
 |---|---|

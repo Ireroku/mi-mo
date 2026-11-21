@@ -1,14 +1,15 @@
 // Moodle のナビゲーションバーに出ている項目の名前を読み取る。
 // 設定画面が「隠す項目」の候補として使うため、読み取った結果は entrypoint がストレージへ控える。
 
-const CONTAINER = "nav.navbar ul.more-nav, nav.navbar ul.navbar-nav";
+// メニューの項目を並べるリスト。menu のトップバーの操作（primaryNav.dom.ts）も同じものを使う
+export const NAVBAR_CONTAINER_SELECTOR = "nav.navbar ul.more-nav, nav.navbar ul.navbar-nav";
 
 /**
  * ナビゲーションバーの最上段の項目と、ドロップダウンの中の項目の名前を、出ている順に返す。
  * 幅が足りないときに出る「さらに」の開閉ボタンは項目ではないため除く。
  */
 export function readMenuItemNames(): string[] {
-  const container = document.querySelector<HTMLElement>(CONTAINER);
+  const container = document.querySelector<HTMLElement>(NAVBAR_CONTAINER_SELECTOR);
   if (!container) {
     return [];
   }

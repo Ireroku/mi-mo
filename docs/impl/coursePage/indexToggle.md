@@ -10,7 +10,7 @@
 - 使う: [`../utils/styleSheet.md`](../utils/styleSheet.md) — 標準のボタンを隠し、トグルの位置を決める CSS の注入
 - 資料: [`../../moodle/drawer.md`](../../moodle/drawer.md) — 「コースインデックスのセクションの開閉状態」節。`aria-expanded` での判定方法
 - 資料: [`../../moodle/course-page.md`](../../moodle/course-page.md) — ドロップダウンと2つのリンクの構造
-- 参考: [`./autoattendButton.md`](./autoattendButton.md) — `createShadowRootUi` でボタンを差し込む書き方
+- 使う: [`../utils/mountShadowUi.md`](../utils/mountShadowUi.md) — Svelte コンポーネントを Shadow DOM で差し込む共通処理
 
 ## 対象ファイル
 
@@ -74,8 +74,8 @@ await initIndexToggle(ctx);
 1. `isCoursePage()` が false なら何もせず戻る
 2. `#courseindexdrawercontrolsmenubutton` を探す。無ければ何もせず戻る
 3. 標準のドロップダウンを隠し、トグルの位置を決める CSS を `applyStyleSheet` へ渡す。id は `mimo-course-page-index-toggle`
-4. `createShadowRootUi` で `IndexToggle.svelte` をマウントする
-5. `#course-index` の `aria-expanded` の変化を `MutationObserver` で監視し、変わるたびに `readIndexState()` を読み直してボタンへ渡す。`ctx.onInvalidated` で `disconnect` する
+4. [`mountShadowUi`](../utils/mountShadowUi.md) で `IndexToggle.svelte` をマウントする
+5. `#course-index` の `aria-expanded` の変化を `MutationObserver` で監視し、変わるたびに `readIndexState()` を読み直し、`mountShadowUi` が返した UI の `mounted.setState` でボタンへ渡す。`ctx.onInvalidated` で `disconnect` する
 
 | 設定 | 値 |
 |---|---|

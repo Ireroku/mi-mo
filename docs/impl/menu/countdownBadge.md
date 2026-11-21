@@ -180,7 +180,7 @@ interface Props {
 
 ### マウント
 
-`index.ts` の `initMenuBadges` が、受け取った設定を `buildCountdownTargets` で変換してから `createShadowRootUi` で差し込む。差し込む順と右へ寄せるスタイルは [`clock.md`](./clock.md) にある。
+`index.ts` の `initMenuBadges` が、受け取った設定を `buildCountdownTargets` で変換してから [`mountShadowUi`](../utils/mountShadowUi.md) で差し込む。差し込む順と右へ寄せるスタイルは [`clock.md`](./clock.md) にある。
 
 | 設定 | 値 |
 |---|---|

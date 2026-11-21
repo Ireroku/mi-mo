@@ -1,9 +1,9 @@
 // ドロワー内の自動出欠ブロックから出席統計を読み取り、
 // コースページ上部の見やすい位置に常時表示する。
 
-import { mount, unmount } from "svelte";
 import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { isCoursePage } from "@/moodle/page";
+import { mountShadowUi } from "@/utils/mountShadowUi";
 import AutoattendStats from "./AutoattendStats.svelte";
 
 export interface AttendanceStats {
@@ -133,22 +133,10 @@ export async function initAutoattendStats(
     return;
   }
 
-  const ui = await createShadowRootUi(ctx, {
-    name: "mimo-autoattend-stats",
-    position: "inline",
-    anchor,
-    append: "after",
-    onMount: (target) => {
-      return mount(AutoattendStats, {
-        target,
-        props: { stats },
-      });
-    },
-    onRemove: (mounted) => {
-      if (mounted) {
-        unmount(mounted);
-      }
-    },
-  });
-  ui.mount();
+  await mountShadowUi(
+    ctx,
+    { name: "mimo-autoattend-stats", anchor, append: "after" },
+    AutoattendStats,
+    { stats },
+  );
 }

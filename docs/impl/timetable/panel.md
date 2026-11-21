@@ -9,7 +9,7 @@
 - 使う: [`./schedule.md`](./schedule.md) — 実日程と回数。表示する値はすべてここから受け取る
 - 使う: [`../home/container.md`](../home/container.md) — ホームへ差し込む器。ページ種別ごとの差し込み先はあちらが持つ
 - 使う: [`../utils/periods.md`](../utils/periods.md) — 時限の番号と時刻
-- 参考: [`../menu/clock.md`](../menu/clock.md) — `createShadowRootUi` でバッジを差し込む書き方
+- 使う: [`../utils/mountShadowUi.md`](../utils/mountShadowUi.md) — Svelte コンポーネントを Shadow DOM で差し込む共通処理
 
 ## 対象ファイル
 
@@ -72,7 +72,7 @@ export const timetableSetting = defineSetting<TimetableConfig>(
 
 1. `ensureHomeContainer()` を呼ぶ。`undefined` なら何もせず戻る
 2. `buildSchedule(config, periods)` で実日程を組み立てる
-3. `createShadowRootUi` で `Timetable.svelte` をマウントする
+3. [`mountShadowUi`](../utils/mountShadowUi.md) で `Timetable.svelte` をマウントする
 
 | 設定 | 値 |
 |---|---|

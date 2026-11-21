@@ -1,9 +1,9 @@
 // コースページにある出欠リンクを取り出し、目立つボタンとして配置する。
 // 配置場所は最上部（top）または画面右下固定（floating）から選択する。
 
-import { mount, unmount } from "svelte";
 import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { isCoursePage } from "@/moodle/page";
+import { mountShadowUi } from "@/utils/mountShadowUi";
 import AutoattendButton from "./AutoattendButton.svelte";
 
 export type AutoattendButtonPlacement = "top" | "floating";
@@ -45,25 +45,10 @@ export async function initAutoattendButton(
   }
 
   const append = config.placement === "top" ? "before" : "last";
-  const ui = await createShadowRootUi(ctx, {
-    name: "mimo-autoattend-button",
-    position: "inline",
-    anchor,
-    append,
-    onMount: (target) => {
-      return mount(AutoattendButton, {
-        target,
-        props: {
-          href,
-          placement: config.placement,
-        },
-      });
-    },
-    onRemove: (mounted) => {
-      if (mounted) {
-        unmount(mounted);
-      }
-    },
-  });
-  ui.mount();
+  await mountShadowUi(
+    ctx,
+    { name: "mimo-autoattend-button", anchor, append },
+    AutoattendButton,
+    { href, placement: config.placement },
+  );
 }

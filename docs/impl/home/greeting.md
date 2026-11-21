@@ -13,7 +13,7 @@
 - 使う: [`../settings/panel.md`](../settings/panel.md) — 設定画面の行の定義と `CustomFieldProps`
 - 使う: [`../settings/menuFields.md`](../settings/menuFields.md) — 一覧の編集に使う `ListField`
 - 資料: [`../../features/home/greeting.md`](../../features/home/greeting.md) — 一言の例と、常時表示にする動機
-- 参考: [`../menu/clock.md`](../menu/clock.md) — `createShadowRootUi` で要素を差し込む書き方
+- 使う: [`../utils/mountShadowUi.md`](../utils/mountShadowUi.md) — Svelte コンポーネントを Shadow DOM で差し込む共通処理
 
 ## 対象ファイル
 
@@ -177,7 +177,7 @@ defineGroup("home", "挨拶", homeGreetingSetting, {
 2. `readUserName()` で表示名を読む
 3. `pickSalutation(new Date(), config.salutation)` で名前の前の言葉を決める
 4. `requestMessage({ custom: config.messages, useDefaults: config.useDefaultMessages, last: lastMessage })` で一言を選ぶ
-5. `createShadowRootUi` で `Greeting.svelte` をマウントする
+5. [`mountShadowUi`](../utils/mountShadowUi.md) で `Greeting.svelte` をマウントする
 6. 選んだ一言を返す
 
 | 設定 | 値 |

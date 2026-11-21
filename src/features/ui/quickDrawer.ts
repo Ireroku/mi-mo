@@ -1,9 +1,9 @@
 // 右のブロックドロワーを隠すか、ピン留めしたコースの入口を差し込む。
 
-import { mount, unmount } from "svelte";
 import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import type { CourseRef } from "@/moodle/courseList";
 import { applyStyleSheet } from "@/utils/styleSheet";
+import { mountShadowUi } from "@/utils/mountShadowUi";
 import PinnedCourses from "./PinnedCourses.svelte";
 
 export interface QuickDrawerConfig {
@@ -42,22 +42,10 @@ export async function initPinnedCourses(
     return;
   }
 
-  const ui = await createShadowRootUi(ctx, {
-    name: "mimo-pinned-courses",
-    position: "inline",
-    anchor: target,
-    append: "first",
-    onMount: (container) => {
-      return mount(PinnedCourses, {
-        target: container,
-        props: { courses: config.pinned },
-      });
-    },
-    onRemove: (mounted) => {
-      if (mounted) {
-        unmount(mounted);
-      }
-    },
-  });
-  ui.mount();
+  await mountShadowUi(
+    ctx,
+    { name: "mimo-pinned-courses", anchor: target, append: "first" },
+    PinnedCourses,
+    { courses: config.pinned },
+  );
 }

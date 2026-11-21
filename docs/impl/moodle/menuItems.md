@@ -23,6 +23,7 @@ Moodle のナビゲーションバーに出ている項目の名前を読み取�
 
 ```ts
 // src/moodle/menuItems.ts
+export const NAVBAR_CONTAINER_SELECTOR: string; // "nav.navbar ul.more-nav, nav.navbar ul.navbar-nav"
 export function readMenuItemNames(): string[];
 ```
 
@@ -73,6 +74,7 @@ await runFeature("menu", () => initMenu(menuConfig));
 ## 決めごと
 
 - **`initMenu` より前に読む。** `initMenu` が項目を隠した後や、mi-mo の足した項目が入った後では、Moodle の元の項目名がそろわない。隠した項目こそ候補に残したい
+- **項目を並べるリストのセレクタ `NAVBAR_CONTAINER_SELECTOR` は、ここだけが持つ。** [`../menu/navbar.md`](../menu/navbar.md) のトップバーの操作も同じリストを対象にし、この定数を import する
 - **「さらに」の開閉ボタン（`li.dropdownmoremenu`）の名前は読まない。** 項目ではなく、幅に応じて Moodle が出す入れ物。中の項目は `.dropdown-menu` から読む
 - **未ログインのページでは控えない。** 未ログインのナビゲーションバーには一部の項目しか出ず、控えると候補が減る
 - **名前が前と同じなら書き込まない。** 全ページで動くため、変わらない値を毎回書かない
