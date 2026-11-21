@@ -17,7 +17,7 @@
 
 ## 🛠️ Build
 
-> [!INFO]  
+> [!NOTE]  
 > Requirements:  
 > 
 > - [Node.js](https://nodejs.org/) 
