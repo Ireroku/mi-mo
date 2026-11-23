@@ -331,7 +331,7 @@ export default app;
 pnpm dlx shadcn-svelte@latest add tabs switch input label button select popover calendar alert-dialog accordion input-group
 ```
 
-`src/lib/components/ui/` は CLI が生成する。手で書かない。ただし `button` は、`alert-dialog` と `input-group` が使う大きさ（`xs`・`icon-xs`・`icon-sm`・`icon-lg`）を足した。CLI で `button` を上書きすると既存の見た目が変わるため、この4つだけを手で足している。
+`src/lib/components/ui/` は CLI が生成する。手で書かない。ただし `button` は、`alert-dialog` と `input-group` が使う大きさ（`xs`・`icon-xs`・`icon-sm`・`icon-lg`）を足した。CLI で `button` を上書きすると既存の見た目が変わるため、この4つだけを手で足している。`calendar` は、見出しを年と月のドロップダウンにする `captionLayout` を外し、`calendar-month-select.svelte` と `calendar-year-select.svelte` を消した。理由は [`../../release.md`](../../release.md) の決めごとにある。CLI で `calendar` を入れ直す場合は、もう一度外す。
 
 開閉の動きの長さと、動きを減らす設定での停止は、部品のファイルではなく `src/assets/global.css` が `data-slot` を指して決める。部品を CLI で作り直しても消えない。
 

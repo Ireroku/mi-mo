@@ -46,4 +46,6 @@
 - **版の番号を日付にする。** 利用者にとって意味があるのは「いつの版か」で、互換性の区切りを番号で伝える相手がいない
 - **Release の本文はタグの注釈から作る。** GitHub の自動生成は PR しか拾わず、main へ直接コミットする運用では1行しか出ない。本文をタグに書けば、Release の画面で後から書き直す手間と書き忘れがなくなる
 - **Firefox の審査用の sources の ZIP には、ビルドに使うものだけを入れる。** 審査ではソースからビルドし直し、提出した拡張機能と同じになるかを確かめる。`AGENTS.md`・`CLAUDE.md`・`docs/`・`store/`・`scripts/` はビルドに使わないため、[wxt.config.ts](../wxt.config.ts) の `zip.excludeSources` で外す。WXT は `.gitignore` を見ないため、外さないと手元で作った ZIP に `docs/AGENTS/` の作業メモまで入る。sources の ZIP だけを展開してビルドした出力が、普段のビルドと一致することを確かめてある
+- **Firefox Add-ons の自動検査に出る「Unsafe assignment to innerHTML」の警告は残す。** 出どころは Svelte の runtime で、コンポーネントの HTML の型紙を `<template>` へ入れる処理にある。入る値はビルドの時に決まった固定の HTML で、ページや利用者の入力は入らない。Svelte の `fragments: 'tree'` にすれば消えるが、画面の組み立てが遅くなり、両方のブラウザで画面を確かめ直す手間もかかる。警告があっても審査には出せる。審査向けのメモには [`store/permissions.md`](../store/permissions.md) の「自動検査の警告」を写す
+- **shadcn の `calendar` から、年と月のドロップダウンを外す。** bits-ui の `MonthSelect` と `YearSelect` が Svelte の `customizable_select` を呼び、その中の innerHTML も上の警告になる。mi-mo は見出しを文字で出すだけでドロップダウンを使わないため、外して警告を1つ減らした
 - **ZIP は GitHub Actions で作り、ストアへは手で上げる。** ストアの API の鍵を GitHub に預けずに済む。自動で上げる場合は WXT の `wxt submit` を使う

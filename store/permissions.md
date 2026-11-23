@@ -23,3 +23,9 @@ Chrome Web Store の「プライバシーへの取り組み」タブと、Firefo
 ## リモートコード
 
 なし。全コードが同梱されています。
+
+## 自動検査の警告
+
+Firefox の審査向けのメモにだけ写す。
+
+自動検査の「Unsafe assignment to innerHTML」の警告は、Svelte 5 の runtime（`svelte/src/internal/client/dom/reconciler.js`）から出ています。コンパイル時に作られた固定の HTML の型紙を `<template>` へ入れる処理で、ページの内容や利用者の入力は渡りません。拡張機能自身のコードは innerHTML を使っていません。Svelte の版は `package.json` にあります。
