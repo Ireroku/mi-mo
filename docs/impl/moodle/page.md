@@ -2,13 +2,15 @@
 
 ## 概要
 
-今表示しているページが Moodle のどの画面かを判定する。body のクラスを見て、サイトホーム・ダッシュボード・マイコース・コースページ・ページ資料の画面の5種を区別する。複数の機能が同じ判定を必要とするため `src/moodle/` に置く。
+今表示しているページが Moodle のどの画面かを判定する。body のクラスを見て、サイトホーム・ダッシュボード・マイコース・コースページ・ページ資料の画面・課題の画面の6種を区別する。複数の機能が同じ判定を必要とするため `src/moodle/` に置く。
 
 ## 関連
 
 - 資料: [`docs/moodle/home.md`](../../moodle/home.md) — サイトホームとダッシュボードの body クラス
 - 資料: [`docs/moodle/my-courses.md`](../../moodle/my-courses.md) — マイコースの body クラス
 - 資料: [`docs/moodle/course-page.md`](../../moodle/course-page.md) — コースページの body クラス
+- 資料: [`docs/moodle/mod-page.md`](../../moodle/mod-page.md) — ページ資料の画面の body クラス
+- 資料: [`docs/moodle/mod-assign.md`](../../moodle/mod-assign.md) — 課題の画面の body クラス
 
 ## 対象ファイル
 
@@ -26,6 +28,7 @@ export type MoodlePage =
   | "myCourses"
   | "coursePage"
   | "modPage"
+  | "modAssign"
   | "other";
 
 export function getMoodlePage(): MoodlePage;
@@ -35,6 +38,7 @@ export function isDashboard(): boolean;
 export function isMyCourses(): boolean;
 export function isCoursePage(): boolean;
 export function isModPage(): boolean;
+export function isModAssign(): boolean;
 ```
 
 ## 処理の流れ
@@ -50,6 +54,7 @@ export function isModPage(): boolean;
 | `myCourses` | `pagelayout-mycourses` | `/my/courses.php` |
 | `coursePage` | `pagelayout-course` | `/course/view.php?id=<id>`、`/course/section.php?id=<id>` |
 | `modPage` | `path-mod-page` | `/mod/page/view.php?id=<id>` |
+| `modAssign` | `path-mod-assign` | `/mod/assign/view.php?id=<id>` |
 
 ### getMoodlePage
 
@@ -57,7 +62,7 @@ export function isModPage(): boolean;
 2. `document.body.classList` を判定テーブルと照合する
 3. 一致した種別を返す。どれにも一致しなければ `"other"` を返す
 
-### isSiteHome / isDashboard / isMyCourses / isCoursePage / isModPage
+### isSiteHome / isDashboard / isMyCourses / isCoursePage / isModPage / isModAssign
 
 `getMoodlePage()` の結果を対応する種別と比較した真偽値を返す。判定の実体を持たない。
 
@@ -69,4 +74,4 @@ export function isModPage(): boolean;
 - **`course-<id>` と `context-<num>` は使わない。** コースやユーザーごとに変わる
 - **呼び出しごとに DOM を読み、結果をキャッシュしない。** 状態は DOM だけが持つ
 - **`document_start` の時点では判定できない。** body がまだ無いため常に `"other"` を返す。CSS だけで完結する処理は、この関数を使わずセレクタの先頭に body クラスを書く（[`../home/hideElements.md`](../home/hideElements.md) がその形）
-- **5種以外のページは区別しない。** 他の活動の画面（小テスト、課題など）を扱う機能が出た時点で種別を足す
+- **6種以外のページは区別しない。** 他の活動の画面（小テストなど）を扱う機能が出た時点で種別を足す

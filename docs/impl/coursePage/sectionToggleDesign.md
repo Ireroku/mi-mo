@@ -2,7 +2,7 @@
 
 ## 概要
 
-コース内容の右上にある「すべてを展開する / すべてを折りたたむ」のリンクを、押せると分かる見た目へ整える。要素は差し替えず、CSS だけを当てる。セクションヘッダーに mi-mo が足すボタン（[`./sectionActions.md`](./sectionActions.md)）も同じクラスを持ち、同じ見た目になる。ページ資料の画面の帯に置く同じボタンにも当てるため、規則は `pagelayout-course` と `path-mod-page` の両方の body に効かせる。
+コース内容の右上にある「すべてを展開する / すべてを折りたたむ」のリンクを、押せると分かる見た目へ整える。要素は差し替えず、CSS だけを当てる。セクションヘッダーに mi-mo が足すボタン（[`./sectionActions.md`](./sectionActions.md)）も同じクラスを持ち、同じ見た目になる。ページ資料と課題の画面の帯に置く同じボタンにも当てるため、規則は `pagelayout-course`・`path-mod-page`・`path-mod-assign` の body に効かせる。
 
 ## 関連
 
@@ -39,7 +39,7 @@ applySectionToggleDesign();
 2. id に `mimo-course-page-section-toggle` を指定して `applyStyleSheet` へ渡す
 
 ```css
-body:is(.pagelayout-course, .path-mod-page) :is(.section-collapsemenu, .mimo-section-action) {
+body:is(.pagelayout-course, .path-mod-page, .path-mod-assign) :is(.section-collapsemenu, .mimo-section-action) {
   display: inline-flex;
   align-items: center;
   padding: 0.375rem 0.75rem;
@@ -51,14 +51,14 @@ body:is(.pagelayout-course, .path-mod-page) :is(.section-collapsemenu, .mimo-sec
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-body:is(.pagelayout-course, .path-mod-page) :is(.section-collapsemenu, .mimo-section-action):hover {
+body:is(.pagelayout-course, .path-mod-page, .path-mod-assign) :is(.section-collapsemenu, .mimo-section-action):hover {
   background-color: rgba(15, 108, 191, 0.08);
   background-color: color-mix(in srgb, var(--primary, #0f6cbf) 8%, transparent);
   border-color: var(--primary, #0f6cbf);
   text-decoration: none;
 }
 
-body:is(.pagelayout-course, .path-mod-page) :is(.section-collapsemenu, .mimo-section-action):focus-visible {
+body:is(.pagelayout-course, .path-mod-page, .path-mod-assign) :is(.section-collapsemenu, .mimo-section-action):focus-visible {
   outline: 2px solid var(--primary, #0f6cbf);
   outline-offset: 2px;
 }

@@ -7,6 +7,7 @@ export type MoodlePage =
   | "myCourses"
   | "coursePage"
   | "modPage"
+  | "modAssign"
   | "other";
 
 type KnownPage = Exclude<MoodlePage, "other">;
@@ -20,6 +21,7 @@ const PAGE_CLASSES: Record<KnownPage, string> = {
   myCourses: "pagelayout-mycourses",
   coursePage: "pagelayout-course",
   modPage: "path-mod-page",
+  modAssign: "path-mod-assign",
 };
 
 export function getMoodlePage(): MoodlePage {
@@ -53,4 +55,8 @@ export function isCoursePage(): boolean {
 
 export function isModPage(): boolean {
   return getMoodlePage() === "modPage";
+}
+
+export function isModAssign(): boolean {
+  return getMoodlePage() === "modAssign";
 }

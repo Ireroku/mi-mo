@@ -2,7 +2,7 @@
 
 ## 概要
 
-コースセクションに置かれたページ資料（`modtype_page`）の本文と画像を取得し、セクションごとに1つの ZIP として保存する。コースページでは専用のボタンは持たず、[bulkDownload](./bulkDownload.md) の「資料を保存」が集める対象へ加わる。ページ資料の画面（`/mod/page/view.php`）では、bulkDownload が同じボタンを「完了マークする」の帯の右端に置き、そのページだけを保存する。
+コースセクションに置かれたページ資料（`modtype_page`）の本文と画像を取得し、セクションごとに1つの ZIP として保存する。コースページでは専用のボタンは持たず、[bulkDownload](./bulkDownload.md) の「資料を保存」が集める対象へ加わる。ページ資料の画面（`/mod/page/view.php`）と課題の画面（`/mod/assign/view.php`）では、bulkDownload が同じボタンを「完了マークする」の帯の右端に置き、開いている画面だけを保存する。課題の画面では、開始・期限・提出できるファイルの種類を YAML の Frontmatter に、説明を本文にする。
 
 ## 関連
 
@@ -13,6 +13,7 @@
 - 使う: [courseSections](../moodle/courseSections.md) — 活動のリンクと活動名、セクションのタイトルの読み取り
 - 使う: [`../utils/url.md`](../utils/url.md) — URL の末尾のファイル名の読み取り
 - 資料: [`../../moodle/mod-page.md`](../../moodle/mod-page.md) — ページ本体の構造、埋め込まれたファイルの URL
+- 資料: [`../../moodle/mod-assign.md`](../../moodle/mod-assign.md) — 課題の画面の帯、提出できるファイルの種類の出る場所
 - 資料: [`../../features/course-page/page-save.md`](../../features/course-page/page-save.md) — 保存される ZIP の中の形
 - 資料: [fflate](https://github.com/101arrowz/fflate) — ZIP の組み立て
 
@@ -20,9 +21,9 @@
 
 | パス | 役割 |
 |---|---|
-| `src/features/coursePage/pageSave.logic.ts` | 取得した文書から、本文の Markdown と、埋め込まれたファイルの一覧を作る |
-| `src/features/coursePage/pageSave.ts` | ページの収集、本文とファイルの取得、ZIP の組み立て |
-| `src/features/coursePage/bulkDownload.ts` | 件数へページを足し、押された時に ZIP を保存する。ページ資料の画面にもボタンを置く |
+| `src/features/coursePage/pageSave.logic.ts` | 取得した文書から、本文の Markdown と、埋め込まれたファイルの一覧を作る。課題の画面の Frontmatter も作る |
+| `src/features/coursePage/pageSave.ts` | ページの収集、本文とファイルの取得、ZIP の組み立て。課題のファイルの種類の取得 |
+| `src/features/coursePage/bulkDownload.ts` | 件数へページを足し、押された時に ZIP を保存する。ページ資料と課題の画面にもボタンを置く |
 | `package.json` | `fflate` を足す |
 
 ## インターフェース
@@ -48,6 +49,26 @@ export function buildPageFiles(
   doc: Document,
   source: PageSource,
 ): PageFiles | null;
+
+/**
+ * 「2026年 11月 24日(火曜日) 00:00」を「2026-11-24T00:00」にする。読めない場合は null を返す。
+ */
+export function parseMoodleDate(text: string): string | null;
+
+/**
+ * 提出の編集の画面の文書から、提出できるファイルの拡張子を重複なく読む。
+ */
+export function readFileTypes(doc: Document): string[];
+
+/**
+ * 取得した課題の画面の文書から、開始・期限・ファイルの種類を Frontmatter に、説明を本文にした Markdown を作る。
+ * 説明と日付の帯が見つからない場合は null を返す。
+ */
+export function buildAssignFiles(
+  doc: Document,
+  source: PageSource,
+  fileTypes: string[],
+): PageFiles | null;
 ```
 
 ```ts
@@ -64,7 +85,14 @@ export function collectPages(section: Element): PageSource[];
 export function fetchPagesZip(
   pages: PageSource[],
   onProgress: (done: number, total: number) => void,
+  build?: (doc: Document, page: PageSource) => Promise<PageFiles | null>, // 既定は buildPageFiles
 ): Promise<{ zip: Blob | null; failed: number }>;
+
+/**
+ * 課題の画面の文書に提出の編集のフォームがあれば、編集の画面を GET で取得してファイルの種類を読む。
+ * フォームが無い場合と、取得に失敗した場合は空の配列を返す。
+ */
+export function fetchFileTypes(doc: Document, url: string): Promise<string[]>;
 ```
 
 entrypoint からの呼び出しは足さない。`initBulkDownload` の中から使う。
@@ -93,7 +121,7 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 ### fetchPagesZip
 
 1. `pages` を先頭から1件ずつ処理する。ページは並列にしない
-2. `fetch(url, { credentials: "include" })` で取得し、本文を `DOMParser` で `Document` にして `buildPageFiles` へ渡す
+2. `fetch(url, { credentials: "include" })` で取得し、本文を `DOMParser` で `Document` にして `build`（既定は `buildPageFiles`）へ渡す
 3. Markdown を `<folder>/<folder>.md` として ZIP の中身へ足す
 4. `embedded` の各ファイルを `fetch` で取得し（`data:` URL もそのまま `fetch` で中身に直る）、`<folder>/<保存名>` として足す。1ページの中のファイルは並列に取得し、`Promise.allSettled` で全件を待つ
 5. 本文の取得、`buildPageFiles`、ファイルの取得のどれかが失敗したページは、`console.error("[mi-mo] pageSave", URL, 理由)` を出して `failed` を1つ増やす。取得できたファイルは ZIP に残す
@@ -112,10 +140,25 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 ### ページ資料の画面
 
 1. `initBulkDownload` は、`isModPage()` が true なら、コースページの処理の代わりにこちらを行う
-2. `#region-main .activity-header[data-for="page-activity-header"]`（「完了マークする」の灰色の帯）を取る。無ければ戻る
-3. `addSectionAction(帯, "mimo-bulk-download-button", "資料を保存")` で、コースページと同じボタンを帯の右端へ置く。件数は付けない
-4. ページ名は `.page-header-headings h1` の文字列から読む。取れない場合は「ページ」にする
-5. 押された後は「bulkDownload 側の変更」と同じ流れで、`pages` を開いているページ1件（`location.href`）にし、ZIP の名前をページ名にする。資料とフォルダは無い
+2. 灰色の帯の中の `#region-main .activity-header[data-for="page-activity-header"] > .activity-information` を取る。無ければ戻る
+3. その中に `.completion-info`（「完了マークする」）があればそこを、無ければ `.activity-information` を置き場所の親にする
+4. `addSectionAction(親, "mimo-bulk-download-button", "資料を保存")` で、コースページと同じボタンを右端へ置く。件数は付けない
+5. ページ名は `.page-header-headings h1` の文字列から読む。取れない場合は「ページ」にする
+6. 押された後は「bulkDownload 側の変更」と同じ流れで、`pages` を開いているページ1件（`location.href`）にし、ZIP の名前をページ名にする。資料とフォルダは無い
+
+### 課題の画面
+
+1. `initBulkDownload` は、`isModAssign()` が true なら、「ページ資料の画面」と同じ流れでボタンを置く。`fetchPagesZip` へ渡す `build` だけを差し替える
+2. `build` は、取得した課題の画面の文書を `fetchFileTypes` へ渡し、その結果と一緒に `buildAssignFiles` へ渡す
+3. `fetchFileTypes` は、文書に `input[name="action"][value="editsubmission"]` が無ければ空の配列を返す。あれば `url` の `action` を `editsubmission` にした URL を GET で取得し、`readFileTypes` で読む
+4. `buildAssignFiles` は、`#region-main .activity-header[data-for="page-activity-header"]` を取る。無ければ `null` を返す
+5. Frontmatter の項目を次の順に並べる。文字列は `JSON.stringify` で引用符を付ける
+   - `title`: 課題名
+   - `url`: 課題の画面の URL
+   - `start`・`due`: `.activity-dates > div` の `strong` が「開始」「期限」（`Open`・`Due`）を含む行の日付を `parseMoodleDate` で読んだもの。引用符を付けない。読めない行は飛ばす
+   - `file_types`: 拡張子のリスト。空なら項目ごと書かない
+6. `.activity-description` があれば、ページ資料の本文と同じ処理（画像とファイルの保存名、絶対 URL、`htmlToMarkdown`）で本文にする
+7. Markdown を `---` で囲んだ Frontmatter と、空行と、本文の順に並べる。本文が無ければ Frontmatter だけにする
 
 ## 決めごと
 
@@ -140,7 +183,12 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 - **ページ資料の画面でも保存できるようにする。** セクションの中の1ページだけが欲しい場合がある。コースページのボタンはセクションの全部を保存するため、要らない資料まで落ちてくる
 - **ページ資料の画面のボタンは、コースページの「資料を保存」と同じものを、「完了マークする」の帯の右端に置く。** その画面で押せる操作はこの帯に並んでいる。ボタンの作りと押した後の流れを共有し、別のボタンを作らない。件数は付けない（1件に決まっている）
 - **ページ資料の画面でも、表示中の文書を使わず取得し直す。** `fetchPagesZip` をそのまま使えば、本文の読み方と ZIP の形がコースページと同じになる。通信は1回増えるが、開いた時点で閲覧済みになっているため、記録は変わらない
-- **帯が無い画面ではボタンを置かない。** 帯は完了の条件があるページにだけ出る。帯の無いページでの置き場所は、まだ決めていない
+- **完了の条件が無い画面でも、帯の中へボタンを置く。** 帯は完了の条件が無いページにも出る（中身が空の細い帯になる）。帯そのものが無い画面では置かない
+- **課題の画面にも、同じ「資料を保存」を置く。** 課題の説明・期限を手元へ残したい場面がある。別の名前のボタンを作ると、置き方と押した後の流れを2つ持つことになる。保存の流れは `build` の差し替えだけで共有する
+- **課題の開始・期限・ファイルの種類は YAML の Frontmatter に書く。** 本文と分けておけば、Obsidian などのエディタがプロパティとして読み、並べ替えや絞り込みに使える
+- **日付は秒とタイムゾーンを付けない ISO 8601（`2026-11-24T00:00`）にする。** Moodle の表示は利用者の設定の時刻で、タイムゾーンを画面から確実には読めない。引用符を付けないと、YAML を読むエディタが日時として扱う
+- **ファイルの種類は、提出の編集の画面を GET で取得して読む。** 課題の画面には出ない。編集の画面を開くだけでは提出は変わらず（実機で確認）、提出の変更・削除は `sesskey` を付けた POST でしか起きない。このモジュールは POST も `sesskey` も送らない
+- **提出の編集のフォームが無い課題では、ファイルの種類を取りに行かない。** 編集の画面を開けない利用者や期間では、取得しても読めない。通信を1回減らせる
 
 ## 実機で確かめたこと
 

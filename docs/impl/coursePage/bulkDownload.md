@@ -6,7 +6,7 @@
 
 ## 関連
 
-- 使う: [`../moodle/page.md`](../moodle/page.md) — コースページか、ページ資料の画面かの判定
+- 使う: [`../moodle/page.md`](../moodle/page.md) — コースページか、ページ資料・課題の画面かの判定
 - 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索、セクションのタイトルと活動の名前・リンクの読み取り
 - 使う: [`./sectionActions.md`](./sectionActions.md) — ヘッダーの右端へのボタンの追加と、その見た目
 - 使う: [`../utils/download.md`](../utils/download.md) — 保存の依頼
@@ -58,7 +58,7 @@ initBulkDownload();
 
 ### initBulkDownload
 
-1. `isModPage()` が true なら、[`./pageSave.md`](./pageSave.md) の「ページ資料の画面」の流れで帯へボタンを置いて戻る。`isCoursePage()` が false なら何もせず戻る
+1. `isModPage()` が true なら [`./pageSave.md`](./pageSave.md) の「ページ資料の画面」の流れで、`isModAssign()` が true なら同じく「課題の画面」の流れで、帯へボタンを置いて戻る。`isCoursePage()` が false なら何もせず戻る
 2. セクションをすべて取る。`collectResourceUrls`・`collectFolders`・`collectPages` がすべて空になるセクションでは、ボタンを足さない
 3. 文言は、資料・フォルダ・ページを足した件数を含めて「資料を保存（5件）」とする
 4. `addSectionAction(header, "mimo-bulk-download-button", 文言)` でヘッダーへボタンを足す。`undefined` が返ったセクションは飛ばす

@@ -1,6 +1,6 @@
 // コースセクションのヘッダーの右端へ、操作のボタンを並べる。
 // 書き出しと資料の一括保存が、同じ置き場所と同じ見た目を共有する。
-// ページ資料の画面では、「完了マークする」の帯の右端を同じように使う。
+// ページ資料と課題の画面では、「完了マークする」と同じ行の右端を同じように使う。
 
 import { applyStyleSheet } from "@/utils/styleSheet";
 
@@ -13,21 +13,20 @@ export const SECTION_ACTION_CLASS = "mimo-section-action";
 const BUTTON_CLASS = `btn btn-link btn-sm text-nowrap ${SECTION_ACTION_CLASS}`;
 
 const CONTAINER_CSS = `
-/* ページ資料の画面の帯は横並びにして、完了の情報を左に残す */
-body.path-mod-page .activity-header:has(> .${CONTAINER_CLASS}) {
+/* ページ資料と課題の画面では、完了の情報（無ければ日付）を左に残して横に並べる */
+body:is(.path-mod-page, .path-mod-assign) .activity-header :is(.activity-information, .completion-info):has(> .${CONTAINER_CLASS}) {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-}
-/* Moodle は帯の最後の要素の中の下線を消す。置き場所が最後に来るため、その1つ前で同じように消す */
-body.path-mod-page .activity-header > div:has(+ .${CONTAINER_CLASS}) > div:last-child {
-  border-bottom: 0;
+  gap: 0.5rem;
 }
 /* 狭い画面では、タイトルを潰さずに置き場所ごと次の行へ回す */
 body.pagelayout-course .course-section-header:has(> .${CONTAINER_CLASS}) {
   flex-wrap: wrap;
   row-gap: 0.5rem;
 }
-body:is(.pagelayout-course, .path-mod-page) :is(.course-section-header, .activity-header) > .${CONTAINER_CLASS} {
+body.pagelayout-course .course-section-header > .${CONTAINER_CLASS},
+body:is(.path-mod-page, .path-mod-assign) .activity-header :is(.activity-information, .completion-info) > .${CONTAINER_CLASS} {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;

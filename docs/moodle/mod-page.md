@@ -45,7 +45,7 @@ li.activity.modtype_page
 ```
 
 - Moodle の CSS は `.path-mod .activity-header:not(:empty) > div:last-child > div:last-child { border-bottom: 0 }` で、帯の最後の要素の中の下線を消している。帯の末尾へ要素を足すと、この規則が外れて下線が出る
-- 完了の条件が無いページで帯が出るかは確かめていない
+- 完了の条件が無いページ（`/mod/page/view.php?id=251006`）でも帯は出る。`div.activity-information` は中身が空で、帯は細い灰色の帯になる
 
 ## 本文に現れる要素
 

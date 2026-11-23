@@ -31,7 +31,7 @@ export function addSectionAction(
 ): HTMLButtonElement | undefined;
 ```
 
-`header` は [`../moodle/courseSections.md`](../moodle/courseSections.md) の `findCourseSectionHeaders` が返す `.course-section-header`。`marker` は呼び出し元を見分けるクラス（`mimo-export-button`、`mimo-bulk-download-button`）。戻り値のボタンへ、呼び出し元が `click` の処理を足す。
+`header` は [`../moodle/courseSections.md`](../moodle/courseSections.md) の `findCourseSectionHeaders` が返す `.course-section-header`か、ページ資料と課題の画面の帯の中の要素（決めごとを参照）。`marker` は呼び出し元を見分けるクラス（`mimo-export-button`、`mimo-bulk-download-button`）。戻り値のボタンへ、呼び出し元が `click` の処理を足す。
 
 ## 処理の流れ
 
@@ -44,18 +44,18 @@ export function addSectionAction(
 ### 注入する CSS
 
 ```css
-body.path-mod-page .activity-header:has(> .mimo-section-actions) {
+body:is(.path-mod-page, .path-mod-assign) .activity-header :is(.activity-information, .completion-info):has(> .mimo-section-actions) {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-}
-body.path-mod-page .activity-header > div:has(+ .mimo-section-actions) > div:last-child {
-  border-bottom: 0;
+  gap: 0.5rem;
 }
 body.pagelayout-course .course-section-header:has(> .mimo-section-actions) {
   flex-wrap: wrap;
   row-gap: 0.5rem;
 }
-body:is(.pagelayout-course, .path-mod-page) :is(.course-section-header, .activity-header) > .mimo-section-actions {
+body.pagelayout-course .course-section-header > .mimo-section-actions,
+body:is(.path-mod-page, .path-mod-assign) .activity-header :is(.activity-information, .completion-info) > .mimo-section-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -80,5 +80,5 @@ body.pagelayout-course .course-section-header:has(> * > .section-collapsemenu) >
 - **「すべてを折りたたむ」のある見出しでは、置き場所を上寄せにして上へ 0.5rem 空ける。** Moodle はそのボタンの入れ物へ `align-self-start mt-2` を付けている。中央寄せのままでは、同じ行で 4px 上にずれる（実機で確認）。ほかの見出しはタイトルと同じ高さのため、中央寄せのままにする
 - **狭い画面では、置き場所を見出しの次の行へ折り返す。** 置き場所が縮まないと、長いタイトルが1文字ずつに潰れ、ボタンが画面の右へはみ出す（幅 420px で確認）。見出しに `flex-wrap` を当て、入りきらない時だけ置き場所ごと次の行へ回す。置き場所の中も折り返し、ボタンが1行に収まらない幅でもはみ出さないようにする
 - **置き場所の中の並び順は、呼び出された順にする。** entrypoint が書き出し、一括保存の順に呼ぶかどうかで決まる。このモジュールは順序を持たない
-- **ページ資料の画面の「完了マークする」の帯にも、同じ置き場所を使う。** 帯を横並びにし、完了の情報を左に、置き場所を右端に置く。Moodle は帯の最後の要素の中の下線を消す（[`../../moodle/mod-page.md`](../../moodle/mod-page.md)）。置き場所が最後に来るため、その1つ前の要素の中で同じように消す
+- **ページ資料と課題の画面の帯にも、同じ置き場所を使う。** `header` には、帯の中の `.completion-info`（「完了マークする」）を渡し、ボタンを「完了マークする」と同じ行の右端に置く。完了の条件が無い画面では `.activity-information` を渡す。帯の直下に置くと、課題の画面では説明（`.activity-description`）の横に並んでしまい、Moodle が帯の最後の要素の下線を消す規則（[`../../moodle/mod-page.md`](../../moodle/mod-page.md)）も外れる。帯の中の要素へ置けば、帯の並びも下線も変わらない
 - **重複の判定は `marker` で行う。** 同じ機能が2度呼ばれても、ボタンが増えない

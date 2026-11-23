@@ -1,7 +1,7 @@
 // コースセクション内の資料（modtype_resource）・フォルダ（modtype_folder）・ページ（modtype_page）を一括で保存するボタンを追加する。
-// ページ資料の画面（mod/page/view.php）では、同じボタンで開いているページだけを保存する。
+// ページ資料の画面（mod/page/view.php）と課題の画面（mod/assign/view.php）では、同じボタンで開いている画面だけを保存する。
 
-import { isCoursePage, isModPage } from "@/moodle/page";
+import { isCoursePage, isModAssign, isModPage } from "@/moodle/page";
 import {
   activityLink,
   findCourseSectionHeaders,
@@ -11,8 +11,8 @@ import {
 import { requestDownloads, saveBlob, type DownloadItem } from "@/utils/download";
 import { sanitizeFilename } from "@/utils/filename";
 import { lastPathSegment, readIdParam } from "@/utils/url";
-import { collectPages, fetchPagesZip } from "./pageSave";
-import type { PageSource } from "./pageSave.logic";
+import { collectPages, fetchFileTypes, fetchPagesZip } from "./pageSave";
+import { buildAssignFiles, type PageFiles, type PageSource } from "./pageSave.logic";
 import { addSectionAction } from "./sectionActions";
 
 /**
@@ -90,13 +90,14 @@ function bindSave(
   pages: PageSource[],
   zipTitle: () => string,
   files: () => Promise<DownloadItem[]>,
+  build?: (doc: Document, page: PageSource) => Promise<PageFiles | null>,
 ): void {
   const save = async () => {
     button.disabled = true;
     try {
       const { zip, failed } = await fetchPagesZip(pages, (done, total) => {
         button.textContent = `ページを取得中（${done}/${total}）`;
-      });
+      }, build);
       if (zip) {
         saveBlob(zip, `${sanitizeFilename(zipTitle())}.zip`);
       }
@@ -119,34 +120,44 @@ function bindSave(
 }
 
 /**
- * ページ資料の画面の「完了マークする」の帯の右端へ、開いているページだけを保存するボタンを置く。
+ * ページ資料と課題の画面の帯へ、開いている画面だけを保存するボタンを置く。
+ * 完了の情報がある画面では「完了マークする」と同じ行の右端へ、無い画面では帯の中へ置く。
  */
-function initModPageDownload(): void {
-  const header = document.querySelector(
-    '#region-main .activity-header[data-for="page-activity-header"]',
+function initActivityDownload(
+  build?: (doc: Document, page: PageSource) => Promise<PageFiles | null>,
+): void {
+  const info = document.querySelector(
+    '#region-main .activity-header[data-for="page-activity-header"] > .activity-information',
   );
-  if (!header) {
+  const host = info?.querySelector(":scope > .completion-info") ?? info;
+  if (!host) {
     return;
   }
 
   const label = "資料を保存";
-  const button = addSectionAction(header, BUTTON_MARKER, label);
+  const button = addSectionAction(host, BUTTON_MARKER, label);
   if (!button) {
     return;
   }
 
   const name =
     document.querySelector(".page-header-headings h1")?.textContent?.trim() || "ページ";
-  bindSave(button, label, [{ name, url: location.href }], () => name, async () => []);
+  bindSave(button, label, [{ name, url: location.href }], () => name, async () => [], build);
 }
 
 /**
  * コースページの各セクションヘッダーに資料一括保存ボタンを配置する。
- * ページ資料の画面では、開いているページだけを保存するボタンを置く。
+ * ページ資料と課題の画面では、開いている画面だけを保存するボタンを置く。
  */
 export function initBulkDownload(): void {
   if (isModPage()) {
-    initModPageDownload();
+    initActivityDownload();
+    return;
+  }
+  if (isModAssign()) {
+    initActivityDownload(async (doc, page) =>
+      buildAssignFiles(doc, page, await fetchFileTypes(doc, page.url)),
+    );
     return;
   }
   if (!isCoursePage()) {

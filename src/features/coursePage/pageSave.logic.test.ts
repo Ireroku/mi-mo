@@ -1,6 +1,12 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
-import { buildPageFiles, type PageSource } from "./pageSave.logic";
+import {
+  buildAssignFiles,
+  buildPageFiles,
+  parseMoodleDate,
+  readFileTypes,
+  type PageSource,
+} from "./pageSave.logic";
 
 const source: PageSource = {
   name: "第1回: 講義資料",
@@ -82,5 +88,81 @@ describe("buildPageFiles", () => {
     expect(files.markdown).toContain(
       "[次のページ](https://example.test/mod/page/view.php?id=11)",
     );
+  });
+});
+
+const assignSource: PageSource = {
+  name: "第6回課題: レポート",
+  url: "https://example.test/mod/assign/view.php?id=20",
+};
+
+function parseAssign(header: string): Document {
+  return new DOMParser().parseFromString(
+    `<html><body><div id="region-main"><div class="activity-header" data-for="page-activity-header">${header}</div></div></body></html>`,
+    "text/html",
+  );
+}
+
+const DATES = `<div class="activity-information"><div class="activity-dates"><div><strong>開始:</strong> 2026年 10月 3日(金曜日) 9:05 </div><div><strong>期限:</strong> 2026年 10月 26日(月曜日) 23:59 </div></div></div>`;
+
+describe("parseMoodleDate", () => {
+  it("Moodle の日時を ISO 8601 の形にする", () => {
+    expect(parseMoodleDate(" 2026年 10月 3日(金曜日) 9:05 ")).toBe("2026-10-03T09:05");
+  });
+
+  it("読めない文字列では null を返す", () => {
+    expect(parseMoodleDate("明日")).toBeNull();
+  });
+});
+
+describe("readFileTypes", () => {
+  it("提出できるファイルの拡張子を重複なく並べる", () => {
+    const doc = new DOMParser().parseFromString(
+      `<div class="form-filetypes-descriptions"><ul><li>PDF <small>.pdf</small></li><li>画像 <small>.png .jpg</small></li><li>PDF <small>.pdf</small></li></ul></div>`,
+      "text/html",
+    );
+    expect(readFileTypes(doc)).toEqual([".pdf", ".png", ".jpg"]);
+  });
+
+  it("制限の無い提出画面では空の配列を返す", () => {
+    expect(readFileTypes(new DOMParser().parseFromString("<form></form>", "text/html"))).toEqual([]);
+  });
+});
+
+describe("buildAssignFiles", () => {
+  it("課題の帯が無い文書では null を返す", () => {
+    const doc = new DOMParser().parseFromString("<p>ログイン</p>", "text/html");
+    expect(buildAssignFiles(doc, assignSource, [])).toBeNull();
+  });
+
+  it("名前・URL・日時・拡張子を Frontmatter に、説明文を本文に書く", () => {
+    const doc = parseAssign(
+      `${DATES}<div class="activity-description"><div class="no-overflow"><p>PDF で提出</p></div></div>`,
+    );
+    expect(buildAssignFiles(doc, assignSource, [".pdf", ".wav"])?.markdown).toBe(
+      [
+        "---",
+        'title: "第6回課題: レポート"',
+        'url: "https://example.test/mod/assign/view.php?id=20"',
+        "start: 2026-10-03T09:05",
+        "due: 2026-10-26T23:59",
+        "file_types:",
+        '  - ".pdf"',
+        '  - ".wav"',
+        "---",
+        "",
+        "PDF で提出",
+        "",
+      ].join("\n"),
+    );
+  });
+
+  it("日時と説明文の無い課題は、名前と URL だけを書く", () => {
+    const doc = parseAssign(`<div class="activity-information"></div>`);
+    const files = buildAssignFiles(doc, assignSource, [])!;
+    expect(files.markdown).toBe(
+      '---\ntitle: "第6回課題: レポート"\nurl: "https://example.test/mod/assign/view.php?id=20"\n---\n\n',
+    );
+    expect(files.embedded).toEqual([]);
   });
 });

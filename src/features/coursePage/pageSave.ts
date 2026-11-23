@@ -2,7 +2,12 @@
 
 import { strToU8, zipSync } from "fflate";
 import { activityLink, readActivityName } from "@/moodle/courseSections";
-import { buildPageFiles, type PageSource } from "./pageSave.logic";
+import {
+  buildPageFiles,
+  readFileTypes,
+  type PageFiles,
+  type PageSource,
+} from "./pageSave.logic";
 
 /**
  * セクション内のページ資料を集める。同じ名前のページは末尾へ番号を足して区別する。
@@ -39,26 +44,48 @@ async function fetchOk(url: string): Promise<Response> {
   return response;
 }
 
+async function fetchDocument(url: string): Promise<Document> {
+  const response = await fetchOk(url);
+  return new DOMParser().parseFromString(await response.text(), "text/html");
+}
+
 /**
- * ページを1件ずつ取得し、本文と埋め込まれたファイルを1つの ZIP にまとめる。
+ * 課題の提出画面（`action=editsubmission`）を取得し、提出できるファイルの拡張子を読む。
+ * 提出画面を開けない課題や、取得に失敗した場合は空の配列を返す。
+ * 取得は GET だけで、Moodle が提出を変える操作に要求する sesskey を送らないため、提出の内容は変わらない。
+ */
+export async function fetchFileTypes(doc: Document, url: string): Promise<string[]> {
+  if (!doc.querySelector('form input[name="action"][value="editsubmission"]')) {
+    return [];
+  }
+
+  try {
+    const editUrl = new URL(url);
+    editUrl.searchParams.set("action", "editsubmission");
+    return readFileTypes(await fetchDocument(editUrl.href));
+  } catch (error) {
+    console.error("[mi-mo] pageSave file types", url, error);
+    return [];
+  }
+}
+
+/**
+ * ページを1件ずつ取得し、本文と埋め込まれたファイルを1つの ZIP にまとめる。本文の作り方は build で差し替えられる（既定はページ資料）。
  * 本文か、埋め込まれたファイルのどれかを取得できなかったページの件数を failed に入れる。
  * 1件も入れられなかった場合、zip は null になる。
  */
 export async function fetchPagesZip(
   pages: PageSource[],
   onProgress: (done: number, total: number) => void,
+  build: (doc: Document, page: PageSource) => Promise<PageFiles | null> = async (doc, page) =>
+    buildPageFiles(doc, page),
 ): Promise<{ zip: Blob | null; failed: number }> {
   const files: Record<string, Uint8Array> = {};
   let failed = 0;
 
   for (const [index, page] of pages.entries()) {
     try {
-      const response = await fetchOk(page.url);
-      const doc = new DOMParser().parseFromString(
-        await response.text(),
-        "text/html",
-      );
-      const built = buildPageFiles(doc, page);
+      const built = await build(await fetchDocument(page.url), page);
       if (!built) {
         throw new Error("本文が見つかりません");
       }
