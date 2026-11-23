@@ -83,8 +83,9 @@ export default defineConfig({
         gecko: {
           // 公開後は変えられない
           id: '{0800c2fa-d768-4bdb-818c-2f169fa6cd93}',
-          // MV3 のサイトへのアクセス権限が、インストールの時に許可されるのは 127 から。128 は ESR
-          strict_min_version: '128.0',
+          // サポートが続いている ESR に合わせる。下の data_collection_permissions は 140 から（Android は 142 から）。
+          // gecko_android を書かないと、Android にもこの値が使われる
+          strict_min_version: '153.0',
           // 利用者のデータを集めない。store/privacy.md と対になる
           data_collection_permissions: { required: ['none'] },
         },
