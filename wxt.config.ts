@@ -62,6 +62,11 @@ export default defineConfig({
   // dev サーバーが動いている間は保存するたびに読み直される。手順は docs/verify.md にある。
   // WXT 0.21 は web-ext.config.ts の disabled を見ないため、ここに書く
   webExt: { disabled: true },
+  // Firefox の審査に添える sources の ZIP へは、ビルドに使うものだけを入れる。
+  // WXT は .gitignore を見ないため、手元で作ると docs/AGENTS/ の作業メモまで入る
+  zip: {
+    excludeSources: ['AGENTS.md', 'CLAUDE.md', 'docs/**', 'store/**', 'scripts/**'],
+  },
   // WXT の既定では Firefox だけ MV2 になる。両方を MV3 にそろえる
   manifestVersion: 3,
   manifest: ({ browser }) => ({

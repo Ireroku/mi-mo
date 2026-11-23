@@ -199,6 +199,8 @@ content script で Tailwind を使うには、entrypoint から `@/assets/global
 
 **Shadow DOM 内でも shadcn のテーマが効く。** `createShadowRootUi` が注入前に CSS の `:root` を `:host` へ置換し、`@property` を document 側へ分離するため。Shadow Root には `:host{all:initial}` のリセットも入る。
 
+**Tailwind がクラス名を探す範囲を `src/` に決める（`@import "tailwindcss" source("..")`）。** 既定の探し方はプロジェクトの直下から `.gitignore` を頼りに広く探すため、`docs/moodle/` の HTML の写しにある Moodle のクラス名（`mb-3`・`w-100` など）まで CSS に入る。`.gitignore` を含まない Firefox の審査用の sources の ZIP では `.wxt/` まで探し、git から作った版と CSS が食い違う。範囲を決めると、どちらから作っても同じ出力になる（実機で確認）
+
 **フォントを `global.css` へ import しない。** `@fontsource-variable/*` は woff2 を base64 で CSS へ埋め込むため、content script の CSS が 5.85 kB から 888 kB へ膨らむ。Moodle のページには既定のフォントがあり、フォントの差し替えは [`../features/ui/font.md`](../features/ui/font.md) の機能として別に設計する。
 
 ## 実装指示書テンプレート

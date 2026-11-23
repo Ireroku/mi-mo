@@ -1,4 +1,6 @@
-@import "tailwindcss";
+/* クラス名を探す範囲を src/ に決める。既定ではプロジェクトの直下から .gitignore を頼りに探すため、
+   docs/ の文字列や、.gitignore の無い sources の ZIP の .wxt/ を拾い、ビルドごとに CSS が変わる */
+@import "tailwindcss" source("..");
 @import "tw-animate-css";
 @import "shadcn-svelte/tailwind.css";
 
