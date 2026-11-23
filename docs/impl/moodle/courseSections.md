@@ -2,7 +2,7 @@
 
 ## 概要
 
-コースページのセクション本体とヘッダーを組にして読み取る。あわせて、セクションのタイトルと、活動の名前・リンクを読む。[資料一括保存](../coursePage/bulkDownload.md)、[ページ資料の保存](../coursePage/pageSave.md)、[セクション書き出し](../coursePage/exportMarkdown.md)が同じ読み方を共有する。
+コースページとセクションの個別ページ（`course/section.php`）で、セクション本体とヘッダーを組にして読み取る。あわせて、セクションのタイトルと、活動の名前・リンクを読む。[資料一括保存](../coursePage/bulkDownload.md)、[ページ資料の保存](../coursePage/pageSave.md)、[セクション書き出し](../coursePage/exportMarkdown.md)が同じ読み方を共有する。
 
 ## 関連
 
@@ -25,13 +25,17 @@ export function readActivityName(activity: Element): string;
 
 ## 処理の流れ
 
-1. `#region-main div.course-content > div > ul[data-for="course_sectionlist"] > li.section` を文書順で取得する
+1. 次のどちらかに当たる要素を文書順で取得する
+   - コースページ：`#region-main div.course-content > div > ul[data-for="course_sectionlist"] > li.section`
+   - セクションの個別ページ：`#region-main div.course-content div.single-section > ul > li.section`
 2. 各セクション内の最初の `.course-section-header` を探す
 3. ヘッダーが見つかった組だけを配列で返す
 
 ### readSectionTitle
 
-1. セクション内の `.sectionname` の `textContent` を、前後の空白を除いて返す。無ければ空文字
+1. セクション内の `.sectionname` の `textContent` を、前後の空白を除いて返す
+2. `.sectionname` が無く、セクションが `.single-section` の中にあれば、ページの見出し（`.page-header-headings h1`）を同じように読む。セクションの個別ページは、セクションの中にタイトルを置かない
+3. どちらも無ければ空文字
 
 ### activityLink
 

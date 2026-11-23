@@ -1,9 +1,13 @@
 // コースページで、セクション本体とヘッダーの対応と、セクション・活動の名前やリンクを読み取る。
 
+// コースページはセクションの一覧、セクションの個別ページ（course/section.php）は1件だけを置く。
+const SECTION_SELECTOR = [
+  '#region-main div.course-content > div > ul[data-for="course_sectionlist"] > li.section',
+  "#region-main div.course-content div.single-section > ul > li.section",
+].join(", ");
+
 export function findCourseSectionHeaders(): { section: Element; header: Element }[] {
-  const sections = document.querySelectorAll(
-    '#region-main div.course-content > div > ul[data-for="course_sectionlist"] > li.section',
-  );
+  const sections = document.querySelectorAll(SECTION_SELECTOR);
   return Array.from(sections).flatMap((section) => {
     const header = section.querySelector(".course-section-header");
     return header ? [{ section, header }] : [];
@@ -12,9 +16,14 @@ export function findCourseSectionHeaders(): { section: Element; header: Element 
 
 /**
  * セクションのタイトル（`.sectionname` の文字列）を、前後の空白を除いて返す。無ければ空文字を返す。
+ * セクションの個別ページはセクション内にタイトルを持たず、ページの見出しに出すため、そちらを読む。
  */
 export function readSectionTitle(section: Element): string {
-  return section.querySelector(".sectionname")?.textContent?.trim() ?? "";
+  const title =
+    section.querySelector(".sectionname") ??
+    (section.closest(".single-section") &&
+      document.querySelector(".page-header-headings h1"));
+  return title?.textContent?.trim() ?? "";
 }
 
 /**

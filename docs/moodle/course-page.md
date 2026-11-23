@@ -180,6 +180,28 @@ div.course-section-header.d-flex
 
 トピック0（`data-number="0"`、通常「一般」という名前）を含め、**すべてのセクションタイトルがリンクになっている**。リンク先は `course/section.php?id=<セクションの内部ID>`（`course/view.php` ではない）。`id` 属性（`sectionid-<内部ID>-title`）は内部IDを含むため、個別のセクションを指す固定セレクタとしては使えるが、コースをまたいで同じ値にはならない。
 
+## セクションの個別ページ
+
+セクションタイトルのリンク先（`course/section.php?id=<内部ID>`）。1つのセクションだけを表示する。
+
+body のクラスはコースページと同じ `pagelayout-course` を持ち、`single-section-page` と `path-course-view-section` が足される。
+
+```text
+format-weeks limitedwidth single-section-page  path-course path-course-view path-course-view-section gecko dir-ltr lang-ja ... pagelayout-course course-<id> context-<num> category-<num> theme uses-drawers drawer-open-index jsenabled
+```
+
+セクションの置き場所がコースページと違う。`ul[data-for="course_sectionlist"]` は無い。
+
+```text
+#region-main div.course-content > div > div.single-section > ul.weeks > li.section
+  div.section-item
+    div.course-section-header[data-for="section_title"]   中は sectionbadges だけ。.sectionname は無い
+    ...                                                   活動の並びはコースページと同じ（li.activity.modtype_*）
+```
+
+- `ul` のクラスはコースフォーマットで変わる（`weeks` など）
+- セクションのタイトルはセクションの中に無く、ページの見出し `.page-header-headings h1` に出る（例：「第6回　畳み込みと相関～線形システム （11/17）」）
+
 ## セクション内アクティビティの構造
 
 [`export-markdown.md`](../features/course-page/export-markdown.md) が対象にする要素。
@@ -210,6 +232,7 @@ li.activity.modtype_folder[data-id="<cmid>"]
 - フォルダのページ（`/mod/folder/view.php?id=<cmid>`）には、中のファイルへのリンク（`/pluginfile.php/<contextid>/mod_folder/content/0/<ファイル名>?forcedownload=1`）と、「フォルダをダウンロードする」のフォームがある
 - フォームは `method="get"`、送信先は `/mod/folder/download_folder.php`、入力は `id` だけ。`sesskey` は要らない
 - `/mod/folder/download_folder.php?id=<cmid>` を GET すると、`Content-Type: application/x-zip` と `Content-Disposition: attachment` で ZIP が返る。実機で確認済み
+- ZIP の名前は `filename*=UTF-8''<フォルダの名前>-<日付>.zip`（例：`-20261123`）の形だけで、素の `filename=` は付かない。Firefox の `downloads.download` はこの名前を使わない
 
 ### リンクを持つ活動の共通構造（資料の例）
 
