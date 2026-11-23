@@ -1,4 +1,4 @@
-// コースセクション内のページ資料（modtype_page）を集め、本文と画像を取得して ZIP にまとめる。
+// コースセクション内のページ資料（modtype_page）を集め、本文と画像を取得して1つのファイルにまとめる。
 
 import { strToU8, zipSync } from "fflate";
 import { activityLink, readActivityName } from "@/moodle/courseSections";
@@ -70,17 +70,19 @@ export async function fetchFileTypes(doc: Document, url: string): Promise<string
 }
 
 /**
- * ページを1件ずつ取得し、本文と埋め込まれたファイルを1つの ZIP にまとめる。本文の作り方は build で差し替えられる（既定はページ資料）。
+ * ページを1件ずつ取得し、本文と埋め込まれたファイルを1つの ZIP（`<zipTitle>.zip`）にまとめる。本文の作り方は build で差し替えられる（既定はページ資料）。
+ * 中身が .md の1件だけなら、ZIP にせず `<フォルダ名>.md` のファイルにする。
  * 本文か、埋め込まれたファイルのどれかを取得できなかったページの件数を failed に入れる。
- * 1件も入れられなかった場合、zip は null になる。
+ * 1件も入れられなかった場合、file は null になる。
  */
-export async function fetchPagesZip(
+export async function fetchPagesFile(
   pages: PageSource[],
+  zipTitle: string,
   onProgress: (done: number, total: number) => void,
   build: (doc: Document, page: PageSource) => Promise<PageFiles | null> = async (doc, page) =>
     buildPageFiles(doc, page),
-): Promise<{ zip: Blob | null; failed: number }> {
-  const files: Record<string, Uint8Array> = {};
+): Promise<{ file: File | null; failed: number }> {
+  const files: Record<string, Uint8Array<ArrayBuffer>> = {};
   let failed = 0;
 
   for (const [index, page] of pages.entries()) {
@@ -112,13 +114,16 @@ export async function fetchPagesZip(
     onProgress(index + 1, pages.length);
   }
 
-  if (Object.keys(files).length === 0) {
-    return { zip: null, failed };
+  const [first, ...rest] = Object.entries(files);
+  if (!first) {
+    return { file: null, failed };
+  }
+  if (rest.length === 0) {
+    const [path, data] = first;
+    const name = path.slice(path.lastIndexOf("/") + 1);
+    return { file: new File([data], name, { type: "text/markdown;charset=utf-8" }), failed };
   }
 
-  // 中身の大半は圧縮済みの画像のため、圧縮せずにまとめる。
-  const zip = new Blob([zipSync(files, { level: 0 })], {
-    type: "application/zip",
-  });
-  return { zip, failed };
+  const zip = zipSync(files, { level: 0 });
+  return { file: new File([zip], `${zipTitle}.zip`, { type: "application/zip" }), failed };
 }

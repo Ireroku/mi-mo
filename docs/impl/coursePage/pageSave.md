@@ -2,7 +2,7 @@
 
 ## 概要
 
-コースセクションに置かれたページ資料（`modtype_page`）の本文と画像を取得し、セクションごとに1つの ZIP として保存する。コースページでは専用のボタンは持たず、[bulkDownload](./bulkDownload.md) の「資料を保存」が集める対象へ加わる。ページ資料の画面（`/mod/page/view.php`）と課題の画面（`/mod/assign/view.php`）では、bulkDownload が同じボタンを「完了マークする」の帯の右端に置き、開いている画面だけを保存する。課題の画面では、開始・期限・提出できるファイルの種類を YAML の Frontmatter に、説明を本文にする。
+コースセクションに置かれたページ資料（`modtype_page`）の本文と画像を取得し、セクションごとに1つの ZIP として保存する。中身が Markdown 1つだけ（画像も添付も無いページ1件）なら、ZIP にせず `.md` のまま保存する。コースページでは専用のボタンは持たず、[bulkDownload](./bulkDownload.md) の「資料を保存」が集める対象へ加わる。ページ資料の画面（`/mod/page/view.php`）と課題の画面（`/mod/assign/view.php`）では、bulkDownload が同じボタンを「完了マークする」の帯の右端に置き、開いている画面だけを保存する。課題の画面では、開始・期限・提出できるファイルの種類を YAML の Frontmatter に、説明を本文にする。
 
 ## 関連
 
@@ -78,15 +78,17 @@ import type { PageSource } from "./pageSave.logic";
 export function collectPages(section: Element): PageSource[];
 
 /**
- * ページを1件ずつ取得し、本文と埋め込まれたファイルを1つの ZIP にまとめる。
+ * ページを1件ずつ取得し、本文と埋め込まれたファイルを1つの ZIP（`<zipTitle>.zip`）にまとめる。
+ * 中身が .md の1件だけなら、ZIP にせず `<フォルダ名>.md` のファイルにする。
  * 本文か、埋め込まれたファイルのどれかを取得できなかったページの件数を failed に入れる。
- * 1件も入れられなかった場合、zip は null になる。
+ * 1件も入れられなかった場合、file は null になる。
  */
-export function fetchPagesZip(
+export function fetchPagesFile(
   pages: PageSource[],
+  zipTitle: string, // ファイル名に使えない文字を置き換え済みのもの
   onProgress: (done: number, total: number) => void,
   build?: (doc: Document, page: PageSource) => Promise<PageFiles | null>, // 既定は buildPageFiles
-): Promise<{ zip: Blob | null; failed: number }>;
+): Promise<{ file: File | null; failed: number }>;
 
 /**
  * 課題の画面の文書に提出の編集のフォームがあれば、編集の画面を GET で取得してファイルの種類を読む。
@@ -118,7 +120,7 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 6. 複製を `htmlToMarkdown` で Markdown にする。先頭へ `# <ページ名>` と、元のページの URL を1行足す
 7. `folder` を `sanitizeFilename(source.name)` とし、Markdown と、手順4の URL と保存名の一覧を返す
 
-### fetchPagesZip
+### fetchPagesFile
 
 1. `pages` を先頭から1件ずつ処理する。ページは並列にしない
 2. `fetch(url, { credentials: "include" })` で取得し、本文を `DOMParser` で `Document` にして `build`（既定は `buildPageFiles`）へ渡す
@@ -126,14 +128,14 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 4. `embedded` の各ファイルを `fetch` で取得し（`data:` URL もそのまま `fetch` で中身に直る）、`<folder>/<保存名>` として足す。1ページの中のファイルは並列に取得し、`Promise.allSettled` で全件を待つ
 5. 本文の取得、`buildPageFiles`、ファイルの取得のどれかが失敗したページは、`console.error("[mi-mo] pageSave", URL, 理由)` を出して `failed` を1つ増やす。取得できたファイルは ZIP に残す
 6. 1件終わるたびに `onProgress(済んだ件数, 全件数)` を呼ぶ
-7. 中身が1件も無ければ `zip` を `null` にして返す。あれば fflate の `zipSync` へ `level: 0` で渡し、`application/zip` の `Blob` にして返す
+7. 中身が1件も無ければ `file` を `null` にして返す。中身が `.md` の1件だけなら、それを `<folder>.md` の名前の `File`（`text/markdown;charset=utf-8`）にして返す。2件以上なら fflate の `zipSync` へ `level: 0` で渡し、`<zipTitle>.zip` の名前の `File`（`application/zip`）にして返す
 
 ### bulkDownload 側の変更
 
 1. ボタンの件数は、資料・フォルダ・ページの件数を足した数にする。すべて0件のセクションにはボタンを足さない
 2. 押されたら、ボタンを `disabled` にする
-3. `fetchPagesZip` を呼ぶ。`onProgress` でボタンの文言を「ページを取得中（2/6）」へ変える
-4. `zip` があれば、`saveBlob` で `<セクション名>.zip` として保存する。セクション名は `readSectionTitle` で読んだ `.sectionname` のテキストに `sanitizeFilename` を通したもので、取れない場合は「ページ資料」にする
+3. `fetchPagesFile` を呼ぶ。`zipTitle` はセクション名。`onProgress` でボタンの文言を「ページを取得中（2/6）」へ変える
+4. `file` があれば、`saveBlob` で `file.name` の名前で保存する。ZIP なら `<セクション名>.zip`、`.md` 1つなら `<ページ名>.md` になる。セクション名は `readSectionTitle` で読んだ `.sectionname` のテキストに `sanitizeFilename` を通したもので、取れない場合は「ページ資料」にする
 5. 資料とフォルダを `requestDownloads` へ渡す。資料は [`./bulkDownload.md`](./bulkDownload.md) の決めごとの通り、転送先を解決してから渡す
 6. 終わったら `disabled` を外し、文言を元へ戻す。`failed` が1以上の場合は「2件のページに保存できない内容がありました」、途中で例外が出た場合は「保存に失敗しました」にする
 
@@ -144,11 +146,11 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 3. その中に `.completion-info`（「完了マークする」）があればそこを、無ければ `.activity-information` を置き場所の親にする
 4. `addSectionAction(親, "mimo-bulk-download-button", "資料を保存")` で、コースページと同じボタンを右端へ置く。件数は付けない
 5. ページ名は `.page-header-headings h1` の文字列から読む。取れない場合は「ページ」にする
-6. 押された後は「bulkDownload 側の変更」と同じ流れで、`pages` を開いているページ1件（`location.href`）にし、ZIP の名前をページ名にする。資料とフォルダは無い
+6. 押された後は「bulkDownload 側の変更」と同じ流れで、`pages` を開いているページ1件（`location.href`）にし、ZIP の名前をページ名にする。画像も添付も無いページは `<ページ名>.md` になる。資料とフォルダは無い
 
 ### 課題の画面
 
-1. `initBulkDownload` は、`isModAssign()` が true なら、「ページ資料の画面」と同じ流れでボタンを置く。`fetchPagesZip` へ渡す `build` だけを差し替える
+1. `initBulkDownload` は、`isModAssign()` が true なら、「ページ資料の画面」と同じ流れでボタンを置く。`fetchPagesFile` へ渡す `build` だけを差し替える
 2. `build` は、取得した課題の画面の文書を `fetchFileTypes` へ渡し、その結果と一緒に `buildAssignFiles` へ渡す
 3. `fetchFileTypes` は、文書に `input[name="action"][value="editsubmission"]` が無ければ空の配列を返す。あれば `url` の `action` を `editsubmission` にした URL を GET で取得し、`readFileTypes` で読む
 4. `buildAssignFiles` は、`#region-main .activity-header[data-for="page-activity-header"]` を取る。無ければ `null` を返す
@@ -165,6 +167,7 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 - **コースページでは専用のボタンを作らず、「資料を保存」へ足す。** 利用者にとっては、PDF もページも同じ「その回の資料」になる。置き方ごとにボタンを分けると、教員の置き方を利用者が見分けることになる
 - **「書き出す」へは足さない。** 「書き出す」はコースページに見えている内容を1つのテキストにするもので、通信をしない。ページの取得を混ぜると、押してから保存までの時間と、失敗する箇所が変わる
 - **セクションの中のページを1つの ZIP にまとめる。** 画像を1枚ずつ保存する形は、スライド30枚のページが6つあるセクションで百数十件の保存になり、ブラウザのダウンロードの演出がその数だけ走る。ZIP なら保存が1件で済む
+- **中身が Markdown 1つだけなら ZIP にしない。** 画像の無いページや説明だけの課題を保存すると、展開しないと読めない ZIP の中に .md が1つだけ入る形になる。名前はページ名（課題名）にする。セクションの保存でも同じ規則にし、画面ごとに分けない。ブラウザのダウンロード欄に並ぶ数は変わらない
 - **ZIP の中では、1ページを1フォルダにする。** 画像を `data:` で Markdown へ埋め込む形は、1ファイルが数十MBになり、Markdown を開くエディタが重くなる
 - **画像を content script で取得する。** ZIP へ入れるには中身が要る。`pluginfile.php` は同じオリジンにあり、ログイン中の Cookie で取得できる。セクション1つ分（数十MB）をメモリに持つことになる
 - **ZIP の組み立ては fflate に任せ、圧縮しない（`level: 0`）。** 中身の大半は圧縮済みの画像で、圧縮しても小さくならない。圧縮を省くと、組み立てが画面を止める時間が短くなる
@@ -182,7 +185,7 @@ entrypoint からの呼び出しは足さない。`initBulkDownload` の中か�
 - **失敗のあったページの件数を文言に出す。** 残りは保存されているため、「保存に失敗しました」だけでは全部が失敗したように読める
 - **ページ資料の画面でも保存できるようにする。** セクションの中の1ページだけが欲しい場合がある。コースページのボタンはセクションの全部を保存するため、要らない資料まで落ちてくる
 - **ページ資料の画面のボタンは、コースページの「資料を保存」と同じものを、「完了マークする」の帯の右端に置く。** その画面で押せる操作はこの帯に並んでいる。ボタンの作りと押した後の流れを共有し、別のボタンを作らない。件数は付けない（1件に決まっている）
-- **ページ資料の画面でも、表示中の文書を使わず取得し直す。** `fetchPagesZip` をそのまま使えば、本文の読み方と ZIP の形がコースページと同じになる。通信は1回増えるが、開いた時点で閲覧済みになっているため、記録は変わらない
+- **ページ資料の画面でも、表示中の文書を使わず取得し直す。** `fetchPagesFile` をそのまま使えば、本文の読み方と ZIP の形がコースページと同じになる。通信は1回増えるが、開いた時点で閲覧済みになっているため、記録は変わらない
 - **完了の条件が無い画面でも、帯の中へボタンを置く。** 帯は完了の条件が無いページにも出る（中身が空の細い帯になる）。帯そのものが無い画面では置かない
 - **課題の画面にも、同じ「資料を保存」を置く。** 課題の説明・期限を手元へ残したい場面がある。別の名前のボタンを作ると、置き方と押した後の流れを2つ持つことになる。保存の流れは `build` の差し替えだけで共有する
 - **課題の開始・期限・ファイルの種類は YAML の Frontmatter に書く。** 本文と分けておけば、Obsidian などのエディタがプロパティとして読み、並べ替えや絞り込みに使える

@@ -11,7 +11,7 @@ import {
 import { requestDownloads, saveBlob, type DownloadItem } from "@/utils/download";
 import { sanitizeFilename } from "@/utils/filename";
 import { lastPathSegment, readIdParam } from "@/utils/url";
-import { collectPages, fetchFileTypes, fetchPagesZip } from "./pageSave";
+import { collectPages, fetchFileTypes, fetchPagesFile } from "./pageSave";
 import { buildAssignFiles, type PageFiles, type PageSource } from "./pageSave.logic";
 import { addSectionAction } from "./sectionActions";
 
@@ -82,7 +82,7 @@ async function resolveResource(url: string): Promise<DownloadItem> {
 const BUTTON_MARKER = "mimo-bulk-download-button";
 
 /**
- * 押されたら、ページを1つの ZIP（`<zipTitle>.zip`）にまとめて保存し、続けて files の保存を頼むようにする。
+ * 押されたら、ページを1つの ZIP（`<zipTitle>.zip`）にまとめて保存し（中身が .md の1件だけなら `.md` のまま）、続けて files の保存を頼むようにする。
  */
 function bindSave(
   button: HTMLButtonElement,
@@ -95,11 +95,16 @@ function bindSave(
   const save = async () => {
     button.disabled = true;
     try {
-      const { zip, failed } = await fetchPagesZip(pages, (done, total) => {
-        button.textContent = `ページを取得中（${done}/${total}）`;
-      }, build);
-      if (zip) {
-        saveBlob(zip, `${sanitizeFilename(zipTitle())}.zip`);
+      const { file, failed } = await fetchPagesFile(
+        pages,
+        sanitizeFilename(zipTitle()),
+        (done, total) => {
+          button.textContent = `ページを取得中（${done}/${total}）`;
+        },
+        build,
+      );
+      if (file) {
+        saveBlob(file, file.name);
       }
 
       await requestDownloads(await files());
