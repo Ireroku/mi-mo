@@ -7,7 +7,7 @@
 ## 関連
 
 - 使う: [`../moodle/page.md`](../moodle/page.md) — コースページかどうかの判定
-- 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索、セクションのタイトルと活動のリンクの読み取り
+- 使う: [courseSections](../moodle/courseSections.md) — セクションとヘッダーの探索、セクションのタイトルと活動の名前・リンクの読み取り
 - 使う: [`./sectionActions.md`](./sectionActions.md) — ヘッダーの右端へのボタンの追加と、その見た目
 - 使う: [`../utils/download.md`](../utils/download.md) — 保存の依頼
 - 使う: [`../utils/url.md`](../utils/url.md) — フォルダの `id` と、転送先のファイル名の読み取り
@@ -28,7 +28,7 @@
 // src/features/coursePage/bulkDownload.ts
 export function collectResourceUrls(section: Element): string[];
 
-export function collectFolderUrls(section: Element): string[];
+export function collectFolders(section: Element): DownloadItem[];
 
 export function initBulkDownload(): void;
 ```
@@ -50,26 +50,26 @@ initBulkDownload();
 2. 各要素の `activityLink`（`.activityname a`）の `href` を集める
 3. 同じ URL が重複していれば1つに絞る
 
-### collectFolderUrls
+### collectFolders
 
 1. セクション内の `li.activity.modtype_folder` をすべて取る
 2. 各要素の `activityLink`（`.activityname a`）の `href` から `readIdParam` で `id` を読む。リンクの無いものは飛ばす
-3. `/mod/folder/download_folder.php?id=<id>` を集める。重複していれば1つに絞る
+3. `/mod/folder/download_folder.php?id=<id>` を URL に、`readActivityName` で読んだフォルダの名前へ `.zip` を足したものを保存名にして集める。名前が読めなければ「フォルダ.zip」にする。URL が重複していれば1つに絞る
 
 ### initBulkDownload
 
 1. `isCoursePage()` が false なら何もせず戻る
-2. セクションをすべて取る。`collectResourceUrls`・`collectFolderUrls`・`collectPages` がすべて空になるセクションでは、ボタンを足さない
+2. セクションをすべて取る。`collectResourceUrls`・`collectFolders`・`collectPages` がすべて空になるセクションでは、ボタンを足さない
 3. 文言は、資料・フォルダ・ページを足した件数を含めて「資料を保存（5件）」とする
 4. `addSectionAction(header, "mimo-bulk-download-button", 文言)` でヘッダーへボタンを足す。`undefined` が返ったセクションは飛ばす
-5. 押された後の流れは [`./pageSave.md`](./pageSave.md) の「bulkDownload 側の変更」に従う。ページを取得して1つの ZIP として保存し、資料とフォルダの URL を `requestDownloads` へ渡す
+5. 押された後の流れは [`./pageSave.md`](./pageSave.md) の「bulkDownload 側の変更」に従う。ページを取得して1つの ZIP として保存し、資料とフォルダを `requestDownloads` へ渡す
 6. `requestDownloads` が reject した場合、`console.error("[mi-mo] bulkDownload", error)` を出し、ボタンの文言を「保存に失敗しました」へ変える
 
 ## 決めごと
 
 - **リンクへ `redirect=1` を足してから渡す。** 資料の表示設定が「埋め込み」の場合、`/mod/resource/view.php?id=<id>` は転送せずに表示用のページを返し、そのまま渡すと HTML が保存される。`redirect=1` を付けると、表示設定にかかわらずファイル本体（`pluginfile.php`）へ転送される。実機で確認済み
 - **資料は保存の前に転送先を解決し、ファイル名を添えて渡す。** 押された時に、資料の URL ごとに `fetch(url, { method: "HEAD" })` を送り、転送後の `response.url`（`pluginfile.php/.../<ファイル名>`）と、その末尾を `lastPathSegment` でデコードした名前を `DownloadItem` にする。Firefox の `downloads` は転送元の URL から名前を決め、`view.php` で保存する（実機で確認）。転送先の `Content-Disposition` は `inline` のため、Firefox はその名前も使わない。解決に失敗した資料は、元の URL のまま渡す
-- **フォルダは転送先を解決せずに渡す。** `download_folder.php` は `Content-Disposition: attachment` で ZIP の名前を返し、Firefox もその名前で保存する
+- **フォルダは保存名をフォルダの名前から決めて渡す。** `download_folder.php` は ZIP の名前を `Content-Disposition: attachment; filename*=UTF-8''<名前>` で返し、素の `filename=` を付けない。Chrome はこの名前で保存するが、Firefox の `downloads` は読まず `download_folder.php` の名前で保存する（実機で確認）。`HEAD` で名前を読む形は、Moodle が ZIP を作り直すため保存の前に同じ負荷がもう1回かかる。活動名なら通信を足さずに済む。Moodle の名前の末尾に付く日付（`-20261123`）は付かない
 - **対象を資料（`modtype_resource`）・フォルダ（`modtype_folder`）・ページ（`modtype_page`）にする。** 課題や小テストは Moodle の画面で、保存しても中身が手に入らない。ページは本文を取得して Markdown にする
 - **フォルダ（`modtype_folder`）は、中身をまとめた ZIP を1件として保存する。** Moodle がフォルダのページに置いている「フォルダをダウンロードする」と同じ保存先を使う。中のファイルを1つずつ集める形は、フォルダごとにページの取得が要る。ZIP なら通信を足さずに済み、フォルダの中の階層も残る
 - **資料が1件も無いセクションにはボタンを置かない。** 押しても何も起きないボタンを並べない

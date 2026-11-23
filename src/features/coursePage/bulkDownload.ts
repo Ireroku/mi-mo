@@ -4,6 +4,7 @@ import { isCoursePage } from "@/moodle/page";
 import {
   activityLink,
   findCourseSectionHeaders,
+  readActivityName,
   readSectionTitle,
 } from "@/moodle/courseSections";
 import { requestDownloads, saveBlob, type DownloadItem } from "@/utils/download";
@@ -37,10 +38,11 @@ export function collectResourceUrls(section: Element): string[] {
 }
 
 /**
- * セクション内のフォルダ（modtype_folder）について、中身をまとめた ZIP の URL を収集する。
+ * セクション内のフォルダ（modtype_folder）について、中身をまとめた ZIP の URL と保存名を収集する。
+ * Moodle は ZIP の名前を `filename*` だけで返し、Firefox の downloads API はそれを読まないため、フォルダの名前から保存名を決める。
  */
-export function collectFolderUrls(section: Element): string[] {
-  const urls: string[] = [];
+export function collectFolders(section: Element): DownloadItem[] {
+  const folders = new Map<string, DownloadItem>();
   for (const el of section.querySelectorAll("li.activity.modtype_folder")) {
     const anchor = activityLink(el);
     const id = anchor?.href && readIdParam(anchor.href);
@@ -50,10 +52,11 @@ export function collectFolderUrls(section: Element): string[] {
 
     const url = new URL("/mod/folder/download_folder.php", anchor.href);
     url.searchParams.set("id", id);
-    urls.push(url.href);
+    const name = readActivityName(el) || "フォルダ";
+    folders.set(url.href, { url: url.href, filename: `${name}.zip` });
   }
 
-  return Array.from(new Set(urls));
+  return Array.from(folders.values());
 }
 
 /**
@@ -84,9 +87,9 @@ export function initBulkDownload(): void {
 
   for (const { section, header } of findCourseSectionHeaders()) {
     const resourceUrls = collectResourceUrls(section);
-    const folderUrls = collectFolderUrls(section);
+    const folders = collectFolders(section);
     const pages = collectPages(section);
-    const count = resourceUrls.length + folderUrls.length + pages.length;
+    const count = resourceUrls.length + folders.length + pages.length;
     if (count === 0) {
       continue;
     }
@@ -109,7 +112,7 @@ export function initBulkDownload(): void {
         }
 
         const resources = await Promise.all(resourceUrls.map(resolveResource));
-        await requestDownloads([...resources, ...folderUrls.map((url) => ({ url }))]);
+        await requestDownloads([...resources, ...folders]);
         button.textContent =
           failed > 0 ? `${failed}件のページに保存できない内容がありました` : label;
       } catch (error) {

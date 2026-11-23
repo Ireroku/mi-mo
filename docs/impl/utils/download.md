@@ -86,7 +86,7 @@ export default defineBackground(() => {
 
 - **`downloads` permission を `wxt.config.ts` の `manifest.permissions` へ宣言する。** WXT は API の使用を自動で検出しない。宣言が無いと実行時に失敗する。生成物の `.output/<target>/manifest.json` を見れば確認できる
 - **保存を background で行う。** `browser.downloads` は content script から呼べない。呼べたとしても、ページの寿命に保存処理が縛られる
-- **保存名は依頼する側が決めて渡す。** Chrome の `downloads` は転送を追い、`Content-Disposition` から名前を決める。Firefox は転送元の URL から決めるため、資料のリンク（`/mod/resource/view.php?id=<id>`）を渡すと `view.php` の名前で保存される（実機で確認）。転送先の解決は [`../coursePage/bulkDownload.md`](../coursePage/bulkDownload.md) が行う。名前を渡さない項目は、`Content-Disposition: attachment` で名前の付いて返るもの（フォルダの ZIP）に限る
+- **保存名は依頼する側が決めて渡す。** Chrome の `downloads` は転送を追い、`Content-Disposition` から名前を決める。Firefox は転送元の URL から決めるため、資料のリンク（`/mod/resource/view.php?id=<id>`）を渡すと `view.php` の名前で保存される（実機で確認）。転送先の解決は [`../coursePage/bulkDownload.md`](../coursePage/bulkDownload.md) が行う。フォルダの ZIP も、名前を `filename*` だけで返すため Firefox が読まない。呼び出し側がフォルダの名前から決めて渡す
 - **URL の保存にリンクのクリック（`<a download>`）を使わない。** ページから続けて起こす複数の保存は、ブラウザが確認を出して止める。別のオリジンへ転送される URL では `download` 属性の保存名も効かない
 - **content script の中で作ったデータは、大きさにかかわらず `saveBlob` で保存する。** `blob:` の URL は background で解決できない場合がある。`data:` の URL を background へ渡すと、Firefox では応答が返らず、送り手に「Promised response from onMessage listener went out of scope」が届いた（書き出しで実機で確認）。メッセージで中身を background へ送る形は、Chrome では JSON に直されるため、バイナリをそのまま渡せない。リンクのクリックなら、作った文脈の中で保存まで終わる。保存は1回の操作につき1件に限る
 - **`saveBlob` は URL を60秒後に返す。** 保存が始まる前に返すと失敗する。返さないと、ページを開いている間データがメモリに残る
