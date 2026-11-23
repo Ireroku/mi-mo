@@ -44,11 +44,18 @@ export function addSectionAction(
 ### 注入する CSS
 
 ```css
+body.path-mod-page .activity-header:has(> .mimo-section-actions) {
+  display: flex;
+  align-items: center;
+}
+body.path-mod-page .activity-header > div:has(+ .mimo-section-actions) > div:last-child {
+  border-bottom: 0;
+}
 body.pagelayout-course .course-section-header:has(> .mimo-section-actions) {
   flex-wrap: wrap;
   row-gap: 0.5rem;
 }
-body.pagelayout-course .course-section-header > .mimo-section-actions {
+body:is(.pagelayout-course, .path-mod-page) :is(.course-section-header, .activity-header) > .mimo-section-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -73,4 +80,5 @@ body.pagelayout-course .course-section-header:has(> * > .section-collapsemenu) >
 - **「すべてを折りたたむ」のある見出しでは、置き場所を上寄せにして上へ 0.5rem 空ける。** Moodle はそのボタンの入れ物へ `align-self-start mt-2` を付けている。中央寄せのままでは、同じ行で 4px 上にずれる（実機で確認）。ほかの見出しはタイトルと同じ高さのため、中央寄せのままにする
 - **狭い画面では、置き場所を見出しの次の行へ折り返す。** 置き場所が縮まないと、長いタイトルが1文字ずつに潰れ、ボタンが画面の右へはみ出す（幅 420px で確認）。見出しに `flex-wrap` を当て、入りきらない時だけ置き場所ごと次の行へ回す。置き場所の中も折り返し、ボタンが1行に収まらない幅でもはみ出さないようにする
 - **置き場所の中の並び順は、呼び出された順にする。** entrypoint が書き出し、一括保存の順に呼ぶかどうかで決まる。このモジュールは順序を持たない
+- **ページ資料の画面の「完了マークする」の帯にも、同じ置き場所を使う。** 帯を横並びにし、完了の情報を左に、置き場所を右端に置く。Moodle は帯の最後の要素の中の下線を消す（[`../../moodle/mod-page.md`](../../moodle/mod-page.md)）。置き場所が最後に来るため、その1つ前の要素の中で同じように消す
 - **重複の判定は `marker` で行う。** 同じ機能が2度呼ばれても、ボタンが増えない

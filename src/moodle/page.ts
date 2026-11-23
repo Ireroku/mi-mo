@@ -6,17 +6,20 @@ export type MoodlePage =
   | "dashboard"
   | "myCourses"
   | "coursePage"
+  | "modPage"
   | "other";
 
 type KnownPage = Exclude<MoodlePage, "other">;
 
 // 判定の軸は body の pagelayout-* に統一する。照合の順序を考えずに済むため。
+// 活動の画面は pagelayout-incourse を共有するため、活動の種類ごとの path-mod-* を使う。
 // course-<id> と context-<num> はコースやユーザーごとに変わるので使わない。
 const PAGE_CLASSES: Record<KnownPage, string> = {
   siteHome: "pagelayout-frontpage",
   dashboard: "pagelayout-mydashboard",
   myCourses: "pagelayout-mycourses",
   coursePage: "pagelayout-course",
+  modPage: "path-mod-page",
 };
 
 export function getMoodlePage(): MoodlePage {
@@ -46,4 +49,8 @@ export function isMyCourses(): boolean {
 
 export function isCoursePage(): boolean {
   return getMoodlePage() === "coursePage";
+}
+
+export function isModPage(): boolean {
+  return getMoodlePage() === "modPage";
 }

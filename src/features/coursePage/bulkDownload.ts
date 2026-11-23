@@ -1,6 +1,7 @@
 // コースセクション内の資料（modtype_resource）・フォルダ（modtype_folder）・ページ（modtype_page）を一括で保存するボタンを追加する。
+// ページ資料の画面（mod/page/view.php）では、同じボタンで開いているページだけを保存する。
 
-import { isCoursePage } from "@/moodle/page";
+import { isCoursePage, isModPage } from "@/moodle/page";
 import {
   activityLink,
   findCourseSectionHeaders,
@@ -11,6 +12,7 @@ import { requestDownloads, saveBlob, type DownloadItem } from "@/utils/download"
 import { sanitizeFilename } from "@/utils/filename";
 import { lastPathSegment, readIdParam } from "@/utils/url";
 import { collectPages, fetchPagesZip } from "./pageSave";
+import type { PageSource } from "./pageSave.logic";
 import { addSectionAction } from "./sectionActions";
 
 /**
@@ -77,10 +79,76 @@ async function resolveResource(url: string): Promise<DownloadItem> {
   return { url };
 }
 
+const BUTTON_MARKER = "mimo-bulk-download-button";
+
+/**
+ * 押されたら、ページを1つの ZIP（`<zipTitle>.zip`）にまとめて保存し、続けて files の保存を頼むようにする。
+ */
+function bindSave(
+  button: HTMLButtonElement,
+  label: string,
+  pages: PageSource[],
+  zipTitle: () => string,
+  files: () => Promise<DownloadItem[]>,
+): void {
+  const save = async () => {
+    button.disabled = true;
+    try {
+      const { zip, failed } = await fetchPagesZip(pages, (done, total) => {
+        button.textContent = `ページを取得中（${done}/${total}）`;
+      });
+      if (zip) {
+        saveBlob(zip, `${sanitizeFilename(zipTitle())}.zip`);
+      }
+
+      await requestDownloads(await files());
+      button.textContent =
+        failed > 0 ? `${failed}件のページに保存できない内容がありました` : label;
+    } catch (error) {
+      console.error("[mi-mo] bulkDownload", error);
+      button.textContent = "保存に失敗しました";
+    } finally {
+      button.disabled = false;
+    }
+  };
+
+  button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    void save();
+  });
+}
+
+/**
+ * ページ資料の画面の「完了マークする」の帯の右端へ、開いているページだけを保存するボタンを置く。
+ */
+function initModPageDownload(): void {
+  const header = document.querySelector(
+    '#region-main .activity-header[data-for="page-activity-header"]',
+  );
+  if (!header) {
+    return;
+  }
+
+  const label = "資料を保存";
+  const button = addSectionAction(header, BUTTON_MARKER, label);
+  if (!button) {
+    return;
+  }
+
+  const name =
+    document.querySelector(".page-header-headings h1")?.textContent?.trim() || "ページ";
+  bindSave(button, label, [{ name, url: location.href }], () => name, async () => []);
+}
+
 /**
  * コースページの各セクションヘッダーに資料一括保存ボタンを配置する。
+ * ページ資料の画面では、開いているページだけを保存するボタンを置く。
  */
 export function initBulkDownload(): void {
+  if (isModPage()) {
+    initModPageDownload();
+    return;
+  }
   if (!isCoursePage()) {
     return;
   }
@@ -95,37 +163,17 @@ export function initBulkDownload(): void {
     }
 
     const label = `資料を保存（${count}件）`;
-    const button = addSectionAction(header, "mimo-bulk-download-button", label);
+    const button = addSectionAction(header, BUTTON_MARKER, label);
     if (!button) {
       continue;
     }
 
-    const save = async () => {
-      button.disabled = true;
-      try {
-        const { zip, failed } = await fetchPagesZip(pages, (done, total) => {
-          button.textContent = `ページを取得中（${done}/${total}）`;
-        });
-        if (zip) {
-          const title = readSectionTitle(section) || "ページ資料";
-          saveBlob(zip, `${sanitizeFilename(title)}.zip`);
-        }
-
-        const resources = await Promise.all(resourceUrls.map(resolveResource));
-        await requestDownloads([...resources, ...folders]);
-        button.textContent =
-          failed > 0 ? `${failed}件のページに保存できない内容がありました` : label;
-      } catch (error) {
-        console.error("[mi-mo] bulkDownload", error);
-        button.textContent = "保存に失敗しました";
-      } finally {
-        button.disabled = false;
-      }
-    };
-
-    button.addEventListener("click", (e) => {
-      e.stopPropagation();
-      void save();
-    });
+    bindSave(
+      button,
+      label,
+      pages,
+      () => readSectionTitle(section) || "ページ資料",
+      async () => [...(await Promise.all(resourceUrls.map(resolveResource))), ...folders],
+    );
   }
 }

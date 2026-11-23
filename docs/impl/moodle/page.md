@@ -2,7 +2,7 @@
 
 ## 概要
 
-今表示しているページが Moodle のどの画面かを判定する。body のクラスを見て、サイトホーム・ダッシュボード・マイコース・コースページの4種を区別する。複数の機能が同じ判定を必要とするため `src/moodle/` に置く。
+今表示しているページが Moodle のどの画面かを判定する。body のクラスを見て、サイトホーム・ダッシュボード・マイコース・コースページ・ページ資料の画面の5種を区別する。複数の機能が同じ判定を必要とするため `src/moodle/` に置く。
 
 ## 関連
 
@@ -25,6 +25,7 @@ export type MoodlePage =
   | "dashboard"
   | "myCourses"
   | "coursePage"
+  | "modPage"
   | "other";
 
 export function getMoodlePage(): MoodlePage;
@@ -33,6 +34,7 @@ export function isSiteHome(): boolean;
 export function isDashboard(): boolean;
 export function isMyCourses(): boolean;
 export function isCoursePage(): boolean;
+export function isModPage(): boolean;
 ```
 
 ## 処理の流れ
@@ -46,7 +48,8 @@ export function isCoursePage(): boolean;
 | `siteHome` | `pagelayout-frontpage` | `/` |
 | `dashboard` | `pagelayout-mydashboard` | `/my/` |
 | `myCourses` | `pagelayout-mycourses` | `/my/courses.php` |
-| `coursePage` | `pagelayout-course` | `/course/view.php?id=<id>` |
+| `coursePage` | `pagelayout-course` | `/course/view.php?id=<id>`、`/course/section.php?id=<id>` |
+| `modPage` | `path-mod-page` | `/mod/page/view.php?id=<id>` |
 
 ### getMoodlePage
 
@@ -54,7 +57,7 @@ export function isCoursePage(): boolean;
 2. `document.body.classList` を判定テーブルと照合する
 3. 一致した種別を返す。どれにも一致しなければ `"other"` を返す
 
-### isSiteHome / isDashboard / isMyCourses / isCoursePage
+### isSiteHome / isDashboard / isMyCourses / isCoursePage / isModPage
 
 `getMoodlePage()` の結果を対応する種別と比較した真偽値を返す。判定の実体を持たない。
 
@@ -62,8 +65,8 @@ export function isCoursePage(): boolean;
 
 - **原則として `is~` を使い、`getMoodlePage()` は複数のページで処理を分ける場合だけ使う。** 呼び出し側の大半は「このページか」を聞くだけで、`is~` の方が短く読める
 - **判定の実体は `getMoodlePage()` だけが持ち、`is~` はその比較にとどめる。** 判定テーブルを2箇所に置かないため
-- **判定に使うクラスは `pagelayout-*` に統一する。** `path-site` や `page-mycourses` も固有の値ですが、軸を1つに絞ると照合の順序を考えずに済む
+- **判定に使うクラスは `pagelayout-*` に統一する。** `path-site` や `page-mycourses` も固有の値ですが、軸を1つに絞ると照合の順序を考えずに済む。活動の画面だけは例外で、どれも `pagelayout-incourse` を共有するため、活動の種類ごとの `path-mod-<種類>` を使う。`path-mod-*` は他の `pagelayout-*` と同じ body に付かないため、照合の順序は変わらず考えなくてよい
 - **`course-<id>` と `context-<num>` は使わない。** コースやユーザーごとに変わる
 - **呼び出しごとに DOM を読み、結果をキャッシュしない。** 状態は DOM だけが持つ
 - **`document_start` の時点では判定できない。** body がまだ無いため常に `"other"` を返す。CSS だけで完結する処理は、この関数を使わずセレクタの先頭に body クラスを書く（[`../home/hideElements.md`](../home/hideElements.md) がその形）
-- **4種以外のページは区別しない。** 活動ページ（小テスト、課題など）を扱う機能が出た時点で種別を足す
+- **5種以外のページは区別しない。** 他の活動の画面（小テスト、課題など）を扱う機能が出た時点で種別を足す

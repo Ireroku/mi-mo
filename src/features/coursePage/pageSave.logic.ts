@@ -20,6 +20,14 @@ const EMBEDDED_SELECTOR =
   "img[src], source[src], audio[src], video[src], a[href]";
 
 /**
+ * 画像の `data:` URL の MIME から拡張子（`.png` など）を返す。画像でなければ空文字を返す。
+ */
+function dataImageExtension(url: string): string {
+  const subtype = /^data:image\/([a-z0-9.+-]+)/i.exec(url)?.[1]?.split("+")[0];
+  return subtype ? `.${subtype.toLowerCase() === "jpeg" ? "jpg" : subtype}` : "";
+}
+
+/**
  * 取得したページの文書から、本文の Markdown と、埋め込まれたファイルの一覧を作る。
  * 本文が見つからない場合は null を返す。
  */
@@ -44,7 +52,9 @@ export function buildPageFiles(
     }
 
     const url = new URL(raw, source.url);
-    if (!url.pathname.includes("/pluginfile.php/")) {
+    // 本文へ直に埋め込まれた画像（data: URL）も、ファイルに分けて Markdown を読める長さに保つ。
+    const isDataImage = el.tagName === "IMG" && url.protocol === "data:";
+    if (!isDataImage && !url.pathname.includes("/pluginfile.php/")) {
       // 本文の外を指すリンクは、保存先から開けるよう絶対URLにしておく。
       el.setAttribute(attr, url.href);
       continue;
@@ -52,11 +62,15 @@ export function buildPageFiles(
 
     let savedName = savedNames.get(url.href);
     if (!savedName) {
-      const original = sanitizeFilename(lastPathSegment(url));
+      const original = isDataImage ? "" : sanitizeFilename(lastPathSegment(url));
       if (el.tagName === "IMG") {
         imageCount += 1;
         const dot = original.lastIndexOf(".");
-        const ext = dot >= 0 ? original.slice(dot) : "";
+        const ext = isDataImage
+          ? dataImageExtension(url.href)
+          : dot >= 0
+            ? original.slice(dot)
+            : "";
         savedName = `${String(imageCount).padStart(3, "0")}${ext}`;
       } else {
         savedName = original;

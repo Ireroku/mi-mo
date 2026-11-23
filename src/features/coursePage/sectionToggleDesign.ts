@@ -1,5 +1,5 @@
 // コース内容の右上にある「すべてを展開する / すべてを折りたたむ」のリンクを、押せると分かる見た目へ整える。
-// セクションヘッダーの操作ボタン（sectionActions.ts）にも同じ規則を当て、見た目をそろえる。
+// セクションヘッダーの操作ボタン（sectionActions.ts）にも同じ規則を当て、見た目をそろえる。ページ資料の画面に置く同じボタンにも当てる。
 
 import { applyStyleSheet } from "@/utils/styleSheet";
 import { SECTION_ACTION_CLASS } from "./sectionActions";
@@ -10,7 +10,7 @@ const STYLE_ELEMENT_ID = "mimo-course-page-section-toggle";
 
 export function applySectionToggleDesign(): void {
   const css = `
-body.pagelayout-course ${TARGET} {
+body:is(.pagelayout-course, .path-mod-page) ${TARGET} {
   display: inline-flex;
   align-items: center;
   padding: 0.375rem 0.75rem;
@@ -22,14 +22,14 @@ body.pagelayout-course ${TARGET} {
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-body.pagelayout-course ${TARGET}:hover {
+body:is(.pagelayout-course, .path-mod-page) ${TARGET}:hover {
   background-color: rgba(15, 108, 191, 0.08);
   background-color: color-mix(in srgb, var(--primary, #0f6cbf) 8%, transparent);
   border-color: var(--primary, #0f6cbf);
   text-decoration: none;
 }
 
-body.pagelayout-course ${TARGET}:focus-visible {
+body:is(.pagelayout-course, .path-mod-page) ${TARGET}:focus-visible {
   outline: 2px solid var(--primary, #0f6cbf);
   outline-offset: 2px;
 }

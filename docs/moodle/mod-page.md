@@ -28,8 +28,24 @@ li.activity.modtype_page
   .modified                                 「最終更新日時: 2026年 09月 11日(金曜日) 09:50」
 ```
 
+- body は `id="page-mod-page-view"` で、クラスに `path-mod-page pagelayout-incourse cm-type-page cmid-<cmid>` を持つ。`pagelayout-incourse` は他の活動の画面と共有する
 - 本文のセレクタは `#region-main .generalbox > .no-overflow`。採取した10ページすべてで1件
 - ページの見出しは `#region-main h2` か `.page-header-headings h1` のどちらかに出る。どちらに出るかは個別に確かめていない。ページ名はコースページ側の `.instancename` から取る方が確実
+
+## 完了の帯
+
+完了の条件があるページでは、見出しと本文の間に灰色の帯が出る。
+
+```text
+#region-main div.activity-header[data-for="page-activity-header"]   灰色の帯（背景 #f8f9fa、角丸）。display: block
+  span.sr-only                                                     「完了要件」
+  div.activity-information[data-region="activity-information"][data-activityname="<ページ名>"]
+    div.completion-info[data-region="completion-info"]             上下 1rem の余白と、下線（border-bottom）
+      button.btn.btn-outline-secondary.btn-sm.text-nowrap[data-action="toggle-manual-completion"]   「完了マークする」
+```
+
+- Moodle の CSS は `.path-mod .activity-header:not(:empty) > div:last-child > div:last-child { border-bottom: 0 }` で、帯の最後の要素の中の下線を消している。帯の末尾へ要素を足すと、この規則が外れて下線が出る
+- 完了の条件が無いページで帯が出るかは確かめていない
 
 ## 本文に現れる要素
 
@@ -54,6 +70,8 @@ li.activity.modtype_page
 - 同じオリジンにあり、ログイン中の Cookie で取得できる
 - 末尾が元のファイル名で、拡張子もそのまま入る（採取例は `.PNG`）
 - `img` の `src`、`source` の `src`、`a` の `href` に現れる
+
+画像は、本文へ `data:image/png;base64,…` の形で直に入っている場合もある（`/mod/page/view.php?id=161243` の4枚。1枚で数万〜十数万バイト）。ファイルとしては Moodle に置かれていない。
 
 ## 注意点
 

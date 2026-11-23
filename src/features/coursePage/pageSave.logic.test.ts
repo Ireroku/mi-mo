@@ -22,6 +22,21 @@ describe("buildPageFiles", () => {
     expect(buildPageFiles(doc, source)).toBeNull();
   });
 
+  it("data: URL の画像も連番のファイルに分け、Markdown に data: を残さない", () => {
+    const png = "data:image/png;base64,iVBORw0KGgo=";
+    const doc = parse(
+      `<p><img src="${png}"><img src="data:image/jpeg;base64,/9j/4A=="><img src="${png}"></p>`,
+    );
+    const files = buildPageFiles(doc, source)!;
+
+    expect(files.embedded).toEqual([
+      { url: png, name: "001.png" },
+      { url: "data:image/jpeg;base64,/9j/4A==", name: "002.jpg" },
+    ]);
+    expect(files.markdown).toContain("![](001.png)![](002.jpg)![](001.png)");
+    expect(files.markdown).not.toContain("data:");
+  });
+
   it("画像を出現順の連番で保存し、Markdown から相対パスで指す", () => {
     const doc = parse(
       `<p><img src="${FILE_BASE}/slide%20b.PNG"></p><p><img src="${FILE_BASE}/slide%20a.PNG"></p>`,
