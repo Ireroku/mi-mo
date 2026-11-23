@@ -2,7 +2,7 @@
   "name": "mi-mo",
   "description": "三重大学 Moodle 4 の非公式ブラウザ拡張機能",
   "private": true,
-  "version": "2026.11.22",
+  "version": "2026.11.23",
   "type": "module",
   "scripts": {
     "dev": "wxt",
