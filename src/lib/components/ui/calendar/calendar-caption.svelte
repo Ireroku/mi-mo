@@ -28,6 +28,17 @@
 		if (typeof monthFormat === "function") return monthFormat(dateObj.getMonth() + 1);
 		return new DateFormatter(locale, { month: monthFormat }).format(dateObj);
 	}
+
+	// 年と月の並びと区切りはロケールに任せる（ja は「2026年5月」、en は「May 2026」）。
+	// 書式を関数で渡された時だけ、それぞれを書式にかけて並べる
+	function formatCaption(date: DateValue) {
+		if (typeof monthFormat === "function" || typeof yearFormat === "function") {
+			return `${formatMonth(date)} ${formatYear(date)}`;
+		}
+		return new DateFormatter(locale, { year: yearFormat, month: monthFormat }).format(
+			date.toDate(getLocalTimeZone())
+		);
+	}
 </script>
 
-{formatMonth(month)} {formatYear(month)}
+{formatCaption(month)}
