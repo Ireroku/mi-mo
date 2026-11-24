@@ -2,16 +2,20 @@
 
 [三重大学 Moodle 4](https://lms-m41.mie-u.ac.jp/) に幾つかの機能を追加するブラウザ拡張機能です。
 
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+[![Releases](https://img.shields.io/github/v/release/Ireroku/mi-mo?label=latest)](https://github.com/Ireroku/mi-mo/releases)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/iickbpdjgonlnnckbceliopjoejbadhe?label=&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/mi-mo/iickbpdjgonlnnckbceliopjoejbadhe)
+[![Firefox Add-ons](https://img.shields.io/amo/v/mi-mo?label=&logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/firefox/addon/mi-mo/)  
 ![Framework: WXT](https://img.shields.io/badge/Framework-WXT-red.svg)
 ![Svelte 5](https://img.shields.io/badge/Svelte-5-FF3E00?logo=svelte&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss&logoColor=white)
-![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+
+[<img src="./docs/assets/badges/chrome-web-store.png" alt="Chrome ウェブストアで入手" height="58">](https://chromewebstore.google.com/detail/mi-mo/iickbpdjgonlnnckbceliopjoejbadhe)
+<!-- Firefox は審査が通ったらコメントから外す
+[<img src="./docs/assets/badges/firefox-add-ons.svg" alt="Firefox Add-ons で入手" height="58">](https://addons.mozilla.org/firefox/addon/mi-mo/)
+-->
 
 > [!WARNING]
 > この拡張機能は非公式のソフトウェアです。[三重大学](https://www.mie-u.ac.jp/)および[Moodle HQ](https://moodle.org)とはいかなる関係もありません。  
-> 利用によって生じたどんな不都合や損害も責任を負いかねます。自己責任でご利用ください。  
+> 利用によって生じたどんな不都合や損害も責任を負いかねます。自己責任にてご利用ください。  
 
 ---
 
